@@ -1,25 +1,47 @@
+import numpy as np
 import datetime as dt
-from account import CAccount
 from transaction import CAtomicTransaction, CTransaction
 from limitedToken import CLimitedToken
 from initBlock import CInitBlock
+from database import CSQLLite
+from actionToken import CActionToken
 
-Qcoin = CInitBlock()
-account_2 = CAccount('second', Qcoin.firstAccount)
+kade = CSQLLite()
+Qcoin = CInitBlock(kade)
+baseToken = CLimitedToken(kade, 'Q', 1, 0)
+baseToken = baseToken.copyFromBaseLimitToken(Qcoin.getBaseToken())
+account_1 = baseToken.copyFromBaseAccount(Qcoin.firstAccount)
 
-account_3 = CAccount('third', Qcoin.firstAccount)
 
-#Example of Atomic transaction
-atomic_2 = CAtomicTransaction(Qcoin.firstAccount, account_2, 1000.00, optData='send TXN')
-txn = CTransaction(dt.datetime.strptime('2019-03-24', '%Y-%m-%d'), 1)
-if txn.add(atomic_2, 'sign_1', 'sign_2') == True:
-    print('Current amount of Q on ', account_2.accountName, ' = ', account_2.amount)
-    print('Current amount of Q on', Qcoin.firstAccount.accountName, ' = ', Qcoin.firstAccount.amount)
-atomic_3 = CAtomicTransaction(Qcoin.firstAccount, account_3, 100.00, optData='send TXN')
-txn = CTransaction(dt.datetime.strptime('2019-03-24', '%Y-%m-%d'), 1)
-if txn.add(atomic_3, 'sign_1', 'sign_3') == True:
-    print('Current amount of Q on ', account_3.accountName, ' = ', account_3.amount)
-    print('Current amount of Q on', Qcoin.firstAccount.accountName, ' = ', Qcoin.firstAccount.amount)
+actionToken = CActionToken(kade, 'A', 10000, account_1)
+
+accounts = [account_1]
+for i in range(100):
+    accounts.append(baseToken.create('', accounts[-1]))
+    account_1.send(accounts[-1], baseToken, np.random.randint(1,10000))
     
-account_2.send(account_3, 100)
-account_3.send(Qcoin.firstAccount, 100)
+    if i < 50:
+        actionToken.atach(accounts[-1], atacher=account_1)
+        account_1.send(accounts[-1], actionToken, 200)
+        
+for i in range(100):
+    accounts[1].send(accounts[np.random.randint(0,100)], actionToken, 1)
+    
+actionToken.showAll()
+print(actionToken.accountName, ' Real total supply = ', actionToken.totalSupply)
+#Example of Atomic transaction
+
+baseToken.lockAccounts(accounts[2], accounts[3])
+baseToken.lockAccounts(accounts[3], accounts[1])
+baseToken.lockAccounts(accounts[1], accounts[2])
+
+txn = CTransaction(dt.datetime.strptime('2020-03-29', '%Y-%m-%d'), 3)
+atomic_1 = CAtomicTransaction(accounts[2], accounts[3], 1000.00, optData='send TXN', token=baseToken)
+atomic_2 = CAtomicTransaction(accounts[3], accounts[1], 100.00, optData='send TXN', token=baseToken)
+atomic_3 = CAtomicTransaction(accounts[1], accounts[2], 10.00, optData='send TXN', token=baseToken)
+txn.add(atomic_1, 'sign_1', 'sign_2')
+txn.add(atomic_2, 'sign_1', 'sign_3')
+txn.add(atomic_3, 'sign_1', 'sign_3')
+
+baseToken.showAll()
+kade.close()

@@ -1,12 +1,19 @@
-import numpy as np
 
 class CChain():
     def __init__(self):
         self.transactions = []
         self.uniqueAccounts = {}
         #TO DO
-        self.accountsCreated = []
-        
+        self.accountsCreated = {}
+    '''    
+    def getParameters(self):
+        return self.transactions, self.uniqueAccounts, self.accountsCreated
+
+    def setParameters(self, transactions, uniqueAccounts, accountsCreated):
+        self.transactions = transactions
+        self.uniqueAccounts = uniqueAccounts
+        self.accountsCreated = accountsCreated
+    '''    
     #This should be called when transaction is spread and accepted in blockchain
     def addTransaction(self, transaction):
         if transaction not in self.transactions:
