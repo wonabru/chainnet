@@ -8,9 +8,9 @@ class CCreator(CBaseAccount):
     pass
 
 class CAccount(CBaseAccount):
-    def __init__(self, DB, accountName = '', creator = 0):
+    def __init__(self, DB, accountName = '', creator = 0, wallet = None):
         self.kade = DB
-        super().__init__(DB, accountName)
+        super().__init__(DB, accountName, wallet)
         
         if creator == 0:
             self.creator = CCreator(self.kade)

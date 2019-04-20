@@ -14,7 +14,10 @@ class CDataBase(object):
         self.mydict[key] = value
             
     def get(self, key):
-        ret = self.mydict[key]
+        if key in self.mydict.keys():
+            ret = self.mydict[key]
+        else:
+            ret = None
         return ret
     
     def show(self):

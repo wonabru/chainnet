@@ -1,9 +1,9 @@
 from account import CAccount
 
 class CLimitedToken(CAccount):
-    def __init__(self, DB, tokenName, totalSupply, creator):
+    def __init__(self, DB, tokenName, totalSupply, creator, wallet = None):
         self.creator = 0
-        super().__init__(DB, tokenName, creator)
+        super().__init__(DB, tokenName, creator, wallet)
         self.totalSupply = totalSupply
         if creator == 0:
             self.owner = CAccount(DB)
