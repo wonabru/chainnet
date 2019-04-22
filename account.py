@@ -13,13 +13,16 @@ class CAccount(CBaseAccount):
         super().__init__(DB, accountName, address)
         
         self.creator = creator
-        self.initTransaction = CInitBlock(self.kade).getInitTransaction()
         try:
+            self.init_block = creator.init_block
+        except:
+            self.init_block = CInitBlock(self.kade)
+        self.initTransaction = self.init_block.getInitTransaction()
+        try:
+            self.chain.uniqueAccounts['0'] = self.init_block.getBaseToken()
             self.chain.uniqueAccounts[creator.address] = creator
         except:
             print('Warning: creator is not valid account')
-
-        self.save()
 
     def copyFromBaseAccount(self, baseAccount):
         account = self.create(baseAccount.accountName, baseAccount, baseAccount.address)
@@ -34,12 +37,13 @@ class CAccount(CBaseAccount):
         if address in self.chain.uniqueAccounts or accountName in self.chain.get_unique_account_names():
             return None
         account = CAccount(self.kade, accountName, creator, address)
-        self.chain.uniqueAccounts[0] = CInitBlock(self.kade).getBaseToken()
+        self.chain.uniqueAccounts['0'] = self.init_block.getBaseToken()
         self.chain.uniqueAccounts[account.address] = account
         account.save()
         return account
 
     def save(self):
+        self.init_block.getBaseToken().save()
         super().save()
         
     def update(self):

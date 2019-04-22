@@ -1,25 +1,29 @@
 import numpy as np
 import datetime as dt
 from chain import CChain
+import ast
 
 class CBaseAccount():
     def __init__(self, DB, accountName, address):
         self.kade = DB
         self.decimalPlace = 2
-        self.amount = {0: 0}
+        self.amount = {'0': 0}
         self.address = address
         self.accountName = accountName
         self.chain = CChain()
         self.isLocked = {}
    
-    def setAmount(self, token, amount):
+    def setAmount(self, token, amount, save=True):
         if amount < 0:
             print('Amount of tokens cannot be less than zero')
             return False
         self.amount[token.address] = np.round(amount, self.decimalPlace)
+        if save:
+            self.save()
+            token.save()
         return True
 
-    def addAmount(self, token, amount):
+    def addAmount(self, token, amount, save=True):
         
         if token.address not in self.amount.keys():
             self.amount[token.address] = 0
@@ -28,7 +32,7 @@ class CBaseAccount():
         if temp_amount < 0:
             print('not enough funds')
             return False
-        self.amount[token.address] = np.round(temp_amount, self.decimalPlace)
+        self.setAmount(token, temp_amount, save)
         return True
     
     def lockAccounts(self, sender, recipient):
@@ -54,21 +58,38 @@ class CBaseAccount():
         return True
 
     def getParameters(self):
-        return self.decimalPlace, self.amount, self.address, self.accountName
+        _uniqueAccounts, _accountsCreated = self.chain.getParameters()
+        return self.decimalPlace, self.amount, self.address, self.accountName, str({a: v for a, v in _accountsCreated.items()}), str(list(_uniqueAccounts.keys()))
 
-    def setParameters(self, decimalPlace, amount, address, accountName):
+    def setParameters(self, par, with_chain=True):
+        decimalPlace, amount, address, accountName, acc_created, acc_chain = par
+
+        if with_chain:
+            _temp_chain = {}
+            acc_chain = ast.literal_eval(acc_chain.replace('true', 'True').replace('false', 'False'))
+            acc_created = ast.literal_eval(acc_created.replace('true', 'True').replace('false', 'False'))
+            for acc in acc_chain:
+                _temp_chain[acc] = CBaseAccount(self.kade, '__temp__', acc)
+                _temp_chain[acc].update(with_chain=False)
+            self.chain.setParameters([acc_created, _temp_chain])
         self.decimalPlace = decimalPlace
         self.amount = amount
         self.address = address
         self.accountName = accountName
 
     def save(self):
-        self.kade.save(self.address, self.getParameters())
-        
-        
-    def update(self):
-        decimalPlace, amount, address, accountName = self.kade.get(self.address)
-        self.setParameters(decimalPlace, amount, address, accountName)
+        _acc_chain, _acc_created = self.chain.getParameters()
+        par = self.decimalPlace, self.amount, self.address, self.accountName, str(_acc_created), str(list(_acc_chain.keys()))
+        self.kade.save(self.address, par)
+        for acc in _acc_chain:
+            _account = self.chain.uniqueAccounts[acc]
+            results = self.kade.get(acc)
+            if results is None and acc != self.address and _account is not None:
+                _account.save()
+
+    def update(self, with_chain = True):
+        decimalPlace, amount, address, accountName, _acc_created, _acc_chain = self.kade.get(self.address)
+        self.setParameters([decimalPlace, amount, address, accountName, _acc_created, _acc_chain], with_chain)
 
     def show(self):
         ret = ' ' + self.accountName + ' = ' + str(self.address) + ' '

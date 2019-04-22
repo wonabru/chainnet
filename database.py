@@ -18,9 +18,11 @@ class CSQLLite():
         #self.kade.set(key=key, value=str(value))
 
     def get(self, key):
-        import ast
-        response_local = self.sqllite.get(key=str(key))
 
+        response_local = self.sqllite.get(key=str(key))
+        return response_local
+        '''
+        import ast
         if response_local is None:
             response = self.kade.get(key=key)
 
@@ -30,7 +32,7 @@ class CSQLLite():
             return response
         else:
             return response_local
-    
+        '''
     def close(self):
         self.sqllite.close()
 

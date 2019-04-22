@@ -2,14 +2,11 @@ from Crypto.PublicKey import RSA
 from base64 import b64decode,b64encode
 
 class CWallet:
-	def __init__(self, create_new = None):
-		if create_new is None:
+	def __init__(self, name_of_wallet = None):
+		if name_of_wallet is None:
 			return
-		if create_new:
-			self.RSAkey = RSA.generate(1024)
-			self.saveWallet(self.exportDER(self.RSAkey), "chainnet_wallet")
 		else:
-			self.RSAkey = self.checkWalletExist()
+			self.RSAkey = self.checkWalletExist(name_of_wallet)
 		self.pubKey = self.getPublicKey(self.RSAkey)
 
 	def encode(self, n):
@@ -56,12 +53,12 @@ class CWallet:
 		return priv
 
 	def saveWallet(self, priv, name):
-		with open(name + ".dat", 'wb') as outfile:
+		with open("./wallets/" + name + ".wallet.dat", 'wb') as outfile:
 			outfile.write(priv)
 
 	def loadWallet(self, name):
 		try:
-			with open(name + ".dat", 'rb') as file:
+			with open("./wallets/" + name + ".wallet.dat", 'rb') as file:
 				data = file.read()
 		except:
 			return None
@@ -71,11 +68,12 @@ class CWallet:
 		values = self.jsonifyKey(key)
 		return self.privfromJson(values)
 
-	def checkWalletExist(self):
-		self.RSAkey = self.loadWallet("chainnet_wallet")
+	def checkWalletExist(self, name_of_wallet, raiseErrorIfNotExist = False):
+		self.RSAkey = self.loadWallet(name_of_wallet)
+		if raiseErrorIfNotExist and self.RSAkey is None: raise 'Wallet file "' + name_of_wallet + '.wallet.dat" not found !!'
 		if self.RSAkey is None:
 			self.RSAkey = RSA.generate(1024)
-			self.saveWallet(self.exportDER(self.RSAkey), "chainnet_wallet")
+			self.saveWallet(self.exportDER(self.RSAkey), name_of_wallet)
 		else:
 			self.RSAkey = self.importFromDER(self.RSAkey)
 

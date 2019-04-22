@@ -6,8 +6,7 @@ class CDataBase(object):
             self.close()
         except:
             pass
-        self.mydict = SqliteDict('./my_db.sqlite', autocommit=True)
-        self.clear()
+        self.mydict = SqliteDict('./DB/my_db.sqlite', autocommit=True)
         self.show()
 
     def set(self, key, value):
