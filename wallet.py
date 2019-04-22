@@ -2,8 +2,12 @@ from Crypto.PublicKey import RSA
 from base64 import b64decode,b64encode
 
 class CWallet:
-	def __init__(self):
-		self.RSAkey = self.checkWalletExist()
+	def __init__(self, create_new):
+		if create_new:
+			self.RSAkey = RSA.generate(1024)
+			self.saveWallet(self.exportDER(self.RSAkey), "chainnet_wallet")
+		else:
+			self.RSAkey = self.checkWalletExist()
 		self.pubKey = self.getPublicKey(self.RSAkey)
 
 	def encode(self, n):

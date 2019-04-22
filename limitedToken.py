@@ -1,19 +1,16 @@
 from account import CAccount
 
 class CLimitedToken(CAccount):
-    def __init__(self, DB, tokenName, totalSupply, creator, wallet = None):
+    def __init__(self, DB, tokenName, totalSupply, creator, address):
         self.creator = 0
-        super().__init__(DB, tokenName, creator, wallet)
+        super().__init__(DB, tokenName, creator, address)
         self.totalSupply = totalSupply
-        if creator == 0:
-            self.owner = CAccount(DB)
-        else:
-            self.owner = creator
+        self.owner = creator
         self.owner.setAmount(self, totalSupply)
 
     def copyFromBaseLimitToken(self, baseLimitToken):
-        token = CLimitedToken(self.kade, baseLimitToken.accountName, baseLimitToken.totalSupply, baseLimitToken)
-        token.address = baseLimitToken.address
+        token = CLimitedToken(self.kade, baseLimitToken.accountName, baseLimitToken.totalSupply,
+                              baseLimitToken, address=baseLimitToken.address)
         token.save()
         return token
 

@@ -8,11 +8,9 @@ class CInitBlock():
     def __init__(self, kade):
         self.kade = kade
         self.baseTotalSupply = 1000000.00
-        self.initAccount = CBaseLimitedToken(self.kade, 'Q', self.baseTotalSupply)
-        self.initAccount.address = 0
+        self.initAccount = CBaseLimitedToken(self.kade, 'Q', self.baseTotalSupply, address=0)
         self.initAccount.setAmount(self.initAccount, self.baseTotalSupply)
-        self.firstAccount = CBaseAccount(self.kade, 'wonabru')
-        self.firstAccount.address = 1
+        self.firstAccount = CBaseAccount(self.kade, 'wonabru', address=1)
         self.initAtomicTransaction = CAtomicTransaction(self.initAccount, self.firstAccount, self.baseTotalSupply, optData='initTransaction', token=self.initAccount)
         self.initTransaction = CTransaction(dt.datetime.today()+dt.timedelta(minutes=1), 1)
         self.initTransaction.add(self.initAtomicTransaction, 'sign_init', 'sign_wonabru')

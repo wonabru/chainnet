@@ -8,15 +8,11 @@ class CCreator(CBaseAccount):
     pass
 
 class CAccount(CBaseAccount):
-    def __init__(self, DB, accountName = '', creator = 0, wallet = None):
+    def __init__(self, DB, accountName, creator, address):
         self.kade = DB
-        super().__init__(DB, accountName, wallet)
+        super().__init__(DB, accountName, address)
         
-        if creator == 0:
-            self.creator = CCreator(self.kade)
-            self.creator.address = np.random.randint(1,1000000000)
-        else:
-            self.creator = creator
+        self.creator = creator
         self.initTransaction = CInitBlock(self.kade).getInitTransaction()
         try:
             self.chain.uniqueAccounts[creator.address] = creator
@@ -26,17 +22,16 @@ class CAccount(CBaseAccount):
         self.save()
 
     def copyFromBaseAccount(self, baseAccount):
-        account = self.create(baseAccount.accountName, baseAccount)
+        account = self.create(baseAccount.accountName, baseAccount, baseAccount.address)
         account.decimalPlace = baseAccount.decimalPlace
         account.amount = baseAccount.amount
-        account.address = baseAccount.address
         account.chain = baseAccount.chain
         account.save()
         
         return account
 
-    def create(self, accountName, creator):
-        account = CAccount(self.kade, accountName, creator)
+    def create(self, accountName, creator, address):
+        account = CAccount(self.kade, accountName, creator, address)
         self.chain.uniqueAccounts[0] = CInitBlock(self.kade).getBaseToken()
         self.chain.uniqueAccounts[account.address] = account
         account.save()

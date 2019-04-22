@@ -6,7 +6,7 @@ from initBlock import CInitBlock
 from database import CSQLLite
 from actionToken import CActionToken
 from wallet import CWallet
-
+from baseAccount import CBaseAccount
 
 
 class CInitChainnet:
@@ -15,13 +15,18 @@ class CInitChainnet:
 		self.wallet = CWallet()
 		self.DB = CSQLLite(self.wallet.pubKey)
 		self.Qcoin = CInitBlock(self.DB)
-		self.baseToken = CLimitedToken(self.DB, 'Q', 1, 0)
+		_creator = CBaseAccount(self.DB, accountName='0', address=-1)
+		self.baseToken = CLimitedToken(self.DB, tokenName='Q', totalSupply=1, creator=_creator, address=0)
 		self.baseToken = self.baseToken.copyFromBaseLimitToken(self.Qcoin.getBaseToken())
 		self.first_account = self.baseToken.copyFromBaseAccount(self.Qcoin.firstAccount)
 		self.add_token(self.baseToken)
+		self.set_my_account()
 
 	def add_token(self, account):
 		self.tokens[account.address] = account
 
 	def check_is_first_account(self):
 		return True if self.first_account.address == self.wallet.pubKey else False
+
+	def set_my_account(self):
+		self.my_account = self.first_account

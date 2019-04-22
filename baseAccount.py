@@ -3,19 +3,12 @@ import datetime as dt
 from chain import CChain
 
 class CBaseAccount():
-    def __init__(self, DB, accountName = '', wallet = None):
+    def __init__(self, DB, accountName, address):
         self.kade = DB
         self.decimalPlace = 2
         self.amount = {0: 0}
-        if wallet is not None:
-            self.address = wallet.pubKey
-        else:
-            self.address = np.random.randint(1, 100000000)
-        if accountName == '':
-            self.accountName = str(self.address)[:5]
-        else:
-            self.accountName = accountName
-
+        self.address = address
+        self.accountName = accountName
         self.chain = CChain()
         self.isLocked = {}
    
