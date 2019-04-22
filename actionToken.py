@@ -2,9 +2,9 @@ import operator
 from account import CAccount
 
 class CActionToken(CAccount):
-    def __init__(self, DB, tokenName, initialSupply, creator, wallet = None):
+    def __init__(self, DB, tokenName, initialSupply, creator, address):
         self.creator = 0
-        super().__init__(DB, tokenName, creator, wallet)
+        super().__init__(DB, tokenName, creator, address)
         self.minAmount = 10 ** -self.decimalPlace
         self.totalSupply = initialSupply
         if creator == 0:

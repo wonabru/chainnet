@@ -12,7 +12,7 @@ from baseAccount import CBaseAccount
 class CInitChainnet:
 	def __init__(self):
 		self.tokens = {}
-		self.wallet = CWallet()
+		self.wallet = CWallet(False)
 		self.DB = CSQLLite(self.wallet.pubKey)
 		self.Qcoin = CInitBlock(self.DB)
 		_creator = CBaseAccount(self.DB, accountName='0', address=-1)
@@ -24,6 +24,15 @@ class CInitChainnet:
 
 	def add_token(self, account):
 		self.tokens[account.address] = account
+
+	def get_token(self, address):
+		return self.tokens[address]
+
+	def get_token_by_name(self, name):
+		for key, token in self.tokens.items():
+			if token.accountName == name:
+				return token
+		return None
 
 	def check_is_first_account(self):
 		return True if self.first_account.address == self.wallet.pubKey else False

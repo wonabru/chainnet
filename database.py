@@ -6,14 +6,16 @@ class CSQLLite():
         self.nodes = []
         self.sqllite = sqllite()
         self.kade = CDataBase()
+        '''
         self.kade.initiate()
         self.kade.runServer()
         self.register_node('127.0.0.1', ownAddress)
         self.bootstrapNodes()
+        '''
 
     def save(self, key, value):
         self.sqllite.set(key=str(key), value=value)
-        self.kade.set(key=key, value=str(value))
+        #self.kade.set(key=key, value=str(value))
 
     def get(self, key):
         import ast

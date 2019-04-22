@@ -5,6 +5,7 @@ class CChain():
         self.uniqueAccounts = {}
         #TO DO
         self.accountsCreated = {}
+
     '''    
     def getParameters(self):
         return self.transactions, self.uniqueAccounts, self.accountsCreated
@@ -21,3 +22,6 @@ class CChain():
             for atomic in transaction.atomicTransactions:
                 self.uniqueAccounts[atomic.sender.address] = atomic.sender
                 self.uniqueAccounts[atomic.recipient.address] = atomic.recipient
+
+    def get_unique_account_names(self):
+        return [acc.accountName for acc in self.uniqueAccounts.values()]

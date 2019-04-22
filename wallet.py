@@ -2,7 +2,9 @@ from Crypto.PublicKey import RSA
 from base64 import b64decode,b64encode
 
 class CWallet:
-	def __init__(self, create_new):
+	def __init__(self, create_new = None):
+		if create_new is None:
+			return
 		if create_new:
 			self.RSAkey = RSA.generate(1024)
 			self.saveWallet(self.exportDER(self.RSAkey), "chainnet_wallet")
@@ -78,3 +80,10 @@ class CWallet:
 			self.RSAkey = self.importFromDER(self.RSAkey)
 
 		return self.RSAkey
+
+	@staticmethod
+	def check_address(address):
+		if address == '':
+			return False
+
+		return True

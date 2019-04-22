@@ -31,6 +31,8 @@ class CAccount(CBaseAccount):
         return account
 
     def create(self, accountName, creator, address):
+        if address in self.chain.uniqueAccounts or accountName in self.chain.get_unique_account_names():
+            return None
         account = CAccount(self.kade, accountName, creator, address)
         self.chain.uniqueAccounts[0] = CInitBlock(self.kade).getBaseToken()
         self.chain.uniqueAccounts[account.address] = account
