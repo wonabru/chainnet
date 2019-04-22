@@ -11,7 +11,7 @@ class CDataBase(object):
         if self.server is None:
             self.loop = asyncio.get_event_loop()
             self.server = Server()
-            self.loop.run_until_complete(self.server.listen(5678))
+            self.loop.run_until_complete(self.server.listen(5679))
             handler = logging.StreamHandler()
             formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
