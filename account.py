@@ -43,7 +43,7 @@ class CAccount(CBaseAccount):
         return account
 
     def save(self):
-        self.init_block.getBaseToken().save()
+        #self.init_block.getBaseToken().save()
         super().save()
         
     def update(self):

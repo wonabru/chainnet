@@ -50,13 +50,13 @@ class CInitBlock():
     def update(self):
         self.initAccount.setParameters(self.kade.get('initAccount'))
         self.firstAccount.setParameters(self.kade.get('firstAccount'))
-        self.firstAccount.setParameters(self.kade.get(self.firstAccount.address))
+        self.firstAccount.update()
         #self.initTransaction.setParameters(self.kade.get('initTransaction'))
         for acc in self.initAccount.chain.uniqueAccounts.keys():
             if acc not in [self.initAccount.address, self.firstAccount.address]:
                 _account = CBaseAccount(self.kade, '__temp__', acc)
                 try:
-                    _account.setParameters(self.kade.get(acc))
+                    _account.update()
                     self.initAccount.chain.uniqueAccounts[acc] = _account
                 except Exception as ex:
                     print(str(ex))

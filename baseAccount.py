@@ -50,7 +50,7 @@ class CBaseAccount():
         token.lockAccounts(self, recipient)
         
         atomic = CAtomicTransaction(self, recipient, amount, optData='Simple TXN', token=token)
-        txn = CTransaction(dt.datetime.today()+dt.timedelta(seconds=10), 1)
+        txn = CTransaction(dt.datetime.today()+dt.timedelta(seconds=1000), 1)
         if txn.add(atomic, 'sign_1', 'sign_2') == False:
             print('Sending fails')
             return False

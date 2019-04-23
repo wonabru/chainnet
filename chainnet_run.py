@@ -34,7 +34,7 @@ class Application(tk.Frame):
 		for acc in _my_accounts:
 			_account = CAccount(self.my_main_account.kade, '__temp__', None, acc)
 			try:
-				_account.setParameters(self.my_main_account.kade.get(acc))
+				_account.update()
 				_wallet = CWallet(_account.accountName)
 				if _account.address != self.init_account.address:
 					self.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
