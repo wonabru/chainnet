@@ -126,11 +126,11 @@ class CTransaction():
     '''
     def spreadTransactionToWorld(self):
         if len(self.atomicTransactions) == 1:
-            self.senders[0].kade.save(self.senders[0].address, self.senders[0].getParameters())
-            self.recipients[0].kade.save(self.recipients[0].address, self.recipients[0].getParameters())
+            self.senders[0].save()
+            self.recipients[0].save()
         else:
             for acc in self.senders:
-                acc.kade.save(acc.address, acc.getParameters())
+                acc.save()
 
     def verify(self, atomicTransaction, signSender, signRecipient):
         return True

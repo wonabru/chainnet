@@ -4,9 +4,6 @@ from baseAccount import CBaseAccount
 from initBlock import CInitBlock
 
 
-class CCreator(CBaseAccount):
-    pass
-
 class CAccount(CBaseAccount):
     def __init__(self, DB, accountName, creator, address):
         self.kade = DB
@@ -21,6 +18,8 @@ class CAccount(CBaseAccount):
         try:
             self.chain.uniqueAccounts['0'] = self.init_block.getBaseToken()
             self.chain.uniqueAccounts[creator.address] = creator
+            creator.chain.uniqueAccounts[self.address] = self
+            creator.save()
         except:
             print('Warning: creator is not valid account')
 
@@ -29,7 +28,7 @@ class CAccount(CBaseAccount):
         account.decimalPlace = baseAccount.decimalPlace
         account.amount = baseAccount.amount
         account.chain = baseAccount.chain
-        account.save()
+        #account.save()
         
         return account
 
@@ -37,9 +36,11 @@ class CAccount(CBaseAccount):
         if address in self.chain.uniqueAccounts or accountName in self.chain.get_unique_account_names():
             return None
         account = CAccount(self.kade, accountName, creator, address)
-        self.chain.uniqueAccounts['0'] = self.init_block.getBaseToken()
         self.chain.uniqueAccounts[account.address] = account
+        account.chain.uniqueAccounts[self.address] = self
         account.save()
+        self.save()
+        creator.save()
         return account
 
     def save(self):
