@@ -6,15 +6,17 @@ class CDataBase(object):
             self.close()
         except:
             pass
-        self.mydict = SqliteDict('./my_db.sqlite', autocommit=True)
-        self.clear()
+        self.mydict = SqliteDict('./DB/my_db.sqlite', autocommit=True)
         self.show()
 
     def set(self, key, value):
         self.mydict[key] = value
             
     def get(self, key):
-        ret = self.mydict[key]
+        if key in self.mydict.keys():
+            ret = self.mydict[key]
+        else:
+            ret = None
         return ret
     
     def show(self):

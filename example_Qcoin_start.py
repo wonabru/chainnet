@@ -5,8 +5,12 @@ from limitedToken import CLimitedToken
 from initBlock import CInitBlock
 from database import CSQLLite
 from actionToken import CActionToken
+from wallet import CWallet
 
-kade = CSQLLite()
+myWallet = CWallet()
+ownAddress = myWallet.pubKey
+
+kade = CSQLLite(ownAddress)
 Qcoin = CInitBlock(kade)
 baseToken = CLimitedToken(kade, 'Q', 1, 0)
 baseToken = baseToken.copyFromBaseLimitToken(Qcoin.getBaseToken())
