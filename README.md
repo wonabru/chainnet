@@ -33,3 +33,11 @@
 <!-- wp:list -->
 <ul><li>No need of 51% consensus of network to accept block, thus instant transactions.</li><li>Negative transactions fees, what can be understood as negative friction. Activity in network builds its value and supply, so stabilize its price.</li><li>No infant time of this blockchain. Chainnet is secure from very beginning.</li><li>Joining to network is per invitation, so someone who is in the network can create new accounts, so closely related to real human social network.</li><li>No need to store whole blockchain on each node, so no proxy servers which operate on your name. Everybody can operate Chainnet from smartphone. Idea of true decentralization.</li></ul>
 <!-- /wp:list -->
+
+How to run:
+    
+     git clone https://github.com/wonabru/chainnet.git
+     cd chainnet
+     mkdir DB
+     mkdir wallets
+     python chainnet_run.py

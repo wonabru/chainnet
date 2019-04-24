@@ -4,45 +4,47 @@ from baseAccount import CBaseAccount
 from initBlock import CInitBlock
 
 
-class CCreator(CBaseAccount):
-    pass
-
 class CAccount(CBaseAccount):
-    def __init__(self, DB, accountName = '', creator = 0):
+    def __init__(self, DB, accountName, creator, address):
         self.kade = DB
-        super().__init__(DB, accountName)
+        super().__init__(DB, accountName, address)
         
-        if creator == 0:
-            self.creator = CCreator(self.kade)
-            self.creator.address = np.random.randint(1,1000000000)
-        else:
-            self.creator = creator
-        self.initTransaction = CInitBlock(self.kade).getInitTransaction()
+        self.creator = creator
         try:
+            self.init_block = creator.init_block
+        except:
+            self.init_block = CInitBlock(self.kade)
+        self.initTransaction = self.init_block.getInitTransaction()
+        try:
+            self.chain.uniqueAccounts['0'] = self.init_block.getBaseToken()
             self.chain.uniqueAccounts[creator.address] = creator
+            creator.chain.uniqueAccounts[self.address] = self
+            creator.save()
         except:
             print('Warning: creator is not valid account')
 
-        self.save()
-
     def copyFromBaseAccount(self, baseAccount):
-        account = self.create(baseAccount.accountName, baseAccount)
+        account = self.create(baseAccount.accountName, baseAccount, baseAccount.address)
         account.decimalPlace = baseAccount.decimalPlace
         account.amount = baseAccount.amount
-        account.address = baseAccount.address
         account.chain = baseAccount.chain
-        account.save()
+        #account.save()
         
         return account
 
-    def create(self, accountName, creator):
-        account = CAccount(self.kade, accountName, creator)
-        self.chain.uniqueAccounts[0] = CInitBlock(self.kade).getBaseToken()
+    def create(self, accountName, creator, address):
+        if address in self.chain.uniqueAccounts or accountName in self.chain.get_unique_account_names():
+            return None
+        account = CAccount(self.kade, accountName, creator, address)
         self.chain.uniqueAccounts[account.address] = account
+        account.chain.uniqueAccounts[self.address] = self
         account.save()
+        self.save()
+        creator.save()
         return account
 
     def save(self):
+        #self.init_block.getBaseToken().save()
         super().save()
         
     def update(self):

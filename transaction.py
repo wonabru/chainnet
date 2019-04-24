@@ -6,23 +6,23 @@ class CAtomicTransaction():
         if sender.address == recipient.address:
             print('sender cannot be the same as recipient')
             return None
-        if sender.address not in token.isLocked.keys() and sender.address != 0:
+        if sender.address not in token.isLocked.keys() and sender.address != '0':
             print('Cannot perform transaction. Lock sender account first')
             return None
-        if recipient.address not in token.isLocked.keys() and sender.address != 0:
+        if recipient.address not in token.isLocked.keys() and sender.address != '0':
             print('Cannot perform transaction. Lock recipient account first')
             return None        
-        if sender.address != 0 and token.isLocked[sender.address] != recipient.address:
+        if sender.address != '0' and token.isLocked[sender.address] != recipient.address:
             print('Sender account is locked, but not for the recipient')
             return None
-        if sender.address != 0 and token.isLocked[recipient.address] != sender.address:
+        if sender.address != '0' and token.isLocked[recipient.address] != sender.address:
             print('Recipient account is locked, but not for the sender')
             return None
         
         list1 = sender.chain.uniqueAccounts
         list2 = recipient.chain.uniqueAccounts
 
-        if any(e in list2 for e in list1) == False and sender.address != 0:
+        if any(e in list2 for e in list1) == False and sender.address != '0':
             print('sender and recipient have no common connections')
             return None
         if recipient.address not in token.chain.uniqueAccounts:
@@ -44,7 +44,7 @@ class CTransaction():
         self.timeToClose = timeToClose
         self.noAtomicTransactions = noAtomicTransactions
 
-    def add(self, atomicTransaction, signSender, signRecipient):
+    def add(self, atomicTransaction, signSender, signRecipient, save=True):
         
         if self.noAtomicTransactions == len(self.atomicTransactions):
             print('Stack is full. Please first remove one atomicTransaction in order to add new one')
@@ -75,24 +75,26 @@ class CTransaction():
         if self.noAtomicTransactions == len(self.atomicTransactions):
             if self.checkTransaction() == True:
                 for atomic in self.atomicTransactions:
-                    if atomic.sender.addAmount(atomic.token, -atomic.amount) == False or atomic.recipient.addAmount(atomic.token, atomic.amount) == False:
+                    if atomic.sender.addAmount(atomic.token, -atomic.amount, save) == False or atomic.recipient.addAmount(atomic.token, atomic.amount, save) == False:
                         print('sender has not enough funds')
                         return False
                     
                     atomic.sender.chain.addTransaction(self)
+                    atomic.sender.save()
                     atomic.recipient.chain.addTransaction(self)
+                    atomic.recipient.save()
                     try:
-                        if atomic.sender.address != 0:
+                        if atomic.sender.address != '0':
                             del atomic.token.isLocked[atomic.sender.address]
                     except:
                         print("Key sender address not found in isLocked")
                     try:
-                        if atomic.sender.address != 0:
+                        if atomic.sender.address != '0':
                             del atomic.token.isLocked[atomic.recipient.address]
                     except:
                         print("Key recipient address not found in isLocked")
                     
-                if atomic.sender.address != 0:
+                if atomic.sender.address != '0':
                     self.spreadTransactionToWorld()
                 return True
             else:
@@ -124,11 +126,11 @@ class CTransaction():
     '''
     def spreadTransactionToWorld(self):
         if len(self.atomicTransactions) == 1:
-            self.senders[0].kade.save(self.senders[0].address, self.senders[0].getParameters())
-            self.recipients[0].kade.save(self.recipients[0].address, self.recipients[0].getParameters())
+            self.senders[0].save()
+            self.recipients[0].save()
         else:
             for acc in self.senders:
-                acc.kade.save(acc.address, acc.getParameters())
+                acc.save()
 
     def verify(self, atomicTransaction, signSender, signRecipient):
         return True
