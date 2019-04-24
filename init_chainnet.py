@@ -16,7 +16,7 @@ class CInitChainnet:
 		self.wallet = CWallet('main')
 		self.DB = CSQLLite(self.wallet.pubKey)
 		self.Qcoin = CInitBlock(self.DB)
-		_creator = CBaseAccount(self.DB, accountName='0', address=-1)
+		_creator = CBaseAccount(self.DB, accountName='0', address='-1')
 		self.baseToken = CLimitedToken(self.DB, tokenName='Q', totalSupply=self.Qcoin.baseTotalSupply, creator=_creator, address=self.Qcoin.getBaseToken().address, save=False)
 		self.baseToken = self.baseToken.copyFromBaseLimitToken(self.Qcoin.getBaseToken())
 		self.first_account = self.baseToken.copyFromBaseAccount(self.Qcoin.firstAccount)
@@ -29,6 +29,7 @@ class CInitChainnet:
 		if save:
 			self.DB.save('tokens', str(list(self.tokens.keys())))
 		token.save()
+		token.owner.save()
 
 	def get_token(self, address):
 		return self.tokens[address]
@@ -62,8 +63,9 @@ class CInitChainnet:
 					_token.update()
 				except Exception as ex:
 					print(str(ex))
-					return False
+					_token = self.baseToken if acc == '0' else None
 
-			self.tokens[_token.address] = _token
+			if _token is not None:
+				self.tokens[_token.address] = _token
 
 		return True

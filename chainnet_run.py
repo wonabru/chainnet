@@ -7,6 +7,7 @@ from actionToken import CActionToken
 from limitedToken import CLimitedToken
 from account import CAccount
 import ast
+from tkinter import scrolledtext
 
 class Application(tk.Frame):
 	def __init__(self, master=None):
@@ -15,14 +16,15 @@ class Application(tk.Frame):
 		self.my_main_wallet = self.chainnet.wallet
 		self.my_main_account = self.chainnet.my_account
 		self.my_accounts = {}
+		self.column_nr = {}
 		self.update_my_accounts()
 		self.master = master
-		self.pack()
 		self.create_tabs()
 		self.create_account_tab()
 		self.create_create_tab()
 		self.create_send_tab()
-
+		self.create_info_tab()
+		self.pack()
 
 	def update_my_accounts(self):
 		self.init_account = self.chainnet.Qcoin.initAccount
@@ -41,19 +43,56 @@ class Application(tk.Frame):
 			except Exception as ex:
 				messagebox.showerror(title='Error loading file', message=str(ex))
 
+		self.my_main_account = self.select_my_acount_by_name(self.my_main_account.accountName, update=False)
+
 	def create_tabs(self):
 		self.tab_control = ttk.Notebook(self.master)
-		self.account_tab = ttk.Frame(self.tab_control)
-		self.create_tab = ttk.Frame(self.tab_control)
-		self.send_tab = ttk.Frame(self.tab_control)
-		self.receive_tab = ttk.Frame(self.tab_control)
+		self.account_tab = tk.Frame(self.tab_control)
+		self.create_tab = tk.Frame(self.tab_control)
+		self.send_tab = tk.Frame(self.tab_control)
+		self.receive_tab = tk.Frame(self.tab_control)
+		self.info_tab = tk.Frame(self.tab_control)
 		self.tab_control.add(self.account_tab, text='Accounts balances')
 		self.tab_control.add(self.create_tab, text='Create Account')
 		self.tab_control.add(self.send_tab, text='Send')
 		self.tab_control.add(self.receive_tab, text='Receive')
+		self.tab_control.add(self.info_tab, text='Accounts info')
 		self.tab_control.pack(expand=1, fill='both')
 
+	def create_info_tab(self):
+		tk.Label(self.info_tab, text='Choose token name:', font=("Helvetica", 12)).grid(row=0, column=0, sticky=tk.W)
+		self.tokens_cmb_info = ttk.Combobox(self.info_tab)
+		_token = []
+		_token.extend([str(token.accountName) for key, token in self.chainnet.tokens.items()])
+		self.tokens_cmb_info['values'] = _token
+		self.tokens_cmb_info.set(_token[0])
+		self.tokens_cmb_info.grid(column=0, row=1, sticky=tk.W)
+		tk.Label(self.info_tab, text='Account by name:',
+				 font=("Helvetica", 12)).grid(column=1, row=0, sticky=tk.W)
+		self.my_accounts_cmb_info = ttk.Combobox(self.info_tab)
+		_acc = []
+		_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
+		self.my_accounts_cmb_info['values'] = _acc
+		self.my_accounts_cmb_info.set(_acc[0])
+		self.my_accounts_cmb_info.grid(column=1, row=1, sticky=tk.W)
+		tk.Button(self.info_tab, text="Get Info", command=lambda: self.get_info(
+			self.my_accounts_cmb_info.get(), self.tokens_cmb_info.get())).grid(column=2, row=0, rowspan=2, sticky=tk.W)
+
+		self.info_txt = scrolledtext.ScrolledText(self.info_tab, width=120, height=30)
+		self.info_txt.grid(column=0,row=3, columnspan=3)
+
+	def get_info(self, account, token):
+		self.info_txt.delete(1.0, tk.END)
+		self.info_txt.insert(tk.INSERT, "Account: \n" + account+"\n")
+		self.info_txt.insert(tk.INSERT, "Token: \n" + token+"\n")
+		_account = self.select_my_acount_by_name(account)
+		self.info_txt.insert(tk.INSERT, _account.show() + "\n")
+		_token = self.chainnet.get_token_by_name(token)
+		self.info_txt.insert(tk.INSERT, _token.show() + "\n")
+		self.info_txt.insert(tk.INSERT, _token.showAll() + "\n")
+
 	def create_account_tab(self):
+		self.update_my_accounts()
 		self.amounts = {}
 		self.accounts_balances = {}
 		for add, acc in self.my_accounts.items():
@@ -62,17 +101,26 @@ class Application(tk.Frame):
 	def add_new_account(self, address, account):
 		self.accounts_balances[address] = {}
 		self.amounts[address] = {}
+		self.column_nr[address] = len(self.column_nr)
+		tk.Label(self.account_tab, text=account.accountName + " balances: ",
+				 font=("Helvetica", 13), justify='right', relief="ridge",
+				 bg="#ddd555000", fg="#fffffffff").grid(column=self.column_nr[address], row=0)
+
 		self.add_new_amounts(address, account)
 		self.my_main_account.kade.save('my_main_accounts', str(list(self.my_accounts.keys())))
-		self.update_amounts(address)
+		self.update_amounts()
 
 
 	def add_new_amounts(self, address, account):
+		_row_nr = len(self.accounts_balances[address]) + 2
 		for key, token in account.amount.items():
 			if key not in self.amounts[address]:
 				self.amounts[address][key] = tk.StringVar()
 				self.accounts_balances[address][key] = tk.Label(self.account_tab, textvariable=self.amounts[address][key],
-				                                            font=("Helvetica", 16)).pack()
+				                                            font=("Helvetica", 12), justify='right', relief="ridge",
+																bg="#dddddd000", fg="#000000ddd")
+				self.accounts_balances[address][key].grid(row=_row_nr, column=self.column_nr[address], sticky=tk.W)
+				_row_nr += 1
 
 	def create_send_tab(self):
 		tk.Label(self.send_tab, text='Choose token name:',
@@ -108,14 +156,14 @@ class Application(tk.Frame):
 
 	def attach(self, account, attacher, token):
 		try:
+			self.update_my_accounts()
 			account = self.select_my_acount_by_name(account)
 			attacher = self.select_my_acount_by_name(attacher)
 			token = self.chainnet.get_token_by_name(token)
 			if attacher.address in token.chain.uniqueAccounts:
 				if token.attach(account, attacher=attacher):
 					self.add_new_amounts(account.address, account=account)
-					self.update_amounts(account.address)
-					self.update_amounts(attacher.address)
+					self.update_amounts()
 					messagebox.showinfo(title='Attach with success', message=account.accountName + ' now can pay with ' +
 					                                                       token.accountName)
 					return
@@ -133,14 +181,13 @@ class Application(tk.Frame):
 	def send_coins(self, from_account, to_account, amount, token):
 		try:
 			amount = float(amount)
-
+			self.update_my_accounts()
 			from_account = self.select_my_acount_by_name(from_account)
 			to_account = self.select_my_acount_by_name(to_account)#self.my_main_account.chain.uniqueAccounts[to_account]
 			token = self.chainnet.get_token_by_name(token)
 			if to_account.address in token.chain.uniqueAccounts and from_account.address in token.chain.uniqueAccounts:
 				if from_account.send(to_account, token, amount):
-					self.update_amounts(from_account.address)
-					self.update_amounts(to_account.address)
+					self.update_amounts()
 					messagebox.showinfo(title='Send with success', message=from_account.accountName+' sent '+
 					                                                       str(amount)+' of '+token.accountName+' to token '+
 					                    to_account.accountName)
@@ -180,9 +227,10 @@ class Application(tk.Frame):
 		tk.Label(self.create_tab, text='Set total/initial supply:',
 		         font=("Helvetica", 16)).pack()
 		_amount = tk.DoubleVar()
-		_amount.set(0.01)
+
 		self.supply_spin = tk.Spinbox(self.create_tab, from_=1, to=1000000000000, width=20, textvariable=_amount)
 		self.supply_spin.pack()
+		_amount.set(1000000)
 		tk.Button(self.create_tab, text="Create new account",
 									command=lambda: self.create_new_account(self.new_name_ent.get(),
 																			self.new_address_ent.get(),
@@ -196,6 +244,7 @@ class Application(tk.Frame):
 			messagebox.showwarning(title='Account address', message='Proper account address must be set')
 			return
 
+		self.update_my_accounts()
 		initSupply = float(initSupply)
 		if self.selected_account.get() == 1:
 			_wallet = CWallet(accountName)
@@ -207,10 +256,14 @@ class Application(tk.Frame):
 			self.new_address_ent.delete(0, tk.END)
 			self.new_address_ent.insert(0, str(_wallet.pubKey)[:20])
 			self.new_address_ent.pack()
+			_account.save()
 			self.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
+			_acc = []
+			_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
+			self.my_accounts_cmb_info.config(values=_acc)
 			self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
 			self.add_new_account(_account.address, account=_account)
-			self.update_amounts(_account.address)
+			self.update_amounts()
 			messagebox.showinfo('Account created', _account.accountName + ' from now you are in Chainnet')
 
 		if self.selected_account.get() == 2:
@@ -219,7 +272,7 @@ class Application(tk.Frame):
 
 		if self.selected_account.get() == 3:
 			_wallet = CWallet(accountName)
-			_limitedToken = CLimitedToken(self.chainnet.DB, accountName, initSupply, creator=self.my_main_account, address=_wallet.pubKey)
+			_limitedToken = CLimitedToken(self.chainnet.DB, accountName, initSupply, creator=self.my_main_account, address=_wallet.pubKey, save=False)
 			if _limitedToken is None:
 				messagebox.showerror(title='Error in token creating', message='Token is not created')
 				return
@@ -229,17 +282,19 @@ class Application(tk.Frame):
 			self.my_accounts[_limitedToken.address] = {'account': _limitedToken, 'wallet': _wallet}
 			self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
 			self.chainnet.add_token(_limitedToken)
+			_token = []
+			_token.extend([str(token.accountName) for key, token in self.chainnet.tokens.items()])
+			self.tokens_cmb_info.config(values=_token)
 			self.tokens_cmb.config(values=[str(token.accountName) for key, token in self.chainnet.tokens.items()])
 			self.add_new_account(_limitedToken.address, account=_limitedToken)
 			self.add_new_amounts(self.my_main_account.address, account=_limitedToken)
 			self.add_new_amounts(_limitedToken.address, account=_limitedToken)
-			self.update_amounts(self.my_main_account.address)
-			self.update_amounts(_limitedToken.address)
+			self.update_amounts()
 			messagebox.showinfo('Limited Token is created', _limitedToken.accountName + ' is now created with total supply: '+str(_limitedToken.totalSupply))
 
 		if self.selected_account.get() == 4:
 			_wallet = CWallet(accountName)
-			_actionToken = CActionToken(self.chainnet.DB, accountName, initSupply, creator=self.my_main_account, address=_wallet.pubKey)
+			_actionToken = CActionToken(self.chainnet.DB, accountName, initSupply, creator=self.my_main_account, address=_wallet.pubKey, save=False)
 			if _actionToken is None:
 				messagebox.showerror(title='Error in token creating', message='Token is not created')
 				return
@@ -249,33 +304,41 @@ class Application(tk.Frame):
 			self.my_accounts[_actionToken.address] = {'account': _actionToken, 'wallet': _wallet}
 			self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
 			self.chainnet.add_token(_actionToken)
+			_token = []
+			_token.extend([str(token.accountName) for key, token in self.chainnet.tokens.items()])
+			self.tokens_cmb_info.config(values=_token)
 			self.tokens_cmb.config(values=[str(token.accountName) for key, token in self.chainnet.tokens.items()])
 			self.add_new_account(_actionToken.address, account=_actionToken)
 			self.add_new_amounts(self.my_main_account.address, account=_actionToken)
 			self.add_new_amounts(_actionToken.address, account=_actionToken)
-			self.update_amounts(self.my_main_account.address)
-			self.update_amounts(_actionToken.address)
+			self.update_amounts()
 			messagebox.showinfo('Action Token is created',
 			                    _actionToken.accountName + ' is now created with initial supply: ' + str(
 				                    _actionToken.totalSupply))
 
-	def select_my_acount_by_name(self, name):
+	def select_my_acount_by_name(self, name, update=True):
+
+		if update: self.update_my_accounts()
 
 		for add, acc in self.my_accounts.items():
 			if acc['account'].accountName == name.split(' ')[0]:
 				return acc['account']
 		return None
 
-	def update_amounts(self, address):
+	def update_amounts(self):
 		self.update_my_accounts()
-		_account = self.my_accounts[address]['account']
-		for key, amount in _account.amount.items():
-			token_name = self.chainnet.tokens[key].accountName
-			self.amounts[address][key].set(_account.accountName + ': ' + str(amount) + '  ' + token_name)
+		for _acc in self.my_accounts:
+			_account = self.my_accounts[_acc]['account']
+			for key, amount in _account.amount.items():
+				try:
+					token_name = self.chainnet.tokens[key].accountName
+					self.amounts[_acc][key].set(str(amount) + '  ' + token_name)
+				except:
+					pass
 
 root = tk.Tk()
 root.title("Chainnet Wallet App")
 
 app = Application(master=root)
-root.geometry('600x400')
+root.geometry('1000x600')
 app.mainloop()

@@ -44,7 +44,7 @@ class CInitBlock():
     def save(self):
         self.kade.save('initAccount', self.initAccount.getParameters())
         self.kade.save('firstAccount', self.firstAccount.getParameters())
-        self.kade.save(self.firstAccount.address, self.firstAccount.getParameters())
+        #self.kade.save(self.firstAccount.address, self.firstAccount.getParameters())
         #self.kade.save('initTransaction', self.initTransaction.getParameters())
         
     def update(self):
