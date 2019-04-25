@@ -137,7 +137,7 @@ class Application(tk.Frame):
 								font=("Helvetica", 16)).grid(row=1, column=1)
 		self.my_accounts_cmb = ttk.Combobox(self.send_tab)
 		self.my_accounts_cmb['values'] = [acc['account'].accountName+' '+
-		                                  ''.join(str(value)+' '+str(self.chainnet.get_token(key).accountName)
+		                                  ''.join(str(value)+' '+str(self.chainnet.get_token(key).accountName+' ')
 		                                           for key, value in acc['account'].amount.items())
 		                                  for acc in self.my_accounts.values()]
 		self.my_accounts_cmb.grid(row=2, column=1)
