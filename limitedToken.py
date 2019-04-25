@@ -39,8 +39,11 @@ class CLimitedToken(CAccount):
         self.update()
         totalSupply = 0
         for acc in self.chain.uniqueAccounts:
-            self.chain.uniqueAccounts[acc].show()
-            totalSupply += self.chain.uniqueAccounts[acc].amount[self.address]
+            try:
+                self.chain.uniqueAccounts[acc].show()
+                totalSupply += self.chain.uniqueAccounts[acc].amount[self.address]
+            except:
+                pass
         
         return self.accountName + ' total Supply: ' + str(totalSupply)
 

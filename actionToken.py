@@ -26,11 +26,6 @@ class CActionToken(CAccount):
         _account = CAccount(self.kade, '__temp__', None, _address)
         _account.update()
         self.owner = _account
-        '''
-        for acc in self.chain.uniqueAccounts:
-            if acc != self.address:
-                self.chain.uniqueAccounts[acc].update()
-        '''
 
     def showAll(self):
         self.update()
