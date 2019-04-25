@@ -102,9 +102,9 @@ class Application(tk.Frame):
 		self.accounts_balances[address] = {}
 		self.amounts[address] = {}
 		self.column_nr[address] = len(self.column_nr)
-		tk.Label(self.account_tab, text=account.accountName + " balances: ",
+		tk.Label(self.account_tab, text=account.accountName + "'s balances: ",
 				 font=("Helvetica", 13), justify='right', relief="ridge",
-				 bg="#ddd555000", fg="#fffffffff").grid(column=self.column_nr[address], row=0)
+				 bg="#ddd555000", fg="#fffffffff").grid(column=self.column_nr[address] * 2, row=0, columnspan=2)
 
 		self.add_new_amounts(address, account)
 		self.my_main_account.kade.save('my_main_accounts', str(list(self.my_accounts.keys())))
@@ -119,40 +119,47 @@ class Application(tk.Frame):
 				self.accounts_balances[address][key] = tk.Label(self.account_tab, textvariable=self.amounts[address][key],
 				                                            font=("Helvetica", 12), justify='right', relief="ridge",
 																bg="#dddddd000", fg="#000000ddd")
-				self.accounts_balances[address][key].grid(row=_row_nr, column=self.column_nr[address], sticky=tk.W)
+				self.accounts_balances[address][key].grid(row=_row_nr, column=self.column_nr[address] * 2, sticky=tk.W)
+				self.amounts[address][key+'l'] = tk.StringVar()
+				self.accounts_balances[address][key+'l'] = tk.Label(self.account_tab, textvariable=self.amounts[address][key+'l'],
+				                                            font=("Helvetica", 12), justify='right', relief="ridge",
+																bg="#dddddd000", fg="#000000222")
+				self.accounts_balances[address][key+'l'].grid(row=_row_nr, column=self.column_nr[address] * 2 + 1, sticky=tk.E)
 				_row_nr += 1
 
 	def create_send_tab(self):
 		tk.Label(self.send_tab, text='Choose token name:',
-								font=("Helvetica", 16)).pack()
+								font=("Helvetica", 16)).grid(row=1, column=0)
 		self.tokens_cmb = ttk.Combobox(self.send_tab)
 		self.tokens_cmb['values'] = [str(token.accountName) for key, token in self.chainnet.tokens.items()]
-		self.tokens_cmb.pack()
+		self.tokens_cmb.grid(row=2, column=0)
 		tk.Label(self.send_tab, text='From account by name:',
-								font=("Helvetica", 16)).pack()
+								font=("Helvetica", 16)).grid(row=1, column=1)
 		self.my_accounts_cmb = ttk.Combobox(self.send_tab)
 		self.my_accounts_cmb['values'] = [acc['account'].accountName+' '+
 		                                  ''.join(str(value)+' '+str(self.chainnet.get_token(key).accountName)
 		                                           for key, value in acc['account'].amount.items())
 		                                  for acc in self.my_accounts.values()]
-		self.my_accounts_cmb.pack()
+		self.my_accounts_cmb.grid(row=2, column=1)
 		tk.Label(self.send_tab, text='To account by name:',
-								font=("Helvetica", 16)).pack()
+								font=("Helvetica", 16)).grid(row=4, column=1)
 		self.send_address_ent = tk.Entry(self.send_tab, width=30, font=("Helvetica", 16))
-		self.send_address_ent.pack()
+		self.send_address_ent.grid(row=5, column=1)
 		_amount = tk.DoubleVar()
-		_amount.set(0.01)
-		self.amount_spin = tk.Spinbox(self.send_tab, from_=0, to=100000000000, width=20, textvariable=_amount)
-		self.amount_spin.pack()
-		tk.Button(self.send_tab, text="Send",
+		tk.Label(self.send_tab, text='Amount to send:',
+								font=("Helvetica", 16)).grid(row=4, column=0)
+		self.amount_spin = tk.Spinbox(self.send_tab, from_=0, to=100000000000, width=12, font=("Helvetica", 16), textvariable=_amount)
+		self.amount_spin.grid(row=5, column=0)
+		_amount.set(1)
+		tk.Button(self.send_tab, text="Send", bg='orange', fg='blue', font=("Helvetica", 20),
 									command=lambda: self.send_coins(self.my_accounts_cmb.get(),
 																	self.send_address_ent.get(),
 									                                self.amount_spin.get(),
-									                                self.tokens_cmb.get())).pack()
-		tk.Button(self.send_tab, text="Attach",
+									                                self.tokens_cmb.get())).grid(row=3, column=2, rowspan=2)
+		tk.Button(self.send_tab, text="Attach", bg='yellow', fg='red', font=("Helvetica", 20),
 									command=lambda: self.attach(self.send_address_ent.get(),
 																self.my_accounts_cmb.get(),
-									                                self.tokens_cmb.get())).pack()
+									                                self.tokens_cmb.get())).grid(row=3, column=3, rowspan=2)
 
 	def attach(self, account, attacher, token):
 		try:
@@ -332,7 +339,8 @@ class Application(tk.Frame):
 			for key, amount in _account.amount.items():
 				try:
 					token_name = self.chainnet.tokens[key].accountName
-					self.amounts[_acc][key].set(str(amount) + '  ' + token_name)
+					self.amounts[_acc][key].set(str(amount))
+					self.amounts[_acc][key+'l'].set(' [ '+token_name+' ] ')
 				except:
 					pass
 
