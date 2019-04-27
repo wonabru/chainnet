@@ -59,8 +59,7 @@ class CActionToken(CAccount):
             self.totalSupply += self.minAmount
             return [attacher]
         
-        print('Handshake fails, no common connections')
-        return None
+        raise Exception("Handshake", 'Handshake fails, no common connections')
     
     def spreadToWorld(self, accounts):
         #self.update()
@@ -68,13 +67,23 @@ class CActionToken(CAccount):
             acc.save()
                 
     def attach(self, account, attacher):
+        from limitedToken import CLimitedToken
+
+        if account is None:
+            raise Exception("Attach", "No account exists with given name ")
+
+        if isinstance(account, CLimitedToken) or isinstance(account, CActionToken):
+            raise Exception("Attach", "Attached account cannot be any Token.")
 
         if account.address in self.chain.uniqueAccounts:
-            return False
+            raise Exception("Attach", "Account is just attached.")
+
         if self.address == account.address:
-            return False
+            raise Exception("Attach", "Account cannot be attached to itself.")
+
         listToSpread = self.handshake(self, account, attacher)
-        if listToSpread is None: return False
+        if listToSpread is None:
+            raise Exception("Attach", "Nothing to attach")
         if attacher.address == listToSpread[0].address:
             attacher = listToSpread[0]
             listToSpread.remove(attacher)
@@ -88,7 +97,7 @@ class CActionToken(CAccount):
         
         if attacher.addAmount(self, -(self.minAmount * noCreated), save=False) == False:
             self.chain.accountsCreated[attacher.address] -= 1
-            return False
+            raise Exception("Attach", "Not enough funds on " + attacher.accountName + ". It is needed "+str(self.minAmount * noCreated)+" [ "+self.accountName+" ] ")
         
         self.totalSupply -= (self.minAmount * noCreated)
         account.setAmount(self, 0, save=False)

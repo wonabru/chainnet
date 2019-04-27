@@ -64,21 +64,30 @@ class CLimitedToken(CAccount):
             account_2.chain.uniqueAccounts[account_1.address] = account_1
             return [attacher]
 
-        print('Handshake fails, no common connections')
-        return None
+            raise Exception("Handshake", 'Handshake fails, no common connections')
 
     def spreadToWorld(self, accounts):
         for acc in accounts:
             acc.save()
 
     def attach(self, account, attacher):
+        from actionToken import CActionToken
+
+        if account is None:
+            raise Exception("Attach", "No account exists with given name ")
+
+        if isinstance(account, CLimitedToken) or isinstance(account, CActionToken):
+            raise Exception("Attach", "Attached account cannot be any Token.")
 
         if account.address in self.chain.uniqueAccounts:
-            return False
+            raise Exception("Attach", "Account is just attached.")
+
         if self.address == account.address:
-            return False
+            raise Exception("Attach", "Account cannot be attached to itself.")
+
         listToSpread = self.handshake(self, account, attacher)
-        if listToSpread is None: return False
+        if listToSpread is None:
+            raise Exception("Attach", "Nothing to attach")
 
         if attacher.address == listToSpread[0].address:
             attacher = listToSpread[0]

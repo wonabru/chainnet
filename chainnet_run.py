@@ -190,7 +190,8 @@ class Application(tk.Frame):
 				messagebox.showerror(title='Attach', message=attacher.accountName + ' is not connected to ' +
 				                                                       token.accountName)
 		except Exception as ex:
-			messagebox.showerror(title='Could not attach', message=str(ex))
+			_title, _err = ex.args
+			messagebox.showerror(title=str(_title), message=str(_err))
 
 	def send_coins(self, from_account, to_account, amount, token):
 		try:
