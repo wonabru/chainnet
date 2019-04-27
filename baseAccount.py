@@ -2,6 +2,7 @@ import numpy as np
 import datetime as dt
 from chain import CChain
 import ast
+from wallet import CWallet
 
 class CBaseAccount():
     def __init__(self, DB, accountName, address):
@@ -12,7 +13,8 @@ class CBaseAccount():
         self.accountName = accountName
         self.chain = CChain()
         self.isLocked = {}
-   
+        self.wallet = None
+
     def setAmount(self, token, amount, save=True):
         if amount < 0:
             print('Amount of tokens cannot be less than zero')
@@ -45,19 +47,27 @@ class CBaseAccount():
         self.isLocked[sender.address] = recipient.address
         self.isLocked[recipient.address] = sender.address
         #save means announce to World
-        #self.save()
+        self.save()
         
     def getAmount(self, token):
         return self.amount[token.address]
-    
+
+    def load_wallet(self):
+        if self.wallet is None:
+            return CWallet(self.accountName)
+        else:
+            return self.wallet
+
     def send(self, recipient, token, amount):
         from transaction import CAtomicTransaction, CTransaction
         
         token.lockAccounts(self, recipient)
         
         atomic = CAtomicTransaction(self, recipient, amount, optData='Simple TXN', token=token)
+        self.wallet = self.load_wallet()
+        _my_signature = self.wallet.sign(atomic.getHash())
         txn = CTransaction(dt.datetime.today()+dt.timedelta(seconds=1000), 1)
-        if txn.add(atomic, 'sign_1', 'sign_2') < 2:
+        if txn.add(atomic, _my_signature, '__future__') < 2:
             print('Sending fails')
             return False
 

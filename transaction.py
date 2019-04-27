@@ -1,6 +1,7 @@
 import datetime as dt
 import pickle
 from copy import deepcopy
+from wallet import CWallet
 
 class CAtomicTransaction():
     def __init__(self, sender, recipient, amount, optData, token):
@@ -59,7 +60,7 @@ class CAtomicTransaction():
         self.recipient.update(with_chain=False)
 
     def getHash(self):
-        hash(pickle.dumps(self.getParameters()))
+        return str(hash(pickle.dumps(self.getParameters())))
 
 class CTransaction():
     def __init__(self, timeToClose, noAtomicTransactions):
@@ -186,4 +187,12 @@ class CTransaction():
         return hash(pickle.dumps(self.getParameters()))
 
     def verify(self, atomicTransaction, signSender, signRecipient):
-        return True
+        if signSender == '__future__' or CWallet().verify(atomicTransaction.getHash(), signSender, atomicTransaction.sender.address):
+            if signRecipient == '__future__' or  CWallet().verify(atomicTransaction.getHash(), signRecipient, atomicTransaction.recipient.address):
+                return True
+            else:
+                print('Recipient signature is not valid')
+        else:
+            print('Sender signature is not valid')
+
+        return False

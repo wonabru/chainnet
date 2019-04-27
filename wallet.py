@@ -4,6 +4,27 @@ from Crypto import Hash
 from base64 import b64decode,b64encode
 import pickle
 
+
+def serialize(message):
+	return pickle.dumps(message)
+
+def unserialize(ser_message):
+	return pickle.loads(ser_message)
+
+def encode(n):
+	b = bytearray()
+	while n:
+		b.append(n & 0xFF)
+		n >>= 8
+	return b64encode(b).decode('utf-8')
+
+def decode(s):
+	b = bytearray(b64decode(s.encode('utf-8')))  # in case you're passing in a bytes/str
+	return sum((1 << (bi * 8)) * bb for (bi, bb) in enumerate(b))
+
+class rsa_temp:
+	key = RSA.generate(1024)
+
 class CWallet:
 	def __init__(self, name_of_wallet = None):
 		if name_of_wallet is None:
@@ -12,19 +33,8 @@ class CWallet:
 			self.RSAkey = self.checkWalletExist(name_of_wallet)
 		self.pubKey = self.getPublicKey(self.RSAkey)
 
-	def encode(self, n):
-		b = bytearray()
-		while n:
-			b.append(n & 0xFF)
-			n >>= 8
-		return b64encode(b).decode('utf-8')
-
-	def decode(self, s):
-		b = bytearray(b64decode(s.encode('utf-8')))  # in case you're passing in a bytes/str
-		return sum((1 << (bi * 8)) * bb for (bi, bb) in enumerate(b))
-
 	def getPublicKey(self, key):
-		pub = self.encode(key.publickey().n)
+		pub = encode(key.publickey().n)
 		return pub
 
 	def exportDER(self, key):
@@ -82,25 +92,21 @@ class CWallet:
 
 		return self.RSAkey
 
-	def serialize(self, message):
-		return pickle.dumps(message)
 
-	def unserialize(self, ser_message):
-		return pickle.loads(ser_message)
 
-	def sign(self, message, priv_key):
-		signer = PKCS1_v1_5.new(priv_key)
+	def sign(self, message):
+		signer = PKCS1_v1_5.new(self.RSAkey)
 		digest = Hash.SHA256.new()
-		digest.update(self.serialize(message))
-
+		digest.update(serialize(message))
 		sgn = signer.sign(digest)
 		return b64encode(sgn).decode('utf-8')
 
-	def verify(self, message, signature, pub_keyencode):
-		self.RSAkey._n = self.decode(pub_keyencode)
-		signer = PKCS1_v1_5.new(self.RSAkey.publickey())
+	@staticmethod
+	def verify(message, signature, pub_keyencode):
+		rsa_temp.key.key.n = decode(pub_keyencode)
+		signer = PKCS1_v1_5.new(rsa_temp.key.publickey())
 		digest = Hash.SHA256.new()
-		digest.update(self.serialize(message))
+		digest.update(serialize(message))
 		return signer.verify(digest, b64decode(signature.encode('utf-8')))
 
 	@staticmethod

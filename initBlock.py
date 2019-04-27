@@ -22,7 +22,8 @@ class CInitBlock():
             self.firstAccount.chain.uniqueAccounts[self.initAccount.address] = self.initAccount
             self.initAtomicTransaction = CAtomicTransaction(self.initAccount, self.firstAccount, self.baseTotalSupply, optData='initTransaction', token=self.initAccount)
             self.initTransaction = CTransaction(dt.datetime.today()+dt.timedelta(minutes=1), 1)
-            self.initTransaction.add(self.initAtomicTransaction, 'sign_init', 'sign_wonabru')
+            _signature_wonabru = self.wallet_first.sign(self.initAtomicTransaction.getHash())
+            self.initTransaction.add(self.initAtomicTransaction, '__future__', _signature_wonabru)
             initBlock = self
         else:
             self.baseTotalSupply = initBlock.baseTotalSupply
