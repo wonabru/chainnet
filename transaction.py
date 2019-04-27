@@ -2,6 +2,7 @@ import datetime as dt
 import pickle
 from copy import deepcopy
 from wallet import CWallet
+from genesis import CGenesis
 
 class CAtomicTransaction():
     def __init__(self, sender, recipient, amount, optData, token):
@@ -16,23 +17,23 @@ class CAtomicTransaction():
         if sender.address == recipient.address:
             print('sender cannot be the same as recipient')
             return
-        if sender.address not in token.isLocked.keys() and sender.address != '0':
+        if sender.address not in token.isLocked.keys() and sender.address != CGenesis().initAccountPubKey:
             print('Cannot perform transaction. Lock sender account first')
             return
-        if recipient.address not in token.isLocked.keys() and sender.address != '0':
+        if recipient.address not in token.isLocked.keys() and sender.address != CGenesis().initAccountPubKey:
             print('Cannot perform transaction. Lock recipient account first')
             return
-        if sender.address != '0' and token.isLocked[sender.address] != recipient.address:
+        if sender.address != CGenesis().initAccountPubKey and token.isLocked[sender.address] != recipient.address:
             print('Sender account is locked, but not for the recipient')
             return
-        if sender.address != '0' and token.isLocked[recipient.address] != sender.address:
+        if sender.address != CGenesis().initAccountPubKey and token.isLocked[recipient.address] != sender.address:
             print('Recipient account is locked, but not for the sender')
             return
         
         list1 = list(sender.chain.uniqueAccounts.keys()) + [sender.address]
         list2 = list(recipient.chain.uniqueAccounts.keys()) + [recipient.address]
 
-        if any(e in list2 for e in list1) == False and sender.address != '0':
+        if any(e in list2 for e in list1) == False and sender.address != CGenesis().initAccountPubKey:
             print('sender and recipient have no common connections')
             return
         if recipient.address not in token.chain.uniqueAccounts:
@@ -147,17 +148,17 @@ class CTransaction():
                     atomic.sender.chain.addTransaction(self)
                     atomic.recipient.chain.addTransaction(self)
                     try:
-                        if atomic.sender.address != '0':
+                        if atomic.sender.address != CGenesis().initAccountPubKey:
                             del atomic.token.isLocked[atomic.sender.address]
                     except:
                         print("Key sender address not found in isLocked")
                     try:
-                        if atomic.sender.address != '0':
+                        if atomic.sender.address != CGenesis().initAccountPubKey:
                             del atomic.token.isLocked[atomic.recipient.address]
                     except:
                         print("Key recipient address not found in isLocked")
                     
-                    if atomic.sender.address != '0':
+                    if atomic.sender.address != CGenesis().initAccountPubKey:
                         return 2
                 return 1
             else:

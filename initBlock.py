@@ -3,17 +3,20 @@ from baseAccount import CBaseAccount
 from baseLimitedToken import CBaseLimitedToken
 from transaction import CAtomicTransaction, CTransaction
 from wallet import CWallet
-
+from genesis import CGenesis
 initBlock = None
 
-class CInitBlock():
+class CInitBlock(CGenesis):
     def __init__(self, kade=None):
+        super().__init__()
+        self.init_wallet = CWallet('init')
+        self.init_wallet.RSAkey = self.getPrivKey()
         global initBlock
 
         if initBlock is None:
             self.kade = kade
-            self.baseTotalSupply = 1000000.00
-            self.initAccount = CBaseLimitedToken(self.kade, 'Q', self.baseTotalSupply, address='0')
+            self.baseTotalSupply = 23000000.23
+            self.initAccount = CBaseLimitedToken(self.kade, 'Q', self.baseTotalSupply, address=self.initAccountPubKey)
             self.initAccount.amount[self.initAccount.address] = self.baseTotalSupply
             self.firstAccount = CBaseAccount(self.kade, 'wonabru', address='1')
             self.wallet_first = CWallet('wonabru')
@@ -23,7 +26,8 @@ class CInitBlock():
             self.initAtomicTransaction = CAtomicTransaction(self.initAccount, self.firstAccount, self.baseTotalSupply, optData='initTransaction', token=self.initAccount)
             self.initTransaction = CTransaction(dt.datetime.today()+dt.timedelta(minutes=1), 1)
             _signature_wonabru = self.wallet_first.sign(self.initAtomicTransaction.getHash())
-            self.initTransaction.add(self.initAtomicTransaction, '__future__', _signature_wonabru)
+            _signature_init = self.init_wallet.sign(self.initAtomicTransaction.getHash())
+            self.initTransaction.add(self.initAtomicTransaction, _signature_init, _signature_wonabru)
             initBlock = self
         else:
             self.baseTotalSupply = initBlock.baseTotalSupply
@@ -40,29 +44,3 @@ class CInitBlock():
     def getBaseToken(self):
         return self.initAccount
 
-    """
-    def save(self):
-        if self.kade.get('initAccount') is None:
-            self.kade.save('initAccount', self.initAccount.getParameters())
-        if self.kade.get('firstAccount') is None:
-            self.kade.save('firstAccount', self.firstAccount.getParameters())
-            self.kade.save(self.firstAccount.address, self.firstAccount.getParameters())
-        if self.kade.get('initTransaction') is None:
-            self.kade.save('initTransaction', self.initTransaction.getParameters())
-    
- 
-    def update(self):
-        self.initAccount.setParameters(self.kade.get('initAccount'))
-        self.firstAccount.setParameters(self.kade.get('firstAccount'))
-        self.firstAccount.update()
-        self.initTransaction.setParameters(self.kade, self.kade.get('initTransaction'))
-        for acc in self.initAccount.chain.uniqueAccounts.keys():
-            if acc not in [self.initAccount.address, self.firstAccount.address]:
-                _account = CBaseAccount(self.kade, '__temp__', acc)
-                try:
-                    _account.update(do_update=do_update)
-                    self.initAccount.chain.uniqueAccounts[acc] = _account
-                except Exception as ex:
-                    print(str(ex))
-                    return False
-    """

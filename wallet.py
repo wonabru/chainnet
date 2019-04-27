@@ -46,23 +46,23 @@ class CWallet:
 
 	def jsonifyKey(self, key):
 		message = {
-			'd': key.d,
-			'q': key.q,
-			'p': key.p,
-			'u': key.u,
-			'n': key.n,
-			'e': key.e
+			'd': key.key.d,
+			'q': key.key.q,
+			'p': key.key.p,
+			'u': key.key.u,
+			'n': key.key.n,
+			'e': key.key.e
 		}
 		return message
 
 	def privfromJson(self, values):
 		priv = RSA.generate(1024)
-		priv._d = int(values['d'])
-		priv._p = int(values['p'])
-		priv._q = int(values['q'])
-		priv._n = int(values['n'])
-		priv._u = int(values['u'])
-		priv._e = int(values['e'])
+		priv.key.d = int(values['d'])
+		priv.key.p = int(values['p'])
+		priv.key.q = int(values['q'])
+		priv.key.n = int(values['n'])
+		priv.key.u = int(values['u'])
+		priv.key.e = int(values['e'])
 		return priv
 
 	def saveWallet(self, priv, name):

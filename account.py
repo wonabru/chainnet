@@ -3,6 +3,7 @@ from chain import CChain
 from baseAccount import CBaseAccount
 from initBlock import CInitBlock
 from baseLimitedToken import CBaseLimitedToken
+from genesis import CGenesis
 
 class CAccount(CBaseAccount):
     def __init__(self, DB, accountName, creator, address):
@@ -13,7 +14,7 @@ class CAccount(CBaseAccount):
         self.initTransaction = None
         self.creator = creator
         self.init_block = CInitBlock()
-        self.chain.uniqueAccounts['0'] = self.init_block.getBaseToken()
+        self.chain.uniqueAccounts[CGenesis().initAccountPubKey] = self.init_block.getBaseToken()
         self.initTransaction = self.init_block.getInitTransaction()
         try:
             self.chain.uniqueAccounts[creator.address] = creator

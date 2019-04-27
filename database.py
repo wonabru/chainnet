@@ -15,24 +15,22 @@ class CSQLLite():
 
     def save(self, key, value):
         self.sqllite.set(key=str(key), value=value)
-        print('SAVE = '+str(value))
-
-        self.kade.set(key=str(key), value=str(value))
         return self.sqllite.get(str(key))
 
     def get(self, key):
+        return self.sqllite.get(key=str(key))
 
-        response_local = self.sqllite.get(key=str(key))
+    def announce(self, key, value):
+        self.kade.set(key=str(key), value=str(value))
+
+    def look_at(self, key):
         import ast
-        if response_local is None:
-            response = self.kade.get(key=str(key))
+        response = self.kade.get(key=str(key))
 
-            if response is not None:
-                self.save(key, response)
-                response = ast.literal_eval(response.replace('true', 'True').replace('false', 'False'))
-            return response
-        else:
-            return response_local
+        if response is not None:
+            self.save(key, response)
+            response = ast.literal_eval(response.replace('true', 'True').replace('false', 'False'))
+        return response
 
     def close(self):
         self.sqllite.close()

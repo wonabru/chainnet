@@ -4,6 +4,7 @@ from database import CSQLLite
 from actionToken import CActionToken
 from wallet import CWallet
 from baseAccount import CBaseAccount
+from genesis import CGenesis
 import ast
 
 class CInitChainnet:
@@ -12,7 +13,7 @@ class CInitChainnet:
 		self.wallet = CWallet('main')
 		self.DB = CSQLLite(self.wallet.pubKey)
 		self.Qcoin = CInitBlock(self.DB)
-		_creator = CBaseAccount(self.DB, accountName='0', address='')
+		_creator = CBaseAccount(self.DB, accountName='creator', address='')
 		self.baseToken = CLimitedToken(self.DB, tokenName='Q', totalSupply=self.Qcoin.baseTotalSupply, creator=_creator, address=self.Qcoin.getBaseToken().address, save=False)
 		self.baseToken = self.baseToken.copyFromBaseLimitToken(self.Qcoin.getBaseToken())
 		self.first_account = self.baseToken.copyFromBaseAccount(self.Qcoin.firstAccount)
@@ -64,7 +65,7 @@ class CInitChainnet:
 					_token.update()
 				except Exception as ex:
 					print(str(ex))
-					_token = self.baseToken if acc == '0' else None
+					_token = self.baseToken if acc == CGenesis().initAccountPubKey else None
 
 			if _token is not None:
 				self.tokens[_token.address] = _token

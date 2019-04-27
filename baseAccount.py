@@ -3,12 +3,13 @@ import datetime as dt
 from chain import CChain
 import ast
 from wallet import CWallet
+from genesis import CGenesis
 
 class CBaseAccount():
     def __init__(self, DB, accountName, address):
         self.kade = DB
         self.decimalPlace = 2
-        self.amount = {'0': 0}
+        self.amount = {CGenesis().initAccountPubKey: 0}
         self.address = address
         self.accountName = accountName
         self.chain = CChain()
