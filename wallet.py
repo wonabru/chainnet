@@ -1,5 +1,8 @@
 from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
+from Crypto import Hash
 from base64 import b64decode,b64encode
+import pickle
 
 class CWallet:
 	def __init__(self, name_of_wallet = None):
@@ -78,6 +81,27 @@ class CWallet:
 			self.RSAkey = self.importFromDER(self.RSAkey)
 
 		return self.RSAkey
+
+	def serialize(self, message):
+		return pickle.dumps(message)
+
+	def unserialize(self, ser_message):
+		return pickle.loads(ser_message)
+
+	def sign(self, message, priv_key):
+		signer = PKCS1_v1_5.new(priv_key)
+		digest = Hash.SHA256.new()
+		digest.update(self.serialize(message))
+
+		sgn = signer.sign(digest)
+		return b64encode(sgn).decode('utf-8')
+
+	def verify(self, message, signature, pub_keyencode):
+		self.RSAkey._n = self.decode(pub_keyencode)
+		signer = PKCS1_v1_5.new(self.RSAkey.publickey())
+		digest = Hash.SHA256.new()
+		digest.update(self.serialize(message))
+		return signer.verify(digest, b64decode(signature.encode('utf-8')))
 
 	@staticmethod
 	def check_address(address):

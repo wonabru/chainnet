@@ -15,6 +15,8 @@ class CSQLLite():
 
     def save(self, key, value):
         self.sqllite.set(key=str(key), value=value)
+        print('SAVE = '+str(value))
+        return self.sqllite.get(str(key))
         #self.kade.set(key=key, value=str(value))
 
     def get(self, key):

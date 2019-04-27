@@ -23,7 +23,7 @@ class CActionToken(CAccount):
         self.minAmount = 10 ** -self.decimalPlace
         par = self.kade.get('actionToken ' + self.address)
         self.totalSupply, _address = par
-        _account = CAccount(self.kade, '__temp__', None, _address)
+        _account = CAccount(self.kade, '__tempAction__', None, _address)
         _account.update()
         self.owner = _account
 
@@ -69,6 +69,10 @@ class CActionToken(CAccount):
                 
     def attach(self, account, attacher):
 
+        if account.address in self.chain.uniqueAccounts:
+            return False
+        if self.address == account.address:
+            return False
         listToSpread = self.handshake(self, account, attacher)
         if listToSpread is None: return False
         if attacher.address == listToSpread[0].address:

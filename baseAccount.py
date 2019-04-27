@@ -17,6 +17,7 @@ class CBaseAccount():
         if amount < 0:
             print('Amount of tokens cannot be less than zero')
             return False
+        print('Account: ',self.accountName,' is setting amount ', amount, ' [ ', token.accountName, ' ] ')
         self.amount[token.address] = np.round(amount, self.decimalPlace)
 
         '''
@@ -30,7 +31,8 @@ class CBaseAccount():
     def addAmount(self, token, amount, save=True):
         
         if token.address not in self.amount.keys():
-            self.amount[token.address] = 0
+            print('Attach first please')
+            return False
         
         temp_amount = self.amount[token.address] + amount
         if temp_amount < 0:
@@ -55,7 +57,7 @@ class CBaseAccount():
         
         atomic = CAtomicTransaction(self, recipient, amount, optData='Simple TXN', token=token)
         txn = CTransaction(dt.datetime.today()+dt.timedelta(seconds=1000), 1)
-        if txn.add(atomic, 'sign_1', 'sign_2') == False:
+        if txn.add(atomic, 'sign_1', 'sign_2') < 2:
             print('Sending fails')
             return False
 
@@ -64,29 +66,39 @@ class CBaseAccount():
 
         return True
 
-    def getParameters(self):
+    def getParameters(self, with_chain=True):
         _uniqueAccounts, _accountsCreated = self.chain.getParameters()
-        return self.decimalPlace, self.amount, self.address, self.accountName, str({a: v for a, v in _accountsCreated.items()}), str(list(_uniqueAccounts.keys()))
+        if with_chain:
+            return self.decimalPlace, self.amount, self.address, self.accountName, \
+                   str({a: v for a, v in _accountsCreated.items()}), str(list(_uniqueAccounts.keys()))
+        else:
+            return self.decimalPlace, self.amount, self.address, self.accountName, "{}", "{}"
 
     def setParameters(self, par, with_chain=True):
         decimalPlace, amount, address, accountName, acc_created, acc_chain = par
-        self.decimalPlace = decimalPlace
-        self.amount = amount
-        self.address = address
-        self.accountName = accountName
         if with_chain:
             _temp_chain = {}
             acc_chain = ast.literal_eval(acc_chain.replace('true', 'True').replace('false', 'False'))
             acc_created = ast.literal_eval(acc_created.replace('true', 'True').replace('false', 'False'))
             for acc in acc_chain:
-                _temp_chain[acc] = CBaseAccount(self.kade, '__temp__', acc)
+                _temp_chain[acc] = CBaseAccount(self.kade, '__tempBaseAccount__', acc)
                 _temp_chain[acc].update(with_chain=False)
             self.chain.setParameters([acc_created, _temp_chain])
+
+        self.decimalPlace = decimalPlace
+        self.amount = amount
+        self.address = address
+        self.accountName = accountName
+
 
     def save(self):
         _acc_chain, _acc_created = self.chain.getParameters()
         par = self.decimalPlace, self.amount, self.address, self.accountName, str(_acc_created), str(list(_acc_chain.keys()))
-        self.kade.save(self.address, par)
+        if self.accountName != '' and self.address != '':
+            print('BEFORE = ' + str(par))
+            print('AFTER = ' + str(self.kade.save(self.address, par)))
+        else:
+            pass
         '''
         for acc in _acc_chain:
             _account = self.chain.uniqueAccounts[acc]

@@ -27,35 +27,40 @@ class Application(tk.Frame):
 		self.pack()
 
 	def update_my_accounts(self):
-		self.init_account = self.chainnet.Qcoin.initAccount
-		_my_accounts = self.my_main_account.kade.get('my_main_accounts')
-		if _my_accounts is None:
-			_my_accounts = [self.my_main_account.address]
-		else:
-			_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
-		for acc in _my_accounts:
-			_account = CAccount(self.my_main_account.kade, '__temp__', None, acc)
-			try:
-				_account.update()
-				_wallet = CWallet(_account.accountName)
-				if _account.address != self.init_account.address:
-					self.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
-			except Exception as ex:
-				messagebox.showerror(title='Error loading file', message=str(ex))
+		try:
+			self.init_account = self.chainnet.Qcoin.initAccount
+			_my_accounts = self.my_main_account.kade.get('my_main_accounts')
+			if _my_accounts is None:
+				_my_accounts = [self.my_main_account.address]
+			else:
+				_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
+			for acc in _my_accounts:
+				if acc not in [self.chainnet.init_account.address, ]:
+					_account = CAccount(self.my_main_account.kade, '__tempRun__', None, acc)
+					try:
+						_account.update(with_chain=True)
+						_wallet = CWallet(_account.accountName)
 
-		self.my_main_account = self.select_my_acount_by_name(self.my_main_account.accountName, update=False)
+						self.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
+					except Exception as ex:
+						messagebox.showerror(title='Error loading file', message=str(ex))
+
+			_temp_my_main_account = self.select_my_acount_by_name(self.my_main_account.accountName, update=False)
+			self.my_main_account = _temp_my_main_account if _temp_my_main_account is not None else self.my_main_account
+		except Exception as ex:
+			print('No database found', str(ex))
 
 	def create_tabs(self):
 		self.tab_control = ttk.Notebook(self.master)
 		self.account_tab = tk.Frame(self.tab_control)
 		self.create_tab = tk.Frame(self.tab_control)
 		self.send_tab = tk.Frame(self.tab_control)
-		self.receive_tab = tk.Frame(self.tab_control)
+		self.messages_tab = tk.Frame(self.tab_control)
 		self.info_tab = tk.Frame(self.tab_control)
 		self.tab_control.add(self.account_tab, text='Accounts balances')
 		self.tab_control.add(self.create_tab, text='Create Account')
 		self.tab_control.add(self.send_tab, text='Send')
-		self.tab_control.add(self.receive_tab, text='Receive')
+		self.tab_control.add(self.messages_tab, text='Messages')
 		self.tab_control.add(self.info_tab, text='Accounts info')
 		self.tab_control.pack(expand=1, fill='both')
 
@@ -283,6 +288,8 @@ class Application(tk.Frame):
 			if _limitedToken is None:
 				messagebox.showerror(title='Error in token creating', message='Token is not created')
 				return
+			self.my_main_account.save()
+			_limitedToken.save()
 			self.new_address_ent.delete(0, tk.END)
 			self.new_address_ent.insert(0, str(_wallet.pubKey)[:20])
 			self.new_address_ent.pack()
@@ -305,6 +312,8 @@ class Application(tk.Frame):
 			if _actionToken is None:
 				messagebox.showerror(title='Error in token creating', message='Token is not created')
 				return
+			self.my_main_account.save()
+			_actionToken.save()
 			self.new_address_ent.delete(0, tk.END)
 			self.new_address_ent.insert(0, str(_wallet.pubKey)[:20])
 			self.new_address_ent.pack()

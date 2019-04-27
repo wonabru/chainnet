@@ -15,7 +15,6 @@ class CLimitedToken(CAccount):
     def copyFromBaseLimitToken(self, baseLimitToken):
         token = CLimitedToken(self.kade, baseLimitToken.accountName, baseLimitToken.totalSupply,
                               baseLimitToken, address=baseLimitToken.address)
-        token.save()
         return token
 
     def save(self):
@@ -26,7 +25,7 @@ class CLimitedToken(CAccount):
         super().update()
         par = self.kade.get('limitedToken ' + self.address)
         self.totalSupply, _address = par
-        _account = CAccount(self.kade, '__temp__', None, _address)
+        _account = CAccount(self.kade, '__tempLimited__', None, _address)
         _account.update()
         self.owner = _account
         '''
@@ -74,6 +73,10 @@ class CLimitedToken(CAccount):
 
     def attach(self, account, attacher):
 
+        if account.address in self.chain.uniqueAccounts:
+            return False
+        if self.address == account.address:
+            return False
         listToSpread = self.handshake(self, account, attacher)
         if listToSpread is None: return False
 
