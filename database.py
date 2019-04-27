@@ -6,27 +6,26 @@ class CSQLLite():
         self.nodes = []
         self.sqllite = sqllite()
         self.kade = CDataBase()
-        '''
+
         self.kade.initiate()
         self.kade.runServer()
         self.register_node('127.0.0.1', ownAddress)
         self.bootstrapNodes()
-        '''
+        
 
     def save(self, key, value):
         self.sqllite.set(key=str(key), value=value)
         print('SAVE = '+str(value))
+
+        self.kade.set(key=str(key), value=str(value))
         return self.sqllite.get(str(key))
-        #self.kade.set(key=key, value=str(value))
 
     def get(self, key):
 
         response_local = self.sqllite.get(key=str(key))
-        return response_local
-        '''
         import ast
         if response_local is None:
-            response = self.kade.get(key=key)
+            response = self.kade.get(key=str(key))
 
             if response is not None:
                 self.save(key, response)
@@ -34,7 +33,7 @@ class CSQLLite():
             return response
         else:
             return response_local
-        '''
+
     def close(self):
         self.sqllite.close()
 
