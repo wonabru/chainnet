@@ -15,27 +15,27 @@ class CAtomicTransaction():
         self.time = ""
 
         if sender.address == recipient.address:
-            print('sender cannot be the same as recipient')
-            return
+            raise Exception('Atomic transaction', 'sender cannot be the same as recipient')
+
         if sender.address not in token.isLocked.keys() and sender.address != CGenesis().initAccountPubKey:
-            print('Cannot perform transaction. Lock sender account first')
-            return
+            raise Exception('Atomic transaction', 'Cannot perform transaction. Lock sender account first')
+
         if recipient.address not in token.isLocked.keys() and sender.address != CGenesis().initAccountPubKey:
-            print('Cannot perform transaction. Lock recipient account first')
-            return
+            raise Exception('Atomic transaction', 'Cannot perform transaction. Lock recipient account first')
+
         if sender.address != CGenesis().initAccountPubKey and token.isLocked[sender.address] != recipient.address:
-            print('Sender account is locked, but not for the recipient')
-            return
+            raise Exception('Atomic transaction', 'Sender account is locked, but not for the recipient')
+
         if sender.address != CGenesis().initAccountPubKey and token.isLocked[recipient.address] != sender.address:
-            print('Recipient account is locked, but not for the sender')
-            return
+            raise Exception('Atomic transaction', 'Recipient account is locked, but not for the sender')
+
         
         list1 = list(sender.chain.uniqueAccounts.keys()) + [sender.address]
         list2 = list(recipient.chain.uniqueAccounts.keys()) + [recipient.address]
 
         if any(e in list2 for e in list1) == False and sender.address != CGenesis().initAccountPubKey:
-            print('sender and recipient have no common connections')
-            return
+            raise Exception('Atomic transaction', 'sender and recipient have no common connections')
+
         if recipient.address not in token.chain.uniqueAccounts:
             token.chain.uniqueAccounts[recipient.address] = recipient
         self.token = token
@@ -87,14 +87,14 @@ class CTransaction():
 
         self.senders = []
         for _sender in _senders:
-            _temp_sender = CAccount(DB, '__tempTransaction__', None, None, with_initBlock=False)
+            _temp_sender = CAccount(DB, '__tempTransaction__', None, None)
             _temp_sender.setParameters(_sender, with_chain=False)
             _temp_sender.update(with_chain=False)
             self.senders.append(_temp_sender)
 
         self.recipients = []
         for _recipient in _recipients:
-            _temp_recipient = CAccount(DB, '__tempTransaction__', None, None, with_initBlock=False)
+            _temp_recipient = CAccount(DB, '__tempTransaction__', None, None)
             _temp_recipient.setParameters(_recipient, with_chain=False)
             _temp_recipient.update(with_chain=False)
             self.recipients.append(_temp_recipient)
@@ -102,10 +102,10 @@ class CTransaction():
 
         self.atomicTransactions = []
         for _atomic in _atomics:
-            _temp = CAtomicTransaction(CAccount(DB, '__temp__', None, "", with_initBlock=False),
-                                       CAccount(DB, '__temp__', None, "", with_initBlock=False),
+            _temp = CAtomicTransaction(CAccount(DB, '__temp__', None, ""),
+                                       CAccount(DB, '__temp__', None, ""),
                                        0, "",
-                                       CAccount(DB, '__temp__', None, "", with_initBlock=False))
+                                       CAccount(DB, '__temp__', None, ""))
             _temp.setParameters(_atomic)
             self.atomicTransactions.append(_temp)
 
@@ -113,20 +113,20 @@ class CTransaction():
     def add(self, atomicTransaction, signSender, signRecipient):
         
         if self.noAtomicTransactions == len(self.atomicTransactions):
-            print('Stack is full. Please first remove one atomicTransaction in order to add new one')
-            return 0
-        
+            raise Exception('Add Transaction',
+                            'Stack is full. Please first remove one atomicTransaction in order to add new one')
+
         if self.verify(atomicTransaction, signSender, signRecipient) == False:
-            print('Verification fails')
-            return 0
+            raise Exception('Add Transaction', 'Verification fails')
+
         
         try:
             if dt.datetime.strptime(self.timeToClose, '%Y-%m-%d %H:%M:%S') < dt.datetime.strptime(atomicTransaction.time, '%Y-%m-%d %H:%M:%S'):
-                print('Time to finish transaction just elapsed')
-                return 0
+                raise Exception('Add Transaction', 'Time to finish transaction just elapsed')
+
         except:
-            print('AtomicTransaction fails to build')
-            return 0
+            raise Exception('Add Transaction', 'AtomicTransaction fails to build')
+
         
         self.atomicTransactions.append(atomicTransaction)
         self.senders.append(atomicTransaction.sender)
@@ -142,8 +142,8 @@ class CTransaction():
             if self.checkTransaction() == True:
                 for atomic in self.atomicTransactions:
                     if atomic.sender.addAmount(atomic.token, -atomic.amount, False) == False or atomic.recipient.addAmount(atomic.token, atomic.amount, False) == False:
-                        print('sender has not enough funds')
-                        return False
+                        raise Exception('Add Transaction','sender has not enough funds')
+
                     
                     atomic.sender.chain.addTransaction(self)
                     atomic.recipient.chain.addTransaction(self)
@@ -151,12 +151,12 @@ class CTransaction():
                         if atomic.sender.address != CGenesis().initAccountPubKey:
                             del atomic.token.isLocked[atomic.sender.address]
                     except:
-                        print("Key sender address not found in isLocked")
+                        raise Exception('Add Transaction', "Key sender address not found in isLocked")
                     try:
                         if atomic.sender.address != CGenesis().initAccountPubKey:
                             del atomic.token.isLocked[atomic.recipient.address]
                     except:
-                        print("Key recipient address not found in isLocked")
+                        raise Exception('Add Transaction', "Key recipient address not found in isLocked")
                     
                     if atomic.sender.address != CGenesis().initAccountPubKey:
                         return 2
@@ -167,9 +167,8 @@ class CTransaction():
 
     def remove(self, atomicTransaction, signSender, signRecipient):
         if self.verify(atomicTransaction, signSender, signRecipient) == False:
-            print('Verification fails')
-            return False
-        
+            raise Exception('Remove Transaction', 'Verification fails')
+
         self.atomicTransactions.remove(atomicTransaction)
         return True
 
@@ -179,9 +178,7 @@ class CTransaction():
         for atomic in self.atomicTransactions:
             if atomic.sender in self.recipients and atomic.recipient in self.senders and atomic.sender != atomic.recipient:
                 continue
-            print('Not a full cycle')
-            return False
-
+            raise Exception('Check Transaction','Not a full cycle')
         return True
 
     def getHash(self):
@@ -192,8 +189,6 @@ class CTransaction():
             if signRecipient == '__future__' or  CWallet().verify(atomicTransaction.getHash(), signRecipient, atomicTransaction.recipient.address):
                 return True
             else:
-                print('Recipient signature is not valid')
+                raise Exception('Verify Transaction', 'Recipient signature is not valid')
         else:
-            print('Sender signature is not valid')
-
-        return False
+            raise Exception('Verify Transaction', 'Sender signature is not valid')

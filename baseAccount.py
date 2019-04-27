@@ -4,6 +4,7 @@ from chain import CChain
 import ast
 from wallet import CWallet
 from genesis import CGenesis
+import time
 
 class CBaseAccount():
     def __init__(self, DB, accountName, address):
@@ -44,12 +45,30 @@ class CBaseAccount():
         return self.setAmount(token, temp_amount, save)
 
     
-    def lockAccounts(self, sender, recipient):
-        self.isLocked[sender.address] = recipient.address
-        self.isLocked[recipient.address] = sender.address
+    def lockAccounts(self, account1, signature1, account2, time_to_close):
+
+        if CWallet().verify('Locking for deal: '+account1.accountName+' + '+
+                                                  account2.accountName+' till '+str(time_to_close),
+                            signature1, account1.address):
+            self.isLocked[account2.address] = account1.address
+        else:
+            raise Exception('Lock Accounts fails. Signature not valid for account '+
+                            account1.accountName,'Locking for deal fails: '+account1.accountName+' + '+
+                                                  account2.accountName+' till '+str(time_to_close))
+
         #save means announce to World
-        self.save()
-        
+        self.save(announce='Lock:')
+
+        while dt.datetime.today() < time_to_close:
+            _token = self.kade.look_at('Lock:'+self.address)
+            if _token is not None and account1.address in _token.isLocked.keys() and _token.isLocked[account1.address] == account2.address:
+                self.isLocked[account1.address] = account2.address
+                self.save()
+                break
+            if time_to_close < dt.datetime.today():
+                raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
+            time.sleep(0.1)
+
     def getAmount(self, token):
         return self.amount[token.address]
 
@@ -59,19 +78,44 @@ class CBaseAccount():
         else:
             return self.wallet
 
-    def send(self, recipient, token, amount):
+    def save_atomic_transaction(self, atomic_transaction, announce=''):
+        _key = atomic_transaction.recipient.address
+        _value = atomic_transaction.getParameters()
+        self.kade.save(_key, _value, announce=announce)
+
+    def save_transaction(self, transaction, announce=''):
+        _key = transaction.getHash()
+        _value = transaction.getParameters()
+        self.kade.save(_key, _value, announce=announce)
+
+    def send(self, recipient, token, amount, waiting_time=3600):
         from transaction import CAtomicTransaction, CTransaction
-        
-        token.lockAccounts(self, recipient)
-        
+        self.wallet = self.load_wallet()
+        time_to_close = dt.datetime.today() + dt.timedelta(seconds=waiting_time)
+
+        token.lockAccounts(self, self.wallet.sign('Locking for deal: '+self.accountName+' + '+
+                                                  recipient.accountName+' till '+str(time_to_close)),
+                           recipient, time_to_close)
+
         atomic = CAtomicTransaction(self, recipient, amount, optData='Simple TXN', token=token)
+        self.save_atomic_transaction(atomic, announce='AtomicTransaction:')
+
+        _signature = None
+        while dt.datetime.today() < time_to_close:
+            _signature = self.kade.look_at('SignatureRecipient:'+atomic.getHash())
+            if _signature is not None:
+                break
+            if time_to_close < dt.datetime.today():
+                raise Exception('Sign Transaction fails', 'Could not obtain valid signature from recipient till '+str(time_to_close))
+            time.sleep(0.1)
+
         self.wallet = self.load_wallet()
         _my_signature = self.wallet.sign(atomic.getHash())
-        txn = CTransaction(dt.datetime.today()+dt.timedelta(seconds=1000), 1)
-        if txn.add(atomic, _my_signature, '__future__') < 2:
-            print('Sending fails')
-            return False
+        txn = CTransaction(time_to_close, 1)
+        if txn.add(atomic, _my_signature, _signature) < 2:
+            raise Exception('Error in sending', 'Sending fails. Other fatal error')
 
+        self.save_transaction(txn)
         self.save()
         recipient.save()
 
@@ -80,13 +124,13 @@ class CBaseAccount():
     def getParameters(self, with_chain=True):
         _uniqueAccounts, _accountsCreated = self.chain.getParameters()
         if with_chain:
-            return self.decimalPlace, self.amount, self.address, self.accountName, \
+            return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), \
                    str({a: v for a, v in _accountsCreated.items()}), str(list(_uniqueAccounts.keys()))
         else:
-            return self.decimalPlace, self.amount, self.address, self.accountName, "{}", "{}"
+            return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), "{}", "{}"
 
     def setParameters(self, par, with_chain=True):
-        decimalPlace, amount, address, accountName, acc_created, acc_chain = par
+        decimalPlace, amount, address, accountName, isLocked, acc_created, acc_chain = par
         if with_chain:
             _temp_chain = {}
             acc_chain = ast.literal_eval(acc_chain.replace('true', 'True').replace('false', 'False'))
@@ -100,14 +144,14 @@ class CBaseAccount():
         self.amount = amount
         self.address = address
         self.accountName = accountName
+        self.isLocked = ast.literal_eval(isLocked.replace('true', 'True').replace('false', 'False'))
 
 
-    def save(self):
+    def save(self, announce=''):
         _acc_chain, _acc_created = self.chain.getParameters()
-        par = self.decimalPlace, self.amount, self.address, self.accountName, str(_acc_created), str(list(_acc_chain.keys()))
+        par = self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), str(_acc_created), str(list(_acc_chain.keys()))
         if self.accountName != '' and self.address != '':
-            print('BEFORE = ' + str(par))
-            print('AFTER = ' + str(self.kade.save(self.address, par)))
+            print('SAVED = ' + str(self.kade.save(self.address, par, announce)))
         else:
             pass
         '''
@@ -119,8 +163,8 @@ class CBaseAccount():
         '''
 
     def update(self, with_chain = True):
-        decimalPlace, amount, address, accountName, _acc_created, _acc_chain = self.kade.get(self.address)
-        self.setParameters([decimalPlace, amount, address, accountName, _acc_created, _acc_chain], with_chain)
+        decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain = self.kade.get(self.address)
+        self.setParameters([decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain], with_chain)
 
     def show(self):
         ret = ' ' + self.accountName + ' = ' + str(self.address) + '\n'
@@ -129,6 +173,8 @@ class CBaseAccount():
         ret += ', '.join(['%s: %d' % (key[:5], value) for (key, value) in self.chain.accountsCreated.items()])
         ret += '\nUniqueAccounts: '
         ret += ', '.join(['%s' % (key[:5]) for (key, value) in self.chain.uniqueAccounts.items()])
+        ret += '\nLockedAccounts: '
+        ret += ', '.join(['%s' % (key[:5]) for (key, value) in self.isLocked.items()])
         ret += '\nEnd print'
         print(ret)
         return ret

@@ -17,8 +17,8 @@ class CLimitedToken(CAccount):
                               baseLimitToken, address=baseLimitToken.address)
         return token
 
-    def save(self):
-        super().save()
+    def save(self, announce=''):
+        super().save(announce)
         self.kade.save('limitedToken ' + self.address, [self.totalSupply, self.owner.address])
 
     def update(self):
@@ -64,7 +64,7 @@ class CLimitedToken(CAccount):
             account_2.chain.uniqueAccounts[account_1.address] = account_1
             return [attacher]
 
-            raise Exception("Handshake", 'Handshake fails, no common connections')
+        raise Exception("Handshake", 'Handshake fails, no common connections')
 
     def spreadToWorld(self, accounts):
         for acc in accounts:

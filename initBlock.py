@@ -8,12 +8,12 @@ initBlock = None
 
 class CInitBlock(CGenesis):
     def __init__(self, kade=None):
-        super().__init__()
-        self.init_wallet = CWallet('init')
-        self.init_wallet.RSAkey = self.getPrivKey()
         global initBlock
 
         if initBlock is None:
+            super().__init__()
+            self.init_wallet = CWallet('init')
+            self.init_wallet.RSAkey = self.getPrivKey()
             self.kade = kade
             self.baseTotalSupply = 23000000.23
             self.initAccount = CBaseLimitedToken(self.kade, 'Q', self.baseTotalSupply, address=self.initAccountPubKey)

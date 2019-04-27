@@ -5,7 +5,7 @@ from wallet import CWallet
 class CGenesis:
     def __init__(self):
         self.e = 65537
-        #self.initAccountPubKey = CWallet().getPublicKey(self.initAccountPrivKey)
+        #self.initAccountPubKey = CWallet().getPublicKey(self.getPrivKey())
         self.initAccountPubKey = 'g9MsRcZGTHomRZD6pN4Nr1uq8L+scPZ/mOAsWBsU3LSBS99k4A5rA/XP5n7VfFpF4DNXhSJce4ZAo' \
                                  'Qbm3v0qyfrs5J9F9blhYZT2N8eNgmj2lCC0IC1YmZ5Pn/iSkpNKWk/ttGJj/hy+ozjcT0py8NJ' \
                                  'JzDLzeydCMrd1aG4Snbg='

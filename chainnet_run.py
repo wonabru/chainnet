@@ -8,6 +8,8 @@ from limitedToken import CLimitedToken
 from account import CAccount
 import ast
 from tkinter import scrolledtext
+from transaction import CAtomicTransaction
+import time
 
 class Application(tk.Frame):
 	def __init__(self, master=None):
@@ -24,6 +26,7 @@ class Application(tk.Frame):
 		self.create_account_tab()
 		self.create_create_tab()
 		self.create_send_tab()
+		self.create_receive_tab()
 		self.create_info_tab()
 		self.pack()
 
@@ -134,6 +137,68 @@ class Application(tk.Frame):
 				self.accounts_balances[address][key+'l'].grid(row=_row_nr, column=self.column_nr[address] * 2 + 1, sticky=tk.E)
 				_row_nr += 1
 
+	def create_receive_tab(self):
+		tk.Label(self.receive_tab, text='Token name:',
+								font=("Arial", 16)).grid(row=1, column=0)
+		self.tokens_ent = tk.Entry(self.receive_tab, width=20, font=("Arial", 16))
+		self.tokens_ent.grid(row=2, column=0)
+		tk.Label(self.receive_tab, text='From account by name:',
+								font=("Arial", 16)).grid(row=1, column=1)
+		self.from_account_ent = tk.Entry(self.receive_tab, width=20, font=("Arial", 16))
+		self.from_account_ent.grid(row=2, column=1)
+		tk.Label(self.receive_tab, text='To account by name:',
+								font=("Arial", 16)).grid(row=4, column=1)
+		self.to_address_ent = tk.Entry(self.receive_tab, width=20, font=("Arial", 16))
+		self.to_address_ent.grid(row=5, column=1)
+		tk.Label(self.receive_tab, text='Amount to receive:',
+								font=("Arial", 16)).grid(row=4, column=0)
+		self.amount_ent = tk.Entry(self.receive_tab, width=20, font=("Arial", 16))
+		self.amount_ent.grid(row=5, column=0)
+		tk.Label(self.send_tab, text='Deal must be closed till:',
+								font=("Arial", 16)).grid(row=6, column=0)
+		self.time_to_close_ent = tk.Entry(self.receive_tab, width=20, font=("Arial", 16))
+		self.time_to_close_ent.grid(row=7, column=0)
+
+		tk.Button(self.receive_tab, text="Check incomming transactions", bg='orange', fg='blue', font=("Arial", 20),
+									command=self.in_background).grid(row=2, column=2, rowspan=2)
+		tk.Button(self.receive_tab, text="Sign", bg='orange', fg='blue', font=("Arial", 20),
+									command=self.sign_receive).grid(row=4, column=2, rowspan=2)
+
+	def in_background(self):
+		self.atomicTransaction = None
+		self.look_for_deal()
+
+		if self.atomicTransaction is not None:
+			self.tokens_ent.delete(0, tk.END)
+			self.tokens_ent.insert(0, self.atomicTransaction.token.accountName)
+			self.from_account_ent.delete(0, tk.END)
+			self.from_account_ent.insert(0, self.atomicTransaction.sender.accountName)
+			self.to_address_ent.delete(0, tk.END)
+			self.to_address_ent.insert(0, self.atomicTransaction.recipient.accountName)
+			self.amount_ent.delete(0, tk.END)
+			self.amount_ent.insert(0, str(self.atomicTransaction.amount))
+			self.time_to_close_ent.delete(0, tk.END)
+			self.time_to_close_ent.insert(0, self.atomicTransaction.time)
+
+	def sign_receive(self):
+		DB = self.my_main_account.kade
+		_signature = self.my_main_account.wallet.sign(self.atomicTransaction.getHash())
+		DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
+
+	def look_for_deal(self):
+		_announcement = {}
+		DB = self.my_main_account.kade
+		my_accounts = DB.get('my_main_accounts')
+		for acc in my_accounts:
+			_announcement[acc] = DB.look_at('AtomicTransaction:' + acc)
+			if _announcement is not None:
+				self.atomicTransaction = CAtomicTransaction(CAccount(DB, '__temp__', None, ""),
+	                                       CAccount(DB, '__temp__', None, ""),
+	                                       0, "",
+	                                       CAccount(DB, '__temp__', None, ""))
+				self.atomicTransaction.setParameters(_announcement[acc])
+				break
+
 	def create_send_tab(self):
 		tk.Label(self.send_tab, text='Choose token name:',
 								font=("Arial", 16)).grid(row=1, column=0)
@@ -158,15 +223,21 @@ class Application(tk.Frame):
 		self.amount_spin = tk.Spinbox(self.send_tab, from_=0, to=100000000000, width=12, font=("Arial", 16), textvariable=_amount)
 		self.amount_spin.grid(row=5, column=0)
 		_amount.set(1)
+		tk.Label(self.send_tab, text='Max waiting time in seconds:',
+								font=("Arial", 16)).grid(row=6, column=0)
+		self.waiting_time_ent = tk.Entry(self.send_tab, width=10, font=("Arial", 16))
+		self.waiting_time_ent.insert(tk.END, '3600')
+		self.waiting_time_ent.grid(row=7, column=0)
 		tk.Button(self.send_tab, text="Send", bg='orange', fg='blue', font=("Arial", 20),
 									command=lambda: self.send_coins(self.my_accounts_cmb.get(),
 																	self.send_address_ent.get(),
 									                                self.amount_spin.get(),
-									                                self.tokens_cmb.get())).grid(row=3, column=2, rowspan=2)
+									                                self.tokens_cmb.get(),
+									                                self.waiting_time_ent.get())).grid(row=3, column=2, rowspan=2)
 		tk.Button(self.send_tab, text="Attach recipient to Token", bg='yellow', fg='red', font=("Arial", 20),
 									command=lambda: self.attach(self.send_address_ent.get(),
 																self.my_accounts_cmb.get(),
-									                                self.tokens_cmb.get())).grid(row=3, column=3, rowspan=2)
+									                                self.tokens_cmb.get())).grid(row=5, column=2, rowspan=2)
 
 	def attach(self, account, attacher, token):
 		try:
@@ -190,18 +261,21 @@ class Application(tk.Frame):
 				messagebox.showerror(title='Attach', message=attacher.accountName + ' is not connected to ' +
 				                                                       token.accountName)
 		except Exception as ex:
-			_title, _err = ex.args
+			if len(ex.args) > 1:
+				_title, _err = ex.args
+			else:
+				_title, _err = 'Other error', ex.args
 			messagebox.showerror(title=str(_title), message=str(_err))
 
-	def send_coins(self, from_account, to_account, amount, token):
+	def send_coins(self, from_account, to_account, amount, token, wating_time):
 		try:
 			amount = float(amount)
 			self.update_my_accounts()
 			from_account = self.select_my_acount_by_name(from_account)
 			to_account = self.select_my_acount_by_name(to_account)#self.my_main_account.chain.uniqueAccounts[to_account]
 			token = self.chainnet.get_token_by_name(token)
-			if to_account.address in token.chain.uniqueAccounts and from_account.address in token.chain.uniqueAccounts:
-				if from_account.send(to_account, token, amount):
+			if to_account.address in token.chain.uniqueAccounts:
+				if from_account.send(to_account, token, amount, float(wating_time)):
 					self.update_amounts()
 					messagebox.showinfo(title='Send with success', message=from_account.accountName+' sent '+
 					                                                       str(amount)+' of '+token.accountName+' to token '+
@@ -211,8 +285,12 @@ class Application(tk.Frame):
 					messagebox.showerror(title='Send', message='Not enough funds on '+from_account.accountName)
 			else:
 				messagebox.showerror(title='Send', message='You need first attach '+to_account.accountName+' to '+token.accountName)
-		except:
-			messagebox.showerror(title='Send', message='Coins not send')
+		except Exception as ex:
+			if len(ex.args) > 1:
+				_title, _err = ex.args
+			else:
+				_title, _err = 'Other error', ex.args
+			messagebox.showerror(title=str(_title), message=str(_err))
 
 	def radiobtn_change(self):
 
@@ -234,7 +312,7 @@ class Application(tk.Frame):
 			self.supply_spin.grid(row=8, column=1, sticky=tk.W)
 			self.lbl_new_address.grid_remove()
 			self.new_address_ent.grid_remove()
-			self.create_new_account_btn_lbl.set("Create new Limit Token")
+			self.create_new_account_btn_lbl.set("Create new Limited Token")
 		if self.selected_account.get() == 4:
 			self.set_initial_supply_lbl.set('Set Initial Supply for Action Token:')
 			self.lbl_initial_supply_pos.grid(row=8, column=0, sticky=tk.W)

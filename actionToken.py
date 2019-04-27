@@ -14,8 +14,8 @@ class CActionToken(CAccount):
             self.owner.setAmount(self, initialSupply, save=save)
         self.setAmount(self, 0, save=save)
 
-    def save(self):
-        super().save()
+    def save(self, announce=''):
+        super().save(announce)
         self.kade.save('actionToken ' + self.address, [self.totalSupply, self.owner.address])
 
     def update(self):
