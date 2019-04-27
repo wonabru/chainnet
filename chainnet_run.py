@@ -17,6 +17,7 @@ class Application(tk.Frame):
 		self.my_main_account = self.chainnet.my_account
 		self.my_accounts = {}
 		self.column_nr = {}
+		self.my_accounts_names = {}
 		self.update_my_accounts()
 		self.master = master
 		self.create_tabs()
@@ -42,6 +43,7 @@ class Application(tk.Frame):
 						_wallet = CWallet(_account.accountName)
 
 						self.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
+						self.my_accounts_names[_account.address] = _account.accountName
 					except Exception as ex:
 						messagebox.showerror(title='Error loading file', message=str(ex))
 
@@ -55,17 +57,17 @@ class Application(tk.Frame):
 		self.account_tab = tk.Frame(self.tab_control)
 		self.create_tab = tk.Frame(self.tab_control)
 		self.send_tab = tk.Frame(self.tab_control)
-		self.messages_tab = tk.Frame(self.tab_control)
+		self.receive_tab = tk.Frame(self.tab_control)
 		self.info_tab = tk.Frame(self.tab_control)
 		self.tab_control.add(self.account_tab, text='Accounts balances')
 		self.tab_control.add(self.create_tab, text='Create Account')
 		self.tab_control.add(self.send_tab, text='Send')
-		self.tab_control.add(self.messages_tab, text='Messages')
+		self.tab_control.add(self.receive_tab, text='Receive')
 		self.tab_control.add(self.info_tab, text='Accounts info')
 		self.tab_control.pack(expand=1, fill='both')
 
 	def create_info_tab(self):
-		tk.Label(self.info_tab, text='Choose token name:', font=("Helvetica", 12)).grid(row=0, column=0, sticky=tk.W)
+		tk.Label(self.info_tab, text='Choose token name:', font=("Arial", 12)).grid(row=0, column=0, sticky=tk.W)
 		self.tokens_cmb_info = ttk.Combobox(self.info_tab)
 		_token = []
 		_token.extend([str(token.accountName) for key, token in self.chainnet.tokens.items()])
@@ -73,7 +75,7 @@ class Application(tk.Frame):
 		self.tokens_cmb_info.set(_token[0])
 		self.tokens_cmb_info.grid(column=0, row=1, sticky=tk.W)
 		tk.Label(self.info_tab, text='Account by name:',
-				 font=("Helvetica", 12)).grid(column=1, row=0, sticky=tk.W)
+				 font=("Arial", 12)).grid(column=1, row=0, sticky=tk.W)
 		self.my_accounts_cmb_info = ttk.Combobox(self.info_tab)
 		_acc = []
 		_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
@@ -108,7 +110,7 @@ class Application(tk.Frame):
 		self.amounts[address] = {}
 		self.column_nr[address] = len(self.column_nr)
 		tk.Label(self.account_tab, text=account.accountName + "'s balances: ",
-				 font=("Helvetica", 13), justify='right', relief="ridge",
+				 font=("Arial", 13), justify='right', relief="ridge",
 				 bg="#ddd555000", fg="#fffffffff").grid(column=self.column_nr[address] * 2, row=0, columnspan=2)
 
 		self.add_new_amounts(address, account)
@@ -122,24 +124,24 @@ class Application(tk.Frame):
 			if key not in self.amounts[address]:
 				self.amounts[address][key] = tk.StringVar()
 				self.accounts_balances[address][key] = tk.Label(self.account_tab, textvariable=self.amounts[address][key],
-				                                            font=("Helvetica", 12), justify='right', relief="ridge",
+				                                            font=("Arial", 12), justify='right', relief="ridge",
 																bg="#dddddd000", fg="#000000ddd")
 				self.accounts_balances[address][key].grid(row=_row_nr, column=self.column_nr[address] * 2, sticky=tk.W)
 				self.amounts[address][key+'l'] = tk.StringVar()
 				self.accounts_balances[address][key+'l'] = tk.Label(self.account_tab, textvariable=self.amounts[address][key+'l'],
-				                                            font=("Helvetica", 12), justify='right', relief="ridge",
+				                                            font=("Arial", 12), justify='right', relief="ridge",
 																bg="#dddddd000", fg="#000000222")
 				self.accounts_balances[address][key+'l'].grid(row=_row_nr, column=self.column_nr[address] * 2 + 1, sticky=tk.E)
 				_row_nr += 1
 
 	def create_send_tab(self):
 		tk.Label(self.send_tab, text='Choose token name:',
-								font=("Helvetica", 16)).grid(row=1, column=0)
+								font=("Arial", 16)).grid(row=1, column=0)
 		self.tokens_cmb = ttk.Combobox(self.send_tab)
 		self.tokens_cmb['values'] = [str(token.accountName) for key, token in self.chainnet.tokens.items()]
 		self.tokens_cmb.grid(row=2, column=0)
 		tk.Label(self.send_tab, text='From account by name:',
-								font=("Helvetica", 16)).grid(row=1, column=1)
+								font=("Arial", 16)).grid(row=1, column=1)
 		self.my_accounts_cmb = ttk.Combobox(self.send_tab)
 		self.my_accounts_cmb['values'] = [acc['account'].accountName+' '+
 		                                  ''.join(str(value)+' '+str(self.chainnet.get_token(key).accountName+' ')
@@ -147,21 +149,21 @@ class Application(tk.Frame):
 		                                  for acc in self.my_accounts.values()]
 		self.my_accounts_cmb.grid(row=2, column=1)
 		tk.Label(self.send_tab, text='To account by name:',
-								font=("Helvetica", 16)).grid(row=4, column=1)
-		self.send_address_ent = tk.Entry(self.send_tab, width=30, font=("Helvetica", 16))
+								font=("Arial", 16)).grid(row=4, column=1)
+		self.send_address_ent = tk.Entry(self.send_tab, width=30, font=("Arial", 16))
 		self.send_address_ent.grid(row=5, column=1)
 		_amount = tk.DoubleVar()
 		tk.Label(self.send_tab, text='Amount to send:',
-								font=("Helvetica", 16)).grid(row=4, column=0)
-		self.amount_spin = tk.Spinbox(self.send_tab, from_=0, to=100000000000, width=12, font=("Helvetica", 16), textvariable=_amount)
+								font=("Arial", 16)).grid(row=4, column=0)
+		self.amount_spin = tk.Spinbox(self.send_tab, from_=0, to=100000000000, width=12, font=("Arial", 16), textvariable=_amount)
 		self.amount_spin.grid(row=5, column=0)
 		_amount.set(1)
-		tk.Button(self.send_tab, text="Send", bg='orange', fg='blue', font=("Helvetica", 20),
+		tk.Button(self.send_tab, text="Send", bg='orange', fg='blue', font=("Arial", 20),
 									command=lambda: self.send_coins(self.my_accounts_cmb.get(),
 																	self.send_address_ent.get(),
 									                                self.amount_spin.get(),
 									                                self.tokens_cmb.get())).grid(row=3, column=2, rowspan=2)
-		tk.Button(self.send_tab, text="Attach", bg='yellow', fg='red', font=("Helvetica", 20),
+		tk.Button(self.send_tab, text="Attach recipient to Token", bg='yellow', fg='red', font=("Arial", 20),
 									command=lambda: self.attach(self.send_address_ent.get(),
 																self.my_accounts_cmb.get(),
 									                                self.tokens_cmb.get())).grid(row=3, column=3, rowspan=2)
@@ -211,42 +213,78 @@ class Application(tk.Frame):
 		except:
 			messagebox.showerror(title='Send', message='Coins not send')
 
+	def radiobtn_change(self):
+
+		if self.selected_account.get() == 1:
+			self.lbl_initial_supply_pos.grid_remove()
+			self.supply_spin.grid_remove()
+			self.lbl_new_address.grid_remove()
+			self.new_address_ent.grid_remove()
+			self.create_new_account_btn_lbl.set("Create new account")
+		if self.selected_account.get() == 2:
+			self.lbl_initial_supply_pos.grid_remove()
+			self.supply_spin.grid_remove()
+			self.lbl_new_address.grid(row=6, column=0, sticky=tk.W)
+			self.new_address_ent.grid(row=6, column=1, sticky=tk.W)
+			self.create_new_account_btn_lbl.set("Invite new account")
+		if self.selected_account.get() == 3:
+			self.set_initial_supply_lbl.set('Set Total Supply for Limited Token:')
+			self.lbl_initial_supply_pos.grid(row=8, column=0, sticky=tk.W)
+			self.supply_spin.grid(row=8, column=1, sticky=tk.W)
+			self.lbl_new_address.grid_remove()
+			self.new_address_ent.grid_remove()
+			self.create_new_account_btn_lbl.set("Create new Limit Token")
+		if self.selected_account.get() == 4:
+			self.set_initial_supply_lbl.set('Set Initial Supply for Action Token:')
+			self.lbl_initial_supply_pos.grid(row=8, column=0, sticky=tk.W)
+			self.supply_spin.grid(row=8, column=1, sticky=tk.W)
+			self.lbl_new_address.grid_remove()
+			self.new_address_ent.grid_remove()
+			self.create_new_account_btn_lbl.set("Create new Action Token")
 
 
 	def create_create_tab(self):
-		self.selected_account = tk.IntVar()
-		self.selected_account.set(1)
-		rad1 = tk.Radiobutton(self.create_tab, text='Create new simple account from scratch', value=1,
-		                      variable=self.selected_account)
-		rad2 = tk.Radiobutton(self.create_tab, text='Create new simple account using public address',
-					   value=2, variable=self.selected_account)
-		rad3 = tk.Radiobutton(self.create_tab, text='Create new Limited Token',
-					   value=3, variable=self.selected_account)
-		rad4 = tk.Radiobutton(self.create_tab, text='Create new Action Token',
-					   value=4, variable=self.selected_account)
-		rad1.pack()
-		rad2.pack()
-		rad3.pack()
-		rad4.pack()
 		tk.Label(self.create_tab, text='Set new account name:',
-								font=("Helvetica", 16)).pack()
-		self.new_name_ent = tk.Entry(self.create_tab, width=30, font=("Helvetica", 16))
-		self.new_name_ent.pack()
-		tk.Label(self.create_tab, text='Set new address:',
-								font=("Helvetica", 16)).pack()
-		self.new_address_ent = tk.Entry(self.create_tab, width=50, font=("Helvetica", 16))
-		self.new_address_ent.pack()
-		tk.Label(self.create_tab, text='Set total/initial supply:',
-		         font=("Helvetica", 16)).pack()
+								font=("Arial", 16)).grid(row=4, column=0, sticky=tk.W)
+		self.new_name_ent = tk.Entry(self.create_tab, width=30, font=("Arial", 16))
+		self.new_name_ent.grid(row=4, column=1, sticky=tk.W)
+		self.lbl_new_address = tk.Label(self.create_tab, text='New address:',
+								font=("Arial", 16))
+		self.new_address_ent = tk.Entry(self.create_tab, width=50, font=("Arial", 16))
 		_amount = tk.DoubleVar()
 
-		self.supply_spin = tk.Spinbox(self.create_tab, from_=1, to=1000000000000, width=20, textvariable=_amount)
-		self.supply_spin.pack()
+		self.supply_spin = tk.Spinbox(self.create_tab, from_=0, to=1000000000000, width=20, textvariable=_amount)
 		_amount.set(1000000)
-		tk.Button(self.create_tab, text="Create new account",
+		self.set_initial_supply_lbl = tk.StringVar()
+		self.set_initial_supply_lbl.set('Hello')
+		self.lbl_initial_supply_pos = tk.Label(self.create_tab, textvariable=self.set_initial_supply_lbl,
+		                                       font=("Arial", 16))
+		self.selected_account = tk.IntVar()
+		self.selected_account.set(1)
+		rad1 = tk.Radiobutton(self.create_tab, text='Create new simple account from scratch', value=1, bg='#fff000fff',
+		                      variable=self.selected_account, command=lambda: self.radiobtn_change(), indicatoron=0)
+		rad2 = tk.Radiobutton(self.create_tab, text='Invite new simple account using public address', bg='#fff000eee',
+					   value=2, variable=self.selected_account, command=lambda: self.radiobtn_change(), indicatoron=0)
+		rad3 = tk.Radiobutton(self.create_tab, text='Create new Limited Token', bg='#fff000bbb',
+					   value=3, variable=self.selected_account, command=lambda: self.radiobtn_change(), indicatoron=0)
+		rad4 = tk.Radiobutton(self.create_tab, text='Create new Action Token', bg='#fff000999',
+					   value=4, variable=self.selected_account, command=lambda: self.radiobtn_change(), indicatoron=0)
+		rad1.grid(row=0, column=0, sticky=tk.W)
+		rad2.grid(row=2, column=0, sticky=tk.W)
+		rad3.grid(row=0, column=1, sticky=tk.W)
+		rad4.grid(row=2, column=1, sticky=tk.W)
+
+		self.create_new_account_btn_lbl = tk.StringVar()
+		self.create_new_account_btn_lbl.set("Create new account")
+		tk.Button(self.create_tab, textvariable=self.create_new_account_btn_lbl, bg="#888000990", font=("Arial", 20),
 									command=lambda: self.create_new_account(self.new_name_ent.get(),
 																			self.new_address_ent.get(),
-									                                        self.supply_spin.get())).pack()
+									                                        self.supply_spin.get())).grid(row=10, column=0,
+		                                                                                                  columnspan=2,
+		                                                                                                  rowspan=2)
+
+	def get_my_accounts_names(self):
+		return self.my_accounts_names.values()
 
 	def create_new_account(self, accountName, address, initSupply):
 		if accountName == '':
@@ -257,6 +295,10 @@ class Application(tk.Frame):
 			return
 
 		self.update_my_accounts()
+		if accountName in self.get_my_accounts_names():
+			messagebox.showwarning(title='Account name', message='There is just such an account name in your wallet')
+			return
+
 		initSupply = float(initSupply)
 		if self.selected_account.get() == 1:
 			_wallet = CWallet(accountName)
@@ -265,9 +307,11 @@ class Application(tk.Frame):
 			if _account is None:
 				messagebox.showerror(title='Error in account creating', message='Account is not created')
 				return
+			'''
 			self.new_address_ent.delete(0, tk.END)
 			self.new_address_ent.insert(0, str(_wallet.pubKey)[:20])
-			self.new_address_ent.pack()
+			self.new_address_ent.grid(row=6, column=1, sticky=tk.W)
+			'''
 			_account.save()
 			self.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
 			_acc = []
@@ -290,9 +334,11 @@ class Application(tk.Frame):
 				return
 			self.my_main_account.save()
 			_limitedToken.save()
+			'''
 			self.new_address_ent.delete(0, tk.END)
 			self.new_address_ent.insert(0, str(_wallet.pubKey)[:20])
-			self.new_address_ent.pack()
+			self.new_address_ent.grid(row=6, column=1, sticky=tk.W)
+			'''
 			self.my_accounts[_limitedToken.address] = {'account': _limitedToken, 'wallet': _wallet}
 			self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
 			self.chainnet.add_token(_limitedToken)
@@ -314,9 +360,11 @@ class Application(tk.Frame):
 				return
 			self.my_main_account.save()
 			_actionToken.save()
+			'''
 			self.new_address_ent.delete(0, tk.END)
 			self.new_address_ent.insert(0, str(_wallet.pubKey)[:20])
-			self.new_address_ent.pack()
+			self.new_address_ent.grid(row=6, column=1, sticky=tk.W)
+			'''
 			self.my_accounts[_actionToken.address] = {'account': _actionToken, 'wallet': _wallet}
 			self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
 			self.chainnet.add_token(_actionToken)

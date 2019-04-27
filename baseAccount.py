@@ -122,7 +122,7 @@ class CBaseAccount():
         self.setParameters([decimalPlace, amount, address, accountName, _acc_created, _acc_chain], with_chain)
 
     def show(self):
-        ret = ' ' + self.accountName + ' = ' + str(self.address[:5]) + '\n'
+        ret = ' ' + self.accountName + ' = ' + str(self.address) + '\n'
         ret += ', '.join(['%s: %.2f' % (key[:5], value) for (key, value) in self.amount.items()])
         ret += '\nAccountsCreated: '
         ret += ', '.join(['%s: %d' % (key[:5], value) for (key, value) in self.chain.accountsCreated.items()])

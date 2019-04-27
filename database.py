@@ -11,7 +11,7 @@ class CSQLLite():
         self.kade.runServer()
         self.register_node('127.0.0.1', ownAddress)
         self.bootstrapNodes()
-        
+
 
     def save(self, key, value):
         self.sqllite.set(key=str(key), value=value)
