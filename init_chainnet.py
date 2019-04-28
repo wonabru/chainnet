@@ -56,6 +56,7 @@ class CInitChainnet:
 		else:
 			self.my_account = CAccount(self.DB, 'main', 0, self.wallet.pubKey)
 		if self.DB.get(self.my_account.address) is None:
+			self.my_account.accountName = 'main'
 			self.my_account.save()
 
 	def load_tokens(self):
