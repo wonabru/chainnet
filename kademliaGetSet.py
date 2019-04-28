@@ -19,27 +19,7 @@ class CDataBase(object):
             log.addHandler(handler)
             log.setLevel(logging.CRITICAL)
             self.loop.set_debug(True)
-
-    def runServer(self):
-        from multiprocessing import Process, Queue
-        serverQ = Queue()
-        loopQ = Queue()
-        pKademlia = Process(target=self.serverLoop, args=(serverQ, loopQ))
-        pKademlia.start()
-        serverQ.put(self.server)
-        loopQ.put(self.loop)
-
-    @staticmethod
-    def serverLoop(localServer, localLoop):
-        localServer.get()
-        localLoop.get()
-        try:
-            localLoop.run_forever()
-        except KeyboardInterrupt:
-            pass
-        finally:
-            localServer.stop()
-            localLoop.close()
+            #self.loop.run_forever()
 
     def set(self, key, value):
         self.loop = asyncio.get_event_loop()
