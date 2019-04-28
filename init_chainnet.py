@@ -54,7 +54,7 @@ class CInitChainnet:
 		if self.wallet.pubKey == self.first_account.address:
 			self.my_account = self.first_account
 		else:
-			self.my_account = CAccount(self.DB, 'Me', 0, self.wallet.pubKey)
+			self.my_account = CAccount(self.DB, 'main', 0, self.wallet.pubKey)
 		if self.DB.get(self.my_account.address) is None:
 			self.my_account.save()
 
