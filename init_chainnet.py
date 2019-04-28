@@ -67,7 +67,7 @@ class CInitChainnet:
 					_token = CActionToken(self.DB, '__tempInitChainnet__', None, None, acc, False)
 					_token.update()
 				except Exception as ex:
-					print(str(ex))
+					#raise Exception('Load tokens', 'My accounts have token address that there is not in DB')
 					_token = self.baseToken if acc == CGenesis().initAccountPubKey else None
 
 			if _token is not None:

@@ -171,8 +171,10 @@ class CBaseAccount():
         '''
 
     def update(self, with_chain = True):
-        decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain = self.kade.get(self.address)
-        self.setParameters([decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain], with_chain)
+	    _par = self.kade.get(self.address)
+	    if _par is not None:
+	        decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain = _par
+	        self.setParameters([decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain], with_chain)
 
     def show(self):
         ret = ' ' + self.accountName + ' = ' + str(self.address) + '\n'

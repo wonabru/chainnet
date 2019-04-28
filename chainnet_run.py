@@ -85,7 +85,7 @@ class Application(tk.Frame):
 		_acc = []
 		_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
 		self.my_accounts_cmb_info['values'] = _acc
-		self.my_accounts_cmb_info.set(_acc[0])
+
 		self.my_accounts_cmb_info.grid(column=1, row=1, sticky=tk.W)
 		tk.Button(self.info_tab, text="Get Info", command=lambda: self.get_info(
 			self.my_accounts_cmb_info.get(), self.tokens_cmb_info.get())).grid(column=2, row=0, rowspan=2, sticky=tk.W)
