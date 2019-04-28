@@ -47,7 +47,10 @@ class CSQLLite():
 
         if response is not None:
             #self.save(key, response)
-            response = ast.literal_eval(response.replace('true', 'True').replace('false', 'False'))
+            try:
+                response = ast.literal_eval(response.replace('true', 'True').replace('false', 'False'))
+            except:
+                pass
         return response
 
     def close(self):

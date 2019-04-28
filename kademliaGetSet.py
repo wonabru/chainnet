@@ -6,7 +6,7 @@ class CDataBase(object):
     def __init__(self):
         self.server = None
         self.loop = None
-        self.port = 10023
+        self.port = 10024
 
     def initiate(self):
         if self.server is None:
@@ -36,5 +36,5 @@ class CDataBase(object):
         self.loop = asyncio.get_event_loop()
         bootstrap_node = []
         for n in nodes:
-            bootstrap_node.append((n, self.port))
+            bootstrap_node.append((n, 10023))
         self.loop.run_until_complete(self.server.bootstrap(bootstrap_node))
