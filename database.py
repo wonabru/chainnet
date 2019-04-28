@@ -12,8 +12,6 @@ class CSQLLite():
             self.sqllite = sqllite()
             self.kade = CDataBase()
             self.kade.initiate()
-            self.register_node('127.0.0.1', ownAddress)
-            self.bootstrapNodes()
             instance_kade = self
         else:
             self.nodes = instance_kade.nodes
@@ -48,14 +46,9 @@ class CSQLLite():
     def close(self):
         self.sqllite.close()
 
-    def register_node(self, address, publicKey):
-        if (address, publicKey) not in self.nodes:
-            self.nodes.append((address, publicKey))
+    def register_node(self, address):
+        if address not in self.nodes:
+            self.nodes.append(address)
 
     def bootstrapNodes(self):
-        nodes = []
-        for n in self.nodes:
-            if n[0] not in nodes:
-                nodes.append(n[0])
-
-        self.kade.bootstrap(nodes=nodes, port=5679)
+        self.kade.bootstrap(nodes=self.nodes, port=5679)
