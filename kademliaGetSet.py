@@ -6,12 +6,13 @@ class CDataBase(object):
     def __init__(self):
         self.server = None
         self.loop = None
+        self.port = 10023
 
     def initiate(self):
         if self.server is None:
             self.loop = asyncio.get_event_loop()
             self.server = Server()
-            self.loop.run_until_complete(self.server.listen(5679))
+            self.loop.run_until_complete(self.server.listen(self.port))
             handler = logging.StreamHandler()
             formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
@@ -31,9 +32,9 @@ class CDataBase(object):
         result = self.loop.run_until_complete(self.server.get(key))
         return result
 
-    def bootstrap(self, nodes, port):
+    def bootstrap(self, nodes):
         self.loop = asyncio.get_event_loop()
         bootstrap_node = []
         for n in nodes:
-            bootstrap_node.append((n, int(port)))
+            bootstrap_node.append((n, self.port))
         self.loop.run_until_complete(self.server.bootstrap(bootstrap_node))

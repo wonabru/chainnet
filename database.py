@@ -17,6 +17,7 @@ class CSQLLite():
             self.kade = CDataBase()
             self.kade.initiate()
             self.register_node(node_identifier)
+            self.register_node('127.0.0.1')
             self.bootstrapNodes()
             instance_kade = self
         else:
@@ -57,4 +58,4 @@ class CSQLLite():
             self.nodes.append(address)
 
     def bootstrapNodes(self):
-        self.kade.bootstrap(nodes=self.nodes, port=5679)
+        self.kade.bootstrap(self.nodes)
