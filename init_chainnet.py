@@ -32,7 +32,7 @@ class CInitChainnet:
 			self.DB.save('tokens', str(list(self.tokens.keys())))
 			token.owner.save()
 			token.save()
-			
+
 		if self.DB.get(token.address) is None:
 			token.save()
 
