@@ -70,7 +70,6 @@ class CBaseAccount():
 		while dt.datetime.today() < time_to_close:
 			_par = self.kade.look_at('Lock:'+self.address)
 			if _par is not None:
-				print(str(_par))
 				_token = self.load_base_account(self.address)
 				_token.setParameters(_par, with_chain=False)
 				if _token is not None and account1.address in _token.isLocked.keys() and _token.isLocked[account1.address] == account2address:
@@ -79,7 +78,7 @@ class CBaseAccount():
 					break
 				if time_to_close < dt.datetime.today():
 					raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
-			time.sleep(1)
+			time.sleep(10)
 
 	def getAmount(self, token):
 		return self.amount[token.address]

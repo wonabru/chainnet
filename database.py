@@ -1,16 +1,22 @@
 from sqllite import CDataBase as sqllite
 from kademliaGetSet import CDataBase
+import socket
 
 instance_kade = None
+
 
 class CSQLLite():
     def __init__(self, ownAddress):
 
         global instance_kade
         if instance_kade is None:
+            node_identifier = socket.gethostbyname(socket.gethostname())
             self.nodes = []
             self.sqllite = sqllite()
+
             self.kade = CDataBase()
+            self.register_node(node_identifier)
+            self.bootstrapNodes()
             self.kade.initiate()
             instance_kade = self
         else:
