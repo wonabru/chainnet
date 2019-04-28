@@ -15,9 +15,9 @@ class CSQLLite():
             self.sqllite = sqllite()
 
             self.kade = CDataBase()
+            self.kade.initiate()
             self.register_node(node_identifier)
             self.bootstrapNodes()
-            self.kade.initiate()
             instance_kade = self
         else:
             self.nodes = instance_kade.nodes
