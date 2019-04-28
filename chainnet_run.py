@@ -10,6 +10,8 @@ import ast
 from tkinter import scrolledtext
 from transaction import CAtomicTransaction
 import time
+import datetime as dt
+
 
 class Application(tk.Frame):
 	def __init__(self, master, chainnet):
@@ -232,6 +234,11 @@ class Application(tk.Frame):
 		self.waiting_time_ent = tk.Entry(self.send_tab, width=10, font=("Arial", 16))
 		self.waiting_time_ent.insert(tk.END, '3600')
 		self.waiting_time_ent.grid(row=7, column=0)
+		tk.Button(self.send_tab, text="Lock Account", bg='orange', fg='blue', font=("Arial", 20),
+									command=lambda: self.lock(self.my_accounts_cmb.get(),
+																	self.send_address_ent.get(),
+									                                self.tokens_cmb.get(),
+									                                self.waiting_time_ent.get())).grid(row=1, column=2, rowspan=2)
 		tk.Button(self.send_tab, text="Send", bg='orange', fg='blue', font=("Arial", 20),
 									command=lambda: self.send_coins(self.my_accounts_cmb.get(),
 																	self.send_address_ent.get(),
@@ -242,6 +249,28 @@ class Application(tk.Frame):
 									command=lambda: self.attach(self.send_address_ent.get(),
 																self.my_accounts_cmb.get(),
 									                                self.tokens_cmb.get())).grid(row=5, column=2, rowspan=2)
+
+	def lock(self, my_account, other_account, token, waiting_time):
+		try:
+			self.update_my_accounts()
+			my_account = self.select_my_acount_by_name(my_account)
+			_other_account = self.select_my_acount_by_name(other_account)
+			other_account = _other_account.address if _other_account is not None else other_account
+			token = self.chainnet.get_token_by_name(token)
+			_wallet = my_account.load_wallet()
+			time_to_close = dt.datetime.today() + dt.timedelta(seconds=float(waiting_time))
+
+			token.lockAccounts(my_account, _wallet.sign('Locking for deal: ' + my_account.address + ' + ' +
+			                                          other_account + ' till ' + str(time_to_close)),
+			                   other_account, time_to_close)
+			messagebox.showinfo('Lock with Success', 'Locking for deal: ' + my_account.address + ' + ' +
+			                                          other_account + ' till ' + str(time_to_close))
+		except Exception as ex:
+			if len(ex.args) > 1:
+				_title, _err = ex.args
+			else:
+				_title, _err = 'Other error', ex.args
+			messagebox.showerror(title=str(_title), message=str(_err))
 
 	def attach(self, account, attacher, token):
 		try:

@@ -53,16 +53,16 @@ class CBaseAccount():
 
         return  _account
 
-    def lockAccounts(self, account1, signature1, account2, time_to_close):
+    def lockAccounts(self, account1, signature1, account2address, time_to_close):
 
-        if CWallet().verify('Locking for deal: '+account1.accountName+' + '+
-                                                  account2.accountName+' till '+str(time_to_close),
+        if CWallet().verify('Locking for deal: '+account1.address+' + '+
+                                                  account2address+' till '+str(time_to_close),
                             signature1, account1.address):
-            self.isLocked[account2.address] = account1.address
+            self.isLocked[account2address] = account1.address
         else:
             raise Exception('Lock Accounts fails. Signature not valid for account '+
-                            account1.accountName,'Locking for deal fails: '+account1.accountName+' + '+
-                                                  account2.accountName+' till '+str(time_to_close))
+                            account1.accountName,'Locking for deal fails: '+account1.address+' + '+
+                                                  account2address+' till '+str(time_to_close))
 
         #save means announce to World
         self.save(announce='Lock:')
@@ -73,8 +73,8 @@ class CBaseAccount():
                 print(str(_par))
                 _token = self.load_base_account(self.address)
                 _token.setParameters(_par, with_chain=False)
-                if _token is not None and account1.address in _token.isLocked.keys() and _token.isLocked[account1.address] == account2.address:
-                    self.isLocked[account1.address] = account2.address
+                if _token is not None and account1.address in _token.isLocked.keys() and _token.isLocked[account1.address] == account2address:
+                    self.isLocked[account1.address] = account2address
                     self.save()
                     break
                 if time_to_close < dt.datetime.today():
@@ -104,10 +104,6 @@ class CBaseAccount():
         from transaction import CAtomicTransaction, CTransaction
         self.wallet = self.load_wallet()
         time_to_close = dt.datetime.today() + dt.timedelta(seconds=waiting_time)
-
-        token.lockAccounts(self, self.wallet.sign('Locking for deal: '+self.accountName+' + '+
-                                                  recipient.accountName+' till '+str(time_to_close)),
-                           recipient, time_to_close)
 
         atomic = CAtomicTransaction(self, recipient, amount, optData='Simple TXN', token=token)
         self.save_atomic_transaction(atomic, announce='AtomicTransaction:')
