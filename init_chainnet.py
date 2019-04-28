@@ -10,6 +10,7 @@ import ast
 
 class CInitChainnet:
 	def __init__(self):
+
 		self.tokens = {}
 		self.wallet = CWallet('main')
 		self.DB = CSQLLite(self.wallet.pubKey)
