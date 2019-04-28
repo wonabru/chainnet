@@ -205,7 +205,7 @@ class Application(tk.Frame):
 	                                       -1, "",
 	                                       CAccount(DB, '__temp3__', None, "3"))
 				self.atomicTransaction.setParameters(_announcement[acc])
-				break
+
 
 	def create_send_tab(self):
 		tk.Label(self.send_tab, text='Choose token name:',
