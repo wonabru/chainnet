@@ -188,10 +188,14 @@ class Application(tk.Frame):
 	def look_for_deal(self):
 		_announcement = {}
 		DB = self.my_main_account.kade
-		my_accounts = DB.get('my_main_accounts')
-		for acc in my_accounts:
+		_my_accounts = DB.get('my_main_accounts')
+		if _my_accounts is None:
+			_my_accounts = [self.my_main_account.address]
+		else:
+			_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
+		for acc in _my_accounts:
 			_announcement[acc] = DB.look_at('AtomicTransaction:' + acc)
-			if _announcement is not None:
+			if _announcement[acc] is not None:
 				self.atomicTransaction = CAtomicTransaction(CAccount(DB, '__temp__', None, ""),
 	                                       CAccount(DB, '__temp__', None, ""),
 	                                       0, "",

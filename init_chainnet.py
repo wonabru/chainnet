@@ -12,6 +12,11 @@ class CInitChainnet:
 		self.tokens = {}
 		self.wallet = CWallet('main')
 		self.DB = CSQLLite(self.wallet.pubKey)
+		self.DB.register_node("10.0.2.15", "virtualbox15")
+		self.DB.register_node("10.0.2.2", "virtualbox2")
+		self.DB.register_node("192.168.56.1", "virtualbox192")
+		self.DB.register_node("192.168.0.38", "virtualbox38")
+		self.DB.bootstrapNodes()
 		self.Qcoin = CInitBlock(self.DB)
 		_creator = CBaseAccount(self.DB, accountName='creator', address='')
 		self.baseToken = CLimitedToken(self.DB, tokenName='Q', totalSupply=self.Qcoin.baseTotalSupply, creator=_creator, address=self.Qcoin.getBaseToken().address, save=False)
