@@ -30,11 +30,10 @@ class CSQLLite():
 
     def get(self, key):
         if isinstance(key, str) == False: key = str(key)
-        self.sqllite.show('Lock:')
         return self.sqllite.get(key=key)
 
     def announce(self, key, value):
-        self.kade.set(key=key, value=str(value))
+        print('KADEMLIA SET: ',key,' = ',self.kade.set(key=key, value=str(value)))
 
     def look_at(self, key):
         import ast
