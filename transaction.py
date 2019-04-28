@@ -13,6 +13,8 @@ class CAtomicTransaction():
         self.amount = 0
         self.optData = ""
         self.time = ""
+        if amount < 0:
+            return
 
         if sender.address == recipient.address:
             raise Exception('Atomic transaction', 'sender cannot be the same as recipient')
@@ -122,7 +124,7 @@ class CTransaction():
         for _atomic in _atomics:
             _temp = CAtomicTransaction(CAccount(DB, '__temp__', None, ""),
                                        CAccount(DB, '__temp__', None, ""),
-                                       0, "",
+                                       -1, "",
                                        CAccount(DB, '__temp__', None, ""))
             _temp.setParameters(_atomic)
             self.atomicTransactions.append(_temp)

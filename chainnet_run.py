@@ -164,7 +164,7 @@ class Application(tk.Frame):
 		tk.Button(self.receive_tab, text="Check incomming transactions", bg='orange', fg='blue', font=("Arial", 20),
 									command=self.in_background).grid(row=2, column=2, rowspan=2)
 		tk.Button(self.receive_tab, text="Sign", bg='orange', fg='blue', font=("Arial", 20),
-									command=self.sign_receive).grid(row=4, column=2, rowspan=2)
+									command=lambda: self.sign_receive(self.to_address_ent.get())).grid(row=4, column=2, rowspan=2)
 
 	def in_background(self):
 		self.atomicTransaction = None
@@ -174,7 +174,7 @@ class Application(tk.Frame):
 			self.tokens_ent.delete(0, tk.END)
 			self.tokens_ent.insert(0, self.atomicTransaction.token.accountName)
 			self.from_account_ent.delete(0, tk.END)
-			self.from_account_ent.insert(0, self.atomicTransaction.sender.accountName)
+			self.from_account_ent.insert(0, self.atomicTransaction.sender.address)
 			self.to_address_ent.delete(0, tk.END)
 			self.to_address_ent.insert(0, self.atomicTransaction.recipient.accountName)
 			self.amount_ent.delete(0, tk.END)
@@ -182,9 +182,11 @@ class Application(tk.Frame):
 			self.time_to_close_ent.delete(0, tk.END)
 			self.time_to_close_ent.insert(0, self.atomicTransaction.time)
 
-	def sign_receive(self):
+	def sign_receive(self, accountName):
 		DB = self.my_main_account.kade
-		_signature = self.my_main_account.wallet.sign(self.atomicTransaction.getHash())
+		_account = self.select_my_acount_by_name(accountName)
+		_wallet = _account.load_wallet()
+		_signature = _wallet.sign(self.atomicTransaction.getHash())
 		DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
 
 	def look_for_deal(self):
@@ -198,10 +200,10 @@ class Application(tk.Frame):
 		for acc in _my_accounts:
 			_announcement[acc] = DB.look_at('AtomicTransaction:' + acc)
 			if _announcement[acc] is not None:
-				self.atomicTransaction = CAtomicTransaction(CAccount(DB, '__temp__', None, ""),
-	                                       CAccount(DB, '__temp__', None, ""),
-	                                       0, "",
-	                                       CAccount(DB, '__temp__', None, ""))
+				self.atomicTransaction = CAtomicTransaction(CAccount(DB, '__temp1__', None, "1"),
+	                                       CAccount(DB, '__temp2__', None, "2"),
+	                                       -1, "",
+	                                       CAccount(DB, '__temp3__', None, "3"))
 				self.atomicTransaction.setParameters(_announcement[acc])
 				break
 
