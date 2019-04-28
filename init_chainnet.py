@@ -4,6 +4,7 @@ from database import CSQLLite
 from actionToken import CActionToken
 from wallet import CWallet
 from baseAccount import CBaseAccount
+from account import CAccount
 from genesis import CGenesis
 import ast
 
@@ -15,7 +16,7 @@ class CInitChainnet:
 		self.DB.register_node("192.168.56.1", "virtualbox192")
 		self.DB.register_node("192.168.0.38", self.wallet.pubKey)
 		self.DB.bootstrapNodes()
-		self.Qcoin = CInitBlock(self.DB)
+		self.Qcoin = CInitBlock(self.DB, self.wallet)
 		_creator = CBaseAccount(self.DB, accountName='creator', address='')
 		self.baseToken = CLimitedToken(self.DB, tokenName='Q', totalSupply=self.Qcoin.baseTotalSupply, creator=_creator, address=self.Qcoin.getBaseToken().address, save=False)
 		self.baseToken = self.baseToken.copyFromBaseLimitToken(self.Qcoin.getBaseToken())
@@ -49,7 +50,13 @@ class CInitChainnet:
 			self.first_account.update(with_chain=True)
 		except:
 			self.first_account.save()
-		self.my_account = self.first_account
+
+		if self.wallet.pubKey == self.first_account.address:
+			self.my_account = self.first_account
+		else:
+			self.my_account = CAccount(self.DB, 'Me', 0, self.wallet.pubKey)
+		if self.DB.get(self.my_account.address) is None:
+			self.my_account.save()
 
 	def load_tokens(self):
 		self.init_account = self.Qcoin.initAccount

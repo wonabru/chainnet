@@ -7,26 +7,27 @@ from genesis import CGenesis
 initBlock = None
 
 class CInitBlock(CGenesis):
-    def __init__(self, kade=None):
+    def __init__(self, kade=None, wallet=None):
         global initBlock
 
         if initBlock is None:
             super().__init__()
-            self.init_wallet = CWallet('init')
-            self.init_wallet.RSAkey = self.getPrivKey()
+            #self.init_wallet = CWallet('init')
+            #self.init_wallet.RSAkey = self.getPrivKey()
             self.kade = kade
             self.baseTotalSupply = 23000000.23
             self.initAccount = CBaseLimitedToken(self.kade, 'Q', self.baseTotalSupply, address=self.initAccountPubKey)
             self.initAccount.amount[self.initAccount.address] = self.baseTotalSupply
             self.firstAccount = CBaseAccount(self.kade, 'wonabru', address='1')
-            self.wallet_first = CWallet('wonabru')
-            self.firstAccount.address = self.wallet_first.pubKey
+            self.wallet_first = wallet
+            self.firstAccount.address = self.first_accountPubKey #self.wallet_first.pubKey
             self.initAccount.chain.uniqueAccounts[self.firstAccount.address] = self.firstAccount
             self.firstAccount.chain.uniqueAccounts[self.initAccount.address] = self.initAccount
-            self.initAtomicTransaction = CAtomicTransaction(self.initAccount, self.firstAccount, self.baseTotalSupply, optData='initTransaction', token=self.initAccount)
-            self.initTransaction = CTransaction(dt.datetime.today()+dt.timedelta(minutes=1), 1)
-            _signature_wonabru = self.wallet_first.sign(self.initAtomicTransaction.getHash())
-            _signature_init = self.init_wallet.sign(self.initAtomicTransaction.getHash())
+            self.initAtomicTransaction = CAtomicTransaction(self.initAccount, self.firstAccount, self.baseTotalSupply, optData='initTransaction', token=self.initAccount, time='2019-04-28 17:00:00')
+            _hash = self.initAtomicTransaction.getHash()
+            self.initTransaction = CTransaction(dt.datetime(2019, 4, 28, 17, 1, 0), 1)
+            _signature_wonabru = self.signature_wonabru # self.wallet_first.sign(_hash)
+            _signature_init = self.signature_init # self.init_wallet.sign(_hash)
             self.initTransaction.add(self.initAtomicTransaction, _signature_init, _signature_wonabru)
             initBlock = self
         else:

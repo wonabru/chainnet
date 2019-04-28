@@ -9,6 +9,15 @@ class CGenesis:
         self.initAccountPubKey = 'g9MsRcZGTHomRZD6pN4Nr1uq8L+scPZ/mOAsWBsU3LSBS99k4A5rA/XP5n7VfFpF4DNXhSJce4ZAo' \
                                  'Qbm3v0qyfrs5J9F9blhYZT2N8eNgmj2lCC0IC1YmZ5Pn/iSkpNKWk/ttGJj/hy+ozjcT0py8NJ' \
                                  'JzDLzeydCMrd1aG4Snbg='
+        self.first_accountPubKey = 'YyLQXRLJq/NhIn4suRvzvFdyaeBGCBr8yBby3vwpPHa/DH6K5j9rZOoHyXH+ABkbEy' \
+                                   '/+8ryd24F2hnF7rSWvpACUK6sApBVozTYz4WE9aB/QvCNxwAc/P9Z6whavS5q0x2CH' \
+                                   'x/f4dRdGaowwAZoqMjuclpPCsTZ+JYq3R3alvZs='
+        self.signature_init = 'QW0inGjPh6fNbcRlh3EkgOsljkad8mQU2DZob4rpjns9XMzhSnUgoBcnEhol/86T' \
+                              'vzpBRZcOUeEl0kRIunKx0xh4rPFfLyBzar/tLi6uTsYiDiPivyuVZm17/AwGSx' \
+                              'Xyu5vhcIbBdJff9W73pNI0mpK6hITqazNbRCfVm3ERAy0='
+        self.signature_wonabru = 'TA9Mjvqz2/zZwOjMzgdiX1s44F8UGCpgPOqJFLXeAYm+hgwDKlvRUk7SfhM3PJP8' \
+                                 'Ud5w2bolsmG1+sw9AvIazSxUsMDy4XDoX5YuU72U0RBI26tCPe6S6sc0Fw1rJ' \
+                                 'S1hTvmE0ClWtemDjsYkvt1CPTHzm7BkB3Lsm0uNGnZet7I='
 
     def getPrivKey(self):
         return CWallet().privfromJson({"d": "260360158136291685259871724233088127320409021650909687793"

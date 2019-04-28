@@ -1,11 +1,11 @@
 import datetime as dt
 import pickle
-from copy import deepcopy
-from wallet import CWallet
+from Crypto import Hash
+from wallet import CWallet, serialize
 from genesis import CGenesis
 
 class CAtomicTransaction():
-    def __init__(self, sender, recipient, amount, optData, token):
+    def __init__(self, sender, recipient, amount, optData, token, time=None):
 
         self.token = token
         self.sender = sender
@@ -43,7 +43,10 @@ class CAtomicTransaction():
         self.recipient = recipient
         self.amount = amount
         self.optData = optData
-        self.time = str(dt.datetime.strftime(dt.datetime.today(), '%Y-%m-%d %H:%M:%S'))
+        if time is None:
+            self.time = str(dt.datetime.strftime(dt.datetime.today(), '%Y-%m-%d %H:%M:%S'))
+        else:
+            self.time = time
 
     def getParameters(self):
         _token = self.token.getParameters(with_chain=False)
@@ -60,8 +63,16 @@ class CAtomicTransaction():
         self.recipient.setParameters(_recipient, with_chain=False)
         self.recipient.update(with_chain=False)
 
+    def get_for_hash(self):
+        _token = self.token.address
+        _sender = self.sender.address
+        _recipient = self.recipient.address
+        return _token + _sender + _recipient + str(self.amount) + str(self.optData) + self.time
+
     def getHash(self):
-        return str(hash(pickle.dumps(self.getParameters())))
+        digest = Hash.SHA256.new()
+        digest.update(serialize(self.get_for_hash()))
+        return digest.hexdigest()
 
 class CTransaction():
     def __init__(self, timeToClose, noAtomicTransactions):
@@ -76,6 +87,13 @@ class CTransaction():
         _atomics = [atomic.getParameters() for atomic in self.atomicTransactions]
         _senders = [sender.getParameters(with_chain=False) for sender in self.senders]
         _recipients = [recipient.getParameters(with_chain=False) for recipient in self.recipients]
+        _signatures = str(self.signatures)
+        return _atomics, _signatures, _senders, _recipients, self.timeToClose, self.noAtomicTransactions
+
+    def get_for_hash(self):
+        _atomics = [atomic.get_for_hash() for atomic in self.atomicTransactions]
+        _senders = [sender.address for sender in self.senders]
+        _recipients = [recipient.address for recipient in self.recipients]
         _signatures = str(self.signatures)
         return _atomics, _signatures, _senders, _recipients, self.timeToClose, self.noAtomicTransactions
 
@@ -182,7 +200,9 @@ class CTransaction():
         return True
 
     def getHash(self):
-        return hash(pickle.dumps(self.getParameters()))
+        digest = Hash.SHA256.new()
+        digest.update(serialize(self.get_for_hash()))
+        return digest.hexdigest()
 
     def verify(self, atomicTransaction, signSender, signRecipient):
         if signSender == '__future__' or CWallet().verify(atomicTransaction.getHash(), signSender, atomicTransaction.sender.address):
