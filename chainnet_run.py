@@ -403,7 +403,15 @@ class Application(tk.Frame):
 
 		if self.selected_account.get() == 2:
 			_account = self.chainnet.baseToken.create(accountName=accountName, creator=self.my_main_account, address=address)
-			messagebox.showinfo('Account created', _account.accountName + ' from now you are in Chainnet')
+			_account.save()
+			self.my_accounts[_account.address] = {'account': _account, 'wallet': None}
+			_acc = []
+			_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
+			self.my_accounts_cmb_info.config(values=_acc)
+			self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
+			self.add_new_account(_account.address, account=_account)
+			self.update_amounts()
+			messagebox.showinfo('Account added', _account.accountName + ' from now you are in Chainnet')
 
 		if self.selected_account.get() == 3:
 			_wallet = CWallet(accountName)
