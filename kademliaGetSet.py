@@ -22,17 +22,17 @@ class CDataBase(object):
             #self.loop.run_forever()
 
     def set(self, key, value):
-        #self.loop = asyncio.get_event_loop()
+        self.loop = asyncio.get_event_loop()
         self.loop.run_until_complete(self.server.set(key, value))
         return self.get(key)
 
     def get(self, key):
-        #self.loop = asyncio.get_event_loop()
+        self.loop = asyncio.get_event_loop()
         result = self.loop.run_until_complete(self.server.get(key))
         return result
 
     def bootstrap(self, nodes, port):
-        #self.loop = asyncio.get_event_loop()
+        self.loop = asyncio.get_event_loop()
         bootstrap_node = []
         for n in nodes:
             bootstrap_node.append((n, int(port)))
