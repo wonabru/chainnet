@@ -12,9 +12,9 @@ from transaction import CAtomicTransaction
 import time
 
 class Application(tk.Frame):
-	def __init__(self, master=None):
+	def __init__(self, master, chainnet):
 		super().__init__(master)
-		self.chainnet = CInitChainnet()
+		self.chainnet = chainnet
 		self.my_main_wallet = self.chainnet.wallet
 		self.my_main_account = self.chainnet.my_account
 		self.my_accounts = {}
@@ -480,9 +480,15 @@ class Application(tk.Frame):
 				except:
 					pass
 
-root = tk.Tk()
-root.title("Chainnet Wallet App")
+global chainnet
 
-app = Application(master=root)
-root.geometry('1000x600')
-app.mainloop()
+if __name__ == '__main__':
+	root = tk.Tk()
+	root.title("Chainnet Wallet App")
+
+
+
+	chainnet = CInitChainnet()
+	app = Application(master=root, chainnet=chainnet)
+	root.geometry('1000x600')
+	app.mainloop()

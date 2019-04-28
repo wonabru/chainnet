@@ -44,7 +44,15 @@ class CBaseAccount():
             return False
         return self.setAmount(token, temp_amount, save)
 
-    
+    def load_base_account(self, address):
+        try:
+            _account = CBaseAccount(self.kade, '__tempInitChainnet__', address)
+            _account.update()
+        except Exception as ex:
+            raise Exception('Load base account', str(ex))
+
+        return  _account
+
     def lockAccounts(self, account1, signature1, account2, time_to_close):
 
         if CWallet().verify('Locking for deal: '+account1.accountName+' + '+
@@ -60,14 +68,18 @@ class CBaseAccount():
         self.save(announce='Lock:')
 
         while dt.datetime.today() < time_to_close:
-            _token = self.kade.look_at('Lock:'+self.address)
-            if _token is not None and account1.address in _token.isLocked.keys() and _token.isLocked[account1.address] == account2.address:
-                self.isLocked[account1.address] = account2.address
-                self.save()
-                break
-            if time_to_close < dt.datetime.today():
-                raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
-            time.sleep(0.1)
+            _par = self.kade.look_at('Lock:'+self.address)
+            if _par is not None:
+                print(str(_par))
+                _token = self.load_base_account(self.address)
+                _token.setParameters(_par, with_chain=False)
+                if _token is not None and account1.address in _token.isLocked.keys() and _token.isLocked[account1.address] == account2.address:
+                    self.isLocked[account1.address] = account2.address
+                    self.save()
+                    break
+                if time_to_close < dt.datetime.today():
+                    raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
+            time.sleep(1)
 
     def getAmount(self, token):
         return self.amount[token.address]

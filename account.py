@@ -44,7 +44,7 @@ class CAccount(CBaseAccount):
             creator.save()
         return account
 
-    def save(self, announce=False):
+    def save(self, announce=''):
         super().save(announce)
         
     def update(self, with_chain=True):
