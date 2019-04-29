@@ -16,6 +16,7 @@ def run_kademlia_node(port):
 	loop.set_debug(True)
 
 	server = Server()
+
 	loop.run_until_complete(server.listen(port))
 
 	try:
