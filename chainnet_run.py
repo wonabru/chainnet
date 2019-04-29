@@ -156,7 +156,7 @@ class Application(tk.Frame):
 								font=("Arial", 16)).grid(row=4, column=0)
 		self.amount_ent = tk.Entry(self.receive_tab, width=20, font=("Arial", 16))
 		self.amount_ent.grid(row=5, column=0)
-		tk.Label(self.send_tab, text='Deal must be closed till:',
+		tk.Label(self.receive_tab, text='Deal must be closed till:',
 								font=("Arial", 16)).grid(row=6, column=0)
 		self.time_to_close_ent = tk.Entry(self.receive_tab, width=20, font=("Arial", 16))
 		self.time_to_close_ent.grid(row=7, column=0)
