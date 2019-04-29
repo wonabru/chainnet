@@ -66,10 +66,10 @@ class CBaseAccount():
 							account2address+' till '+str(time_to_close))
 
 		#save means announce to World
-		account1.save(announce='Lock:'+account2address+':')
+		self.save(announce='Lock:'+account2address+':'+account1.address+':')
 
 		while dt.datetime.today() < time_to_close:
-			_par = self.kade.look_at('Lock:'+account1.address+':'+account2address)
+			_par = self.kade.look_at('Lock:'+account1.address+':'+account2address+':'+self.address)
 			if _par is not None:
 				print(_par)
 				_token = self.load_base_account(self.address)
