@@ -288,9 +288,6 @@ class Application(tk.Frame):
 		try:
 			self.update_my_accounts()
 			my_account = self.select_my_acount_by_name(my_account)
-			_other_account = self.select_my_acount_by_name(other_account)
-			if _other_account is not None:
-				other_account = _other_account.address
 			token = self.chainnet.get_token_by_name(token)
 			_wallet = my_account.load_wallet()
 			time_to_close = dt.datetime.today() + dt.timedelta(seconds=float(waiting_time))
