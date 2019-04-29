@@ -21,7 +21,8 @@ class CInitBlock(CGenesis):
             self.firstAccount = CBaseAccount(self.kade, 'wonabru', address='1')
             #self.wallet_first = CWallet('wonabru')
             self.firstAccount.address = self.first_accountPubKey # self.wallet_first.pubKey #
-            self.initAccount.chain.uniqueAccounts[self.firstAccount.address] = self.firstAccount
+            #TODO
+            #self.initAccount.chain.uniqueAccounts[self.firstAccount.address] = self.firstAccount
             self.firstAccount.chain.uniqueAccounts[self.initAccount.address] = self.initAccount
             self.initAtomicTransaction = CAtomicTransaction(self.initAccount, self.firstAccount, self.baseTotalSupply, optData='initTransaction', token=self.initAccount, time='2019-04-28 17:00:00')
             _hash = self.initAtomicTransaction.getHash()

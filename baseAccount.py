@@ -141,6 +141,11 @@ class CBaseAccount():
 			_signRecipient = _txn.signatures[_recipient.address]
 			_txn.remove(_atomic,_signSender, _signRecipient)
 			_txn.add(_atomic,_signSender, _signRecipient)
+			_atomic.token.save()
+			_sender.save()
+			_recipient.save()
+
+
 
 
 	def getParameters(self, with_chain=True):

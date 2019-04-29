@@ -44,6 +44,16 @@ class CAccount(CBaseAccount):
             creator.save()
         return account
 
+    def invite(self, accountName, creator, address, save=True):
+        account = CAccount(self.kade, accountName, creator, address)
+        self.chain.uniqueAccounts[account.address] = account
+        account.chain.uniqueAccounts[self.address] = self
+        if save:
+            account.save()
+            self.save()
+            creator.save()
+        return account
+
     def save(self, announce=''):
         super().save(announce)
         

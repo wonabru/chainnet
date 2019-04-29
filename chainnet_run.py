@@ -194,7 +194,11 @@ class Application(tk.Frame):
 			if _txn is not None:
 				_account.process_transaction(_txn, dt.datetime.today())
 				break
-			time.sleep(0.1)
+			time.sleep(1)
+		self.update_amounts()
+		messagebox.showinfo(title='Receive with success', message=self.atomicTransaction.sender.accountName + ' sent ' +
+		                                                       str(self.atomicTransaction.amount) + ' of ' + self.atomicTransaction.token.accountName + ' to account ' +
+		                                                       self.atomicTransaction.recipient.accountName)
 
 	def look_for_deal(self):
 		_announcement = {}
@@ -320,7 +324,7 @@ class Application(tk.Frame):
 				if from_account.send(to_account, token, amount, float(wating_time)):
 					self.update_amounts()
 					messagebox.showinfo(title='Send with success', message=from_account.accountName+' sent '+
-					                                                       str(amount)+' of '+token.accountName+' to token '+
+					                                                       str(amount)+' of '+token.accountName+' to account '+
 					                    to_account.accountName)
 					return
 				else:
@@ -444,7 +448,7 @@ class Application(tk.Frame):
 			messagebox.showinfo('Account created', _account.accountName + ' from now you are in Chainnet')
 
 		if self.selected_account.get() == 2:
-			_account = self.chainnet.baseToken.create(accountName=accountName, creator=self.my_main_account, address=address)
+			_account = self.chainnet.baseToken.invite(accountName=accountName, creator=self.my_main_account, address=address)
 			_account.save()
 			self.my_accounts[_account.address] = {'account': _account, 'wallet': None}
 			_acc = []
