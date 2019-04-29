@@ -101,9 +101,16 @@ class CTransaction():
 
     def setParameters(self, DB, par):
         from account import CAccount
+        import ast
+
         _atomics, _signatures, _senders, _recipients, self.timeToClose, self.noAtomicTransactions = par
 
-        self.signatures = _signatures
+        response = {}
+        try:
+            response = ast.literal_eval(_signatures.replace('true', 'True').replace('false', 'False'))
+        except:
+            pass
+        self.signatures = response
 
         self.senders = []
         for _sender in _senders:
