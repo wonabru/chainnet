@@ -26,11 +26,27 @@ class CSQLLite():
 
 
     def save(self, key, value, announce=''):
-        if isinstance(key, str) == False: key = str(key)
-        self.sqllite.set(key=key, value=value)
-        if announce != '':
-            self.announce(announce+key, value)
-        return self.sqllite.get(announce+key)
+        if isinstance(key, str) == False:
+            key = str(key)
+        if announce == 'DO NOT SAVE LOCAL':
+            _current = self.sqllite.get(announce)
+            if _current is None:
+                self.sqllite.set(key=announce, value=[key, ])
+            else:
+                _current.append(key)
+                self.sqllite.set(key=announce, value=_current)
+
+        else:
+            _not_save_local = self.sqllite.get('DO NOT SAVE LOCAL')
+
+            if _not_save_local is None: _not_save_local = []
+
+            if key not in _not_save_local:
+                self.sqllite.set(key=key, value=value)
+
+                if announce != '':
+                    self.announce(announce+key, value)
+        return self.sqllite.get(key)
 
     def get(self, key):
         if isinstance(key, str) == False: key = str(key)

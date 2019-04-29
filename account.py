@@ -55,7 +55,7 @@ class CAccount(CBaseAccount):
         self.chain.uniqueAccounts[account.address] = account
         account.chain.uniqueAccounts[self.address] = self
         if save:
-            account.save()
+            account.save(announce='DO NOT SAVE LOCAL')
             self.save()
             creator.save()
         return account
