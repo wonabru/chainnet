@@ -25,7 +25,6 @@ class CDataBase(object):
     def set(self, key, value):
         #self.loop = asyncio.get_event_loop()
         self.loop.run_until_complete(self.server.set(key, value))
-        return self.get(key)
 
     def get(self, key):
         #self.loop = asyncio.get_event_loop()
