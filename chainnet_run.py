@@ -566,12 +566,12 @@ class Application(tk.Frame):
 global chainnet
 
 if __name__ == '__main__':
+
 	root = tk.Tk()
 	root.title("Chainnet Wallet App")
 
-
-
 	chainnet = CInitChainnet()
+
 	app = Application(master=root, chainnet=chainnet)
 	root.geometry('1000x600')
 	app.mainloop()
