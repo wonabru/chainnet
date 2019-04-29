@@ -103,7 +103,7 @@ class CTransaction():
         from account import CAccount
         _atomics, _signatures, _senders, _recipients, self.timeToClose, self.noAtomicTransactions = par
 
-        self.signatures = _signatures[:]
+        self.signatures = _signatures
 
         self.senders = []
         for _sender in _senders:
@@ -152,11 +152,9 @@ class CTransaction():
         self.senders.append(atomicTransaction.sender)
         self.recipients.append(atomicTransaction.recipient)
         
-        if atomicTransaction.sender not in self.senders and atomicTransaction.sender not in self.recipients:
-            self.signatures[atomicTransaction.sender] = signSender
+        self.signatures[atomicTransaction.sender] = signSender
             
-        if atomicTransaction.recipient not in self.senders and atomicTransaction.recipient not in self.recipients:
-            self.signatures[atomicTransaction.recipient] = signRecipient
+        self.signatures[atomicTransaction.recipient] = signRecipient
         
         if self.noAtomicTransactions == len(self.atomicTransactions):
             if self.checkTransaction() == True:

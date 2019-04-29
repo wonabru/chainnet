@@ -133,14 +133,14 @@ class CBaseAccount():
 		from transaction import CTransaction
 		_txn = CTransaction(time_to_close, 1)
 		_txn.setParameters(self.kade, txn)
-		for i in range(txn.noAtomicTransactions):
-			_atomic = txn.atomicTransactions[i]
-			_sender = txn.senders[i]
-			_recipient = txn.recipients[i]
-			_signSender = txn.signatures[_sender.address]
-			_signRecipient = txn.signatures[_recipient.address]
-			txn.remove(_atomic,_signSender, _signRecipient)
-			txn.add(_atomic,_signSender, _signRecipient)
+		for i in range(_txn.noAtomicTransactions):
+			_atomic = _txn.atomicTransactions[i]
+			_sender = _txn.senders[i]
+			_recipient = _txn.recipients[i]
+			_signSender = _txn.signatures[_sender.address]
+			_signRecipient = _txn.signatures[_recipient.address]
+			_txn.remove(_atomic,_signSender, _signRecipient)
+			_txn.add(_atomic,_signSender, _signRecipient)
 
 
 	def getParameters(self, with_chain=True):
