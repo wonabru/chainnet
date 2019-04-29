@@ -4,6 +4,17 @@ from Crypto import Hash
 from wallet import CWallet, serialize
 from genesis import CGenesis
 
+
+
+def check_if_common_connection(sender, recipient):
+    list1 = list(sender.chain.uniqueAccounts.keys()) + [sender.address]
+    list2 = list(recipient.chain.uniqueAccounts.keys()) + [recipient.address]
+
+    if any(e in list2 for e in list1) == False and sender.address != CGenesis().initAccountPubKey:
+        raise Exception('Atomic transaction', 'sender and recipient have no common connections')
+
+    return True
+
 class CAtomicTransaction():
     def __init__(self, sender, recipient, amount, optData, token, time=None):
 
@@ -32,11 +43,7 @@ class CAtomicTransaction():
             raise Exception('Atomic transaction', 'Recipient account is locked, but not for the sender')
 
         
-        list1 = list(sender.chain.uniqueAccounts.keys()) + [sender.address]
-        list2 = list(recipient.chain.uniqueAccounts.keys()) + [recipient.address]
-
-        if any(e in list2 for e in list1) == False and sender.address != CGenesis().initAccountPubKey:
-            raise Exception('Atomic transaction', 'sender and recipient have no common connections')
+        check_if_common_connection(sender, recipient)
 
         if recipient.address not in token.chain.uniqueAccounts:
             token.chain.uniqueAccounts[recipient.address] = recipient

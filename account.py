@@ -45,7 +45,13 @@ class CAccount(CBaseAccount):
         return account
 
     def invite(self, accountName, creator, address, save=True):
+        from transaction import check_if_common_connection
+        self.kade.get('Account:' + address)
+
         account = CAccount(self.kade, accountName, creator, address)
+        account.update_look_at()
+        check_if_common_connection(creator, account)
+
         self.chain.uniqueAccounts[account.address] = account
         account.chain.uniqueAccounts[self.address] = self
         if save:
@@ -60,3 +66,5 @@ class CAccount(CBaseAccount):
     def update(self, with_chain=True):
         super().update(with_chain=with_chain)
 
+    def update_look_at(self, with_chain=True):
+        super().update_look_at(with_chain=with_chain)

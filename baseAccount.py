@@ -178,6 +178,8 @@ class CBaseAccount():
 		_acc_chain, _acc_created = self.chain.getParameters()
 		par = self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), str(_acc_created), str(list(_acc_chain.keys()))
 		if self.accountName != '' and self.address != '':
+			if announce == '':
+				announce = 'Account:'
 			print('SAVED = ' + str(self.kade.save(self.address, par, announce)))
 		else:
 			pass
@@ -194,6 +196,13 @@ class CBaseAccount():
 		if _par is not None:
 			decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain = _par
 			self.setParameters([decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain], with_chain)
+
+	def update_look_at(self, with_chain = True):
+		_par = self.kade.look_at(self.address)
+		if _par is not None:
+			decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain = _par
+			self.setParameters([decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain], with_chain)
+
 
 	def show(self):
 		ret = ' ' + self.accountName + ' = ' + str(self.address) + '\n'

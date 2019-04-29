@@ -28,7 +28,7 @@ class CSQLLite():
 
     def save(self, key, value, announce=''):
         if isinstance(key, str) == False: key = str(key)
-        self.sqllite.set(key=announce+key, value=value)
+        self.sqllite.set(key=key, value=value)
         if announce != '':
             self.announce(announce+key, value)
         return self.sqllite.get(announce+key)

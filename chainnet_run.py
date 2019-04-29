@@ -424,94 +424,102 @@ class Application(tk.Frame):
 			messagebox.showwarning(title='Account name', message='There is just such an account name in your wallet')
 			return
 
-		initSupply = float(initSupply)
-		if self.selected_account.get() == 1:
-			_wallet = CWallet(accountName)
+		try:
+			initSupply = float(initSupply)
+			if self.selected_account.get() == 1:
+				_wallet = CWallet(accountName)
 
-			_account = self.chainnet.baseToken.create(accountName=accountName, creator=self.my_main_account, address=_wallet.pubKey)
-			if _account is None:
-				messagebox.showerror(title='Error in account creating', message='Account is not created')
-				return
-			'''
-			self.new_address_ent.delete(0, tk.END)
-			self.new_address_ent.insert(0, str(_wallet.pubKey)[:20])
-			self.new_address_ent.grid(row=6, column=1, sticky=tk.W)
-			'''
-			_account.save()
-			self.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
-			_acc = []
-			_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
-			self.my_accounts_cmb_info.config(values=_acc)
-			self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
-			self.add_new_account(_account.address, account=_account)
-			self.update_amounts()
-			messagebox.showinfo('Account created', _account.accountName + ' from now you are in Chainnet')
+				_account = self.chainnet.baseToken.create(accountName=accountName, creator=self.my_main_account, address=_wallet.pubKey)
+				if _account is None:
+					messagebox.showerror(title='Error in account creating', message='Account is not created')
+					return
+				'''
+				self.new_address_ent.delete(0, tk.END)
+				self.new_address_ent.insert(0, str(_wallet.pubKey)[:20])
+				self.new_address_ent.grid(row=6, column=1, sticky=tk.W)
+				'''
+				_account.save()
+				self.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
+				_acc = []
+				_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
+				self.my_accounts_cmb_info.config(values=_acc)
+				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
+				self.add_new_account(_account.address, account=_account)
+				self.update_amounts()
+				messagebox.showinfo('Account created', _account.accountName + ' from now you are in Chainnet')
 
-		if self.selected_account.get() == 2:
-			_account = self.chainnet.baseToken.invite(accountName=accountName, creator=self.my_main_account, address=address)
-			_account.save()
-			self.my_accounts[_account.address] = {'account': _account, 'wallet': None}
-			_acc = []
-			_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
-			self.my_accounts_cmb_info.config(values=_acc)
-			self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
-			self.add_new_account(_account.address, account=_account)
-			self.update_amounts()
-			messagebox.showinfo('Account added', _account.accountName + ' from now you are in Chainnet')
+			if self.selected_account.get() == 2:
+				_account = self.chainnet.baseToken.invite(accountName=accountName, creator=self.my_main_account, address=address)
+				_account.save()
+				self.my_accounts[_account.address] = {'account': _account, 'wallet': None}
+				_acc = []
+				_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
+				self.my_accounts_cmb_info.config(values=_acc)
+				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
+				self.add_new_account(_account.address, account=_account)
+				self.update_amounts()
+				messagebox.showinfo('Account added', _account.accountName + ' from now you are in Chainnet')
 
-		if self.selected_account.get() == 3:
-			_wallet = CWallet(accountName)
-			_limitedToken = CLimitedToken(self.chainnet.DB, accountName, initSupply, creator=self.my_main_account, address=_wallet.pubKey, save=False)
-			if _limitedToken is None:
-				messagebox.showerror(title='Error in token creating', message='Token is not created')
-				return
-			self.my_main_account.save()
-			_limitedToken.save()
-			'''
-			self.new_address_ent.delete(0, tk.END)
-			self.new_address_ent.insert(0, str(_wallet.pubKey)[:20])
-			self.new_address_ent.grid(row=6, column=1, sticky=tk.W)
-			'''
-			self.my_accounts[_limitedToken.address] = {'account': _limitedToken, 'wallet': _wallet}
-			self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
-			self.chainnet.add_token(_limitedToken)
-			_token = []
-			_token.extend([str(token.accountName) for key, token in self.chainnet.tokens.items()])
-			self.tokens_cmb_info.config(values=_token)
-			self.tokens_cmb.config(values=[str(token.accountName) for key, token in self.chainnet.tokens.items()])
-			self.add_new_account(_limitedToken.address, account=_limitedToken)
-			self.add_new_amounts(self.my_main_account.address, account=_limitedToken)
-			self.add_new_amounts(_limitedToken.address, account=_limitedToken)
-			self.update_amounts()
-			messagebox.showinfo('Limited Token is created', _limitedToken.accountName + ' is now created with total supply: '+str(_limitedToken.totalSupply))
+			if self.selected_account.get() == 3:
+				_wallet = CWallet(accountName)
+				_limitedToken = CLimitedToken(self.chainnet.DB, accountName, initSupply, creator=self.my_main_account, address=_wallet.pubKey, save=False)
+				if _limitedToken is None:
+					messagebox.showerror(title='Error in token creating', message='Token is not created')
+					return
+				self.my_main_account.save()
+				_limitedToken.save()
+				'''
+				self.new_address_ent.delete(0, tk.END)
+				self.new_address_ent.insert(0, str(_wallet.pubKey)[:20])
+				self.new_address_ent.grid(row=6, column=1, sticky=tk.W)
+				'''
+				self.my_accounts[_limitedToken.address] = {'account': _limitedToken, 'wallet': _wallet}
+				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
+				self.chainnet.add_token(_limitedToken)
+				_token = []
+				_token.extend([str(token.accountName) for key, token in self.chainnet.tokens.items()])
+				self.tokens_cmb_info.config(values=_token)
+				self.tokens_cmb.config(values=[str(token.accountName) for key, token in self.chainnet.tokens.items()])
+				self.add_new_account(_limitedToken.address, account=_limitedToken)
+				self.add_new_amounts(self.my_main_account.address, account=_limitedToken)
+				self.add_new_amounts(_limitedToken.address, account=_limitedToken)
+				self.update_amounts()
+				messagebox.showinfo('Limited Token is created', _limitedToken.accountName + ' is now created with total supply: '+str(_limitedToken.totalSupply))
 
-		if self.selected_account.get() == 4:
-			_wallet = CWallet(accountName)
-			_actionToken = CActionToken(self.chainnet.DB, accountName, initSupply, creator=self.my_main_account, address=_wallet.pubKey, save=False)
-			if _actionToken is None:
-				messagebox.showerror(title='Error in token creating', message='Token is not created')
-				return
-			self.my_main_account.save()
-			_actionToken.save()
-			'''
-			self.new_address_ent.delete(0, tk.END)
-			self.new_address_ent.insert(0, str(_wallet.pubKey)[:20])
-			self.new_address_ent.grid(row=6, column=1, sticky=tk.W)
-			'''
-			self.my_accounts[_actionToken.address] = {'account': _actionToken, 'wallet': _wallet}
-			self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
-			self.chainnet.add_token(_actionToken)
-			_token = []
-			_token.extend([str(token.accountName) for key, token in self.chainnet.tokens.items()])
-			self.tokens_cmb_info.config(values=_token)
-			self.tokens_cmb.config(values=[str(token.accountName) for key, token in self.chainnet.tokens.items()])
-			self.add_new_account(_actionToken.address, account=_actionToken)
-			self.add_new_amounts(self.my_main_account.address, account=_actionToken)
-			self.add_new_amounts(_actionToken.address, account=_actionToken)
-			self.update_amounts()
-			messagebox.showinfo('Action Token is created',
-			                    _actionToken.accountName + ' is now created with initial supply: ' + str(
-				                    _actionToken.totalSupply))
+			if self.selected_account.get() == 4:
+				_wallet = CWallet(accountName)
+				_actionToken = CActionToken(self.chainnet.DB, accountName, initSupply, creator=self.my_main_account, address=_wallet.pubKey, save=False)
+				if _actionToken is None:
+					messagebox.showerror(title='Error in token creating', message='Token is not created')
+					return
+				self.my_main_account.save()
+				_actionToken.save()
+				'''
+				self.new_address_ent.delete(0, tk.END)
+				self.new_address_ent.insert(0, str(_wallet.pubKey)[:20])
+				self.new_address_ent.grid(row=6, column=1, sticky=tk.W)
+				'''
+				self.my_accounts[_actionToken.address] = {'account': _actionToken, 'wallet': _wallet}
+				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
+				self.chainnet.add_token(_actionToken)
+				_token = []
+				_token.extend([str(token.accountName) for key, token in self.chainnet.tokens.items()])
+				self.tokens_cmb_info.config(values=_token)
+				self.tokens_cmb.config(values=[str(token.accountName) for key, token in self.chainnet.tokens.items()])
+				self.add_new_account(_actionToken.address, account=_actionToken)
+				self.add_new_amounts(self.my_main_account.address, account=_actionToken)
+				self.add_new_amounts(_actionToken.address, account=_actionToken)
+				self.update_amounts()
+				messagebox.showinfo('Action Token is created',
+				                    _actionToken.accountName + ' is now created with initial supply: ' + str(
+					                    _actionToken.totalSupply))
+
+		except Exception as ex:
+			if len(ex.args) > 1:
+				_title, _err = ex.args
+			else:
+				_title, _err = 'Other error', ex.args
+			messagebox.showerror(title=str(_title), message=str(_err))
 
 	def select_my_acount_by_name(self, name, update=True):
 
