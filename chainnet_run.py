@@ -124,12 +124,20 @@ class Application(tk.Frame):
 		self.info_txt.insert(tk.INSERT, _token.showAll() + "\n")
 
 	def create_account_tab(self):
-		tk.Button(self.account_tab, text="Update", command=lambda: self.update_amounts(look_at_kademlia=False)).grid(column=3, row=10, rowspan=1, sticky=tk.W)
+		tk.Button(self.account_tab, text="Update", command=
+		lambda: self.update_amounts(look_at_kademlia=False)).grid(column=3, row=10, rowspan=1, sticky=tk.W)
+
+		tk.Button(self.account_tab, text="Save", command=self.save_all_my_accounts).grid(column=2, row=10, rowspan=1, sticky=tk.W)
+
 		self.update_my_accounts()
 		self.amounts = {}
 		self.accounts_balances = {}
 		for add, acc in self.my_accounts.items():
 			self.add_new_account(add, acc['account'])
+
+	def save_all_my_accounts(self):
+		for acc in self.my_accounts.values():
+			acc['account'].save()
 
 	def add_new_account(self, address, account):
 		self.accounts_balances[address] = {}
