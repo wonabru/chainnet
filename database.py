@@ -17,6 +17,11 @@ class CSQLLite():
             self.kade = CDataBase()
             self.kade.initiate()
             self.register_node(node_identifier)
+            self.register_node("192.168.0.38")
+            self.register_node("192.168.56.1")
+            self.register_node("10.0.2.2")
+            self.register_node("10.0.2.15")
+            self.register_node("127.0.0.1")
             self.bootstrapNodes()
             instance_kade = self
         else:

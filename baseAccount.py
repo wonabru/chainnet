@@ -79,7 +79,7 @@ class CBaseAccount():
 					break
 				if time_to_close < dt.datetime.today():
 					raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
-			time.sleep(10)
+			time.sleep(1)
 
 	def getAmount(self, token):
 		return self.amount[token.address]
