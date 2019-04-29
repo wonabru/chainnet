@@ -196,6 +196,8 @@ class CBaseAccount():
 		if _par is not None:
 			decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain = _par
 			self.setParameters([decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain], with_chain)
+		else:
+			self.update_look_at(with_chain=with_chain)
 
 	def update_look_at(self, with_chain = True):
 		_par = self.kade.look_at(self.address)
