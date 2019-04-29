@@ -169,7 +169,7 @@ class Application(tk.Frame):
 								font=("Arial", 16)).grid(row=1, column=1)
 		self.from_account_ent = tk.Entry(self.receive_tab, width=20, font=("Arial", 16))
 		self.from_account_ent.grid(row=2, column=1)
-		tk.Label(self.receive_tab, text='To account by name:',
+		tk.Label(self.receive_tab, text='To account by address:',
 								font=("Arial", 16)).grid(row=4, column=1)
 		self.to_address_ent = tk.Entry(self.receive_tab, width=20, font=("Arial", 16))
 		self.to_address_ent.grid(row=5, column=1)
@@ -253,7 +253,7 @@ class Application(tk.Frame):
 		                                           for key, value in acc['account'].amount.items())
 		                                  for acc in self.my_accounts.values()]
 		self.my_accounts_cmb.grid(row=2, column=1)
-		tk.Label(self.send_tab, text='To account by name:',
+		tk.Label(self.send_tab, text='To account by address:',
 								font=("Arial", 16)).grid(row=4, column=1)
 		self.send_address_ent = tk.Entry(self.send_tab, width=30, font=("Arial", 16))
 		self.send_address_ent.grid(row=5, column=1)
@@ -307,7 +307,7 @@ class Application(tk.Frame):
 	def attach(self, account, attacher, token):
 		try:
 			self.update_my_accounts()
-			account = self.select_my_acount_by_name(account)
+			account = self.my_accounts[account]['account']
 			attacher = self.select_my_acount_by_name(attacher)
 			token = self.chainnet.get_token_by_name(token)
 			if attacher.address in token.chain.uniqueAccounts:
@@ -337,7 +337,7 @@ class Application(tk.Frame):
 			amount = float(amount)
 			self.update_my_accounts()
 			from_account = self.select_my_acount_by_name(from_account)
-			to_account = self.select_my_acount_by_name(to_account)#self.my_main_account.chain.uniqueAccounts[to_account]
+			to_account = self.my_accounts[to_account]['account']
 			token = self.chainnet.get_token_by_name(token)
 			if to_account.address in token.chain.uniqueAccounts:
 				if from_account.send(to_account, token, amount, float(wating_time)):
