@@ -16,6 +16,7 @@ class CBaseAccount():
 		self.chain = CChain()
 		self.isLocked = {}
 		self.wallet = None
+		self.main_account = 0
 
 	def setAmount(self, token, amount, save=True):
 		if amount < 0:
@@ -151,13 +152,15 @@ class CBaseAccount():
 	def getParameters(self, with_chain=True):
 		_uniqueAccounts, _accountsCreated = self.chain.getParameters()
 		if with_chain:
-			return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), \
+			return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), self.main_account, \
 				   str({a: v for a, v in _accountsCreated.items()}), str(list(_uniqueAccounts.keys()))
 		else:
-			return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), "{}", "{}"
+			if __name__ == '__main__':
+				return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), \
+					   self.main_account, "{}", "{}"
 
 	def setParameters(self, par, with_chain=True):
-		decimalPlace, amount, address, accountName, isLocked, acc_created, acc_chain = par
+		decimalPlace, amount, address, accountName, isLocked, main_account, acc_created, acc_chain = par
 		if with_chain:
 			_temp_chain = {}
 			acc_chain = ast.literal_eval(acc_chain.replace('true', 'True').replace('false', 'False'))
@@ -171,39 +174,33 @@ class CBaseAccount():
 		self.amount = amount
 		self.address = address
 		self.accountName = accountName
+		self.main_account = main_account
 		self.isLocked = ast.literal_eval(isLocked.replace('true', 'True').replace('false', 'False'))
-
 
 	def save(self, announce=''):
 		_acc_chain, _acc_created = self.chain.getParameters()
-		par = self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), str(_acc_created), str(list(_acc_chain.keys()))
+		par = self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), self.main_account,\
+			  str(_acc_created), str(list(_acc_chain.keys()))
 		if self.accountName != '' and self.address != '':
 			if announce == '':
 				announce = 'Account:'
 			print('SAVED = ' + str(self.kade.save(self.address, par, announce)))
-		else:
-			pass
-		'''
-		for acc in _acc_chain:
-			_account = self.chain.uniqueAccounts[acc]
-			results = self.kade.get(acc)
-			if results is None and acc != self.address and _account is not None:
-				_account.save()
-		'''
 
 	def update(self, with_chain = True):
 		_par = self.kade.get(self.address)
 		if _par is not None:
-			decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain = _par
-			self.setParameters([decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain], with_chain)
+			decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = _par
+			self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
+								_acc_created, _acc_chain], with_chain)
 		else:
 			self.update_look_at(with_chain=with_chain)
 
 	def update_look_at(self, with_chain = True):
 		_par = self.kade.look_at('Account:'+self.address)
 		if _par is not None:
-			decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain = _par
-			self.setParameters([decimalPlace, amount, address, accountName, isLocked, _acc_created, _acc_chain], with_chain)
+			decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = _par
+			self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
+								_acc_created, _acc_chain], with_chain)
 
 
 	def show(self):
