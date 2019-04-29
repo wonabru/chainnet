@@ -189,6 +189,13 @@ class Application(tk.Frame):
 		_signature = _wallet.sign(self.atomicTransaction.getHash())
 		DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
 
+		while True:
+			_txn = DB.look_at('FinalTransaction:'+self.atomicTransaction.getHash())
+			if _txn is not None:
+				_account.process_transaction(_txn, dt.datetime.today())
+				break
+			time.sleep(0.1)
+
 	def look_for_deal(self):
 		_announcement = {}
 		DB = self.my_main_account.kade

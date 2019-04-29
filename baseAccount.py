@@ -96,7 +96,7 @@ class CBaseAccount():
 		self.kade.save(_key, _value, announce=announce)
 
 	def save_transaction(self, transaction, announce=''):
-		_key = transaction.getHash()
+		_key = ''
 		_value = transaction.getParameters()
 		self.kade.save(_key, _value, announce=announce)
 
@@ -123,11 +123,25 @@ class CBaseAccount():
 		if txn.add(atomic, _my_signature, _signature) < 2:
 			raise Exception('Error in sending', 'Sending fails. Other fatal error')
 
-		self.save_transaction(txn)
+		self.save_transaction(txn, announce='FinalTransaction:'+atomic.getHash())
 		self.save()
 		recipient.save()
 
 		return True
+
+	def process_transaction(self, txn, time_to_close):
+		from transaction import CTransaction
+		_txn = CTransaction(time_to_close, 1)
+		_txn.setParameters(self.kade, txn)
+		for i in range(txn.noAtomicTransactions):
+			_atomic = txn.atomicTransactions[i]
+			_sender = txn.senders[i]
+			_recipient = txn.recipients[i]
+			_signSender = txn.signatures[_sender.address]
+			_signRecipient = txn.signatures[_recipient.address]
+			txn.remove(_atomic,_signSender, _signRecipient)
+			txn.add(_atomic,_signSender, _signRecipient)
+
 
 	def getParameters(self, with_chain=True):
 		_uniqueAccounts, _accountsCreated = self.chain.getParameters()
