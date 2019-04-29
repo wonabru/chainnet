@@ -30,9 +30,10 @@ class Application(tk.Frame):
 		self.create_send_tab()
 		self.create_receive_tab()
 		self.create_info_tab()
+		self.create_node_tab()
 		self.pack()
 
-	def update_my_accounts(self):
+	def update_my_accounts(self, look_at_kademlia=False):
 		try:
 			self.init_account = self.chainnet.Qcoin.initAccount
 			_my_accounts = self.my_main_account.kade.get('my_main_accounts')
@@ -44,7 +45,10 @@ class Application(tk.Frame):
 				if acc not in [self.chainnet.init_account.address, ]:
 					_account = CAccount(self.my_main_account.kade, '__tempRun__', None, acc)
 					try:
-						_account.update(with_chain=True)
+						if look_at_kademlia:
+							_account.update_look_at(with_chain=True)
+						else:
+							_account.update(with_chain=True)
 						_wallet = CWallet(_account.accountName)
 
 						self.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
@@ -64,11 +68,13 @@ class Application(tk.Frame):
 		self.send_tab = tk.Frame(self.tab_control)
 		self.receive_tab = tk.Frame(self.tab_control)
 		self.info_tab = tk.Frame(self.tab_control)
+		self.node_tab = tk.Frame(self.tab_control)
 		self.tab_control.add(self.account_tab, text='Accounts balances')
 		self.tab_control.add(self.create_tab, text='Create Account')
 		self.tab_control.add(self.send_tab, text='Send')
 		self.tab_control.add(self.receive_tab, text='Receive')
 		self.tab_control.add(self.info_tab, text='Accounts info')
+		self.tab_control.add(self.node_tab, text='Nodes')
 		self.tab_control.pack(expand=1, fill='both')
 
 	def create_info_tab(self):
@@ -85,13 +91,27 @@ class Application(tk.Frame):
 		_acc = []
 		_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
 		self.my_accounts_cmb_info['values'] = _acc
-
+		self.my_accounts_cmb_info.set(_acc[0])
 		self.my_accounts_cmb_info.grid(column=1, row=1, sticky=tk.W)
-		tk.Button(self.info_tab, text="Get Info", command=lambda: self.get_info(
+		tk.Button(self.info_tab, text="Get local Info", command=lambda: self.get_info(
 			self.my_accounts_cmb_info.get(), self.tokens_cmb_info.get())).grid(column=2, row=0, rowspan=2, sticky=tk.W)
-
+		tk.Button(self.info_tab, text="Get Info from net", command=lambda: self.get_info(
+			self.my_accounts_cmb_info.get(), self.tokens_cmb_info.get())).grid(column=4, row=0, rowspan=2, sticky=tk.W)
 		self.info_txt = scrolledtext.ScrolledText(self.info_tab, width=120, height=30)
 		self.info_txt.grid(column=0,row=3, columnspan=3)
+
+	def create_node_tab(self):
+		self.node_ent = tk.Entry(self.node_tab, width=20, font=("Arial", 16))
+		self.node_ent.grid(row=1, column=0)
+		tk.Button(self.node_tab, text="Add node",
+		          command=lambda: self.add_node(self.node_ent.get())).grid(column=2, row=0, rowspan=2, sticky=tk.W)
+
+		self.node_txt = scrolledtext.ScrolledText(self.node_tab, width=120, height=30)
+		self.node_txt.grid(column=0, row=3, columnspan=3)
+
+	def add_node(self, node):
+		self.chainnet.DB.register_node(node)
+		self.chainnet.DB.bootstrapNodes()
 
 	def get_info(self, account, token):
 		self.info_txt.delete(1.0, tk.END)
@@ -104,6 +124,7 @@ class Application(tk.Frame):
 		self.info_txt.insert(tk.INSERT, _token.showAll() + "\n")
 
 	def create_account_tab(self):
+		tk.Button(self.account_tab, text="Update", command=lambda: self.update_amounts(look_at_kademlia=True)).grid(column=3, row=10, rowspan=1, sticky=tk.W)
 		self.update_my_accounts()
 		self.amounts = {}
 		self.accounts_balances = {}
@@ -530,8 +551,8 @@ class Application(tk.Frame):
 				return acc['account']
 		return None
 
-	def update_amounts(self):
-		self.update_my_accounts()
+	def update_amounts(self, look_at_kademlia=False):
+		self.update_my_accounts(look_at_kademlia)
 		for _acc in self.my_accounts:
 			_account = self.my_accounts[_acc]['account']
 			for key, amount in _account.amount.items():
