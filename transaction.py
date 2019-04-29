@@ -152,9 +152,9 @@ class CTransaction():
         self.senders.append(atomicTransaction.sender)
         self.recipients.append(atomicTransaction.recipient)
         
-        self.signatures[atomicTransaction.sender] = signSender
+        self.signatures[atomicTransaction.sender.address] = signSender
             
-        self.signatures[atomicTransaction.recipient] = signRecipient
+        self.signatures[atomicTransaction.recipient.address] = signRecipient
         
         if self.noAtomicTransactions == len(self.atomicTransactions):
             if self.checkTransaction() == True:
