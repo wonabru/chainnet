@@ -22,9 +22,10 @@ class Application(tk.Frame):
 		self.my_accounts = {}
 		self.column_nr = {}
 		self.my_accounts_names = {}
-		self.update_my_accounts()
 		self.master = master
+		self.update_my_accounts()
 		self.create_tabs()
+
 		self.create_account_tab()
 		self.create_create_tab()
 		self.create_send_tab()
@@ -33,7 +34,7 @@ class Application(tk.Frame):
 		self.create_node_tab()
 		self.pack()
 
-	def update_my_accounts(self, look_at_kademlia=False):
+	def update_my_accounts(self):
 		try:
 			self.init_account = self.chainnet.Qcoin.initAccount
 			_my_accounts = self.my_main_account.kade.get('my_main_accounts')
@@ -45,10 +46,7 @@ class Application(tk.Frame):
 				if acc not in [self.chainnet.init_account.address, ]:
 					_account = CAccount(self.my_main_account.kade, '__tempRun__', None, acc)
 					try:
-						if look_at_kademlia:
-							_account.update_look_at(with_chain=True)
-						else:
-							_account.update(with_chain=True)
+						_account.update(with_chain=True)
 						_wallet = CWallet(_account.accountName)
 
 						self.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
@@ -124,12 +122,11 @@ class Application(tk.Frame):
 		self.info_txt.insert(tk.INSERT, _token.showAll() + "\n")
 
 	def create_account_tab(self):
-		tk.Button(self.account_tab, text="Update", command=
-		lambda: self.update_amounts(look_at_kademlia=False)).grid(column=3, row=10, rowspan=1, sticky=tk.W)
+		tk.Button(self.account_tab, text="Update", command=self.update_amounts).grid(column=3, row=10, rowspan=1, sticky=tk.W)
 
 		tk.Button(self.account_tab, text="Save", command=self.save_all_my_accounts).grid(column=2, row=10, rowspan=1, sticky=tk.W)
 
-		self.update_my_accounts()
+		#self.update_my_accounts()
 		self.amounts = {}
 		self.accounts_balances = {}
 		for add, acc in self.my_accounts.items():
@@ -557,8 +554,8 @@ class Application(tk.Frame):
 				return acc['account']
 		return None
 
-	def update_amounts(self, look_at_kademlia=False):
-		self.update_my_accounts(look_at_kademlia)
+	def update_amounts(self):
+		self.update_my_accounts()
 		for _acc in self.my_accounts:
 			_account = self.my_accounts[_acc]['account']
 			for key, amount in _account.amount.items():
