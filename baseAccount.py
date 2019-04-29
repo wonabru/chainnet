@@ -107,7 +107,7 @@ class CBaseAccount():
 		time_to_close = dt.datetime.today() + dt.timedelta(seconds=waiting_time)
 
 		atomic = CAtomicTransaction(self, recipient, amount, optData='Simple TXN', token=token)
-		self.save_atomic_transaction(atomic, announce='AtomicTransaction:')
+		recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')
 
 		_signature = None
 		while dt.datetime.today() < time_to_close:
