@@ -206,7 +206,7 @@ class Application(tk.Frame):
 			self.from_account_ent.delete(0, tk.END)
 			self.from_account_ent.insert(0, self.atomicTransaction.sender.address)
 			self.to_address_ent.delete(0, tk.END)
-			self.to_address_ent.insert(0, self.atomicTransaction.recipient.accountName)
+			self.to_address_ent.insert(0, self.atomicTransaction.recipient.address)
 			self.amount_ent.delete(0, tk.END)
 			self.amount_ent.insert(0, str(self.atomicTransaction.amount))
 			self.time_to_close_ent.delete(0, tk.END)
@@ -239,7 +239,7 @@ class Application(tk.Frame):
 		else:
 			_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
 		for acc in _my_accounts:
-			_announcement[acc] = DB.look_at('AtomicTransaction:' + acc)
+			_announcement[acc] = DB.look_at('AtomicTransaction:' + 'AtomicTransaction:' + acc)
 			if _announcement[acc] is not None:
 				self.atomicTransaction = CAtomicTransaction(CAccount(DB, '__temp1__', None, "1"),
 	                                       CAccount(DB, '__temp2__', None, "2"),

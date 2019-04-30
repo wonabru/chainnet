@@ -96,7 +96,7 @@ class CBaseAccount():
 	def save_atomic_transaction(self, atomic_transaction, announce=''):
 		_key = atomic_transaction.recipient.address
 		_value = atomic_transaction.getParameters()
-		self.kade.save(_key, _value, announce=announce)
+		self.kade.save(announce+_key, _value, announce=announce)
 
 	def save_transaction(self, transaction, announce=''):
 		_key = ':Transaction'
