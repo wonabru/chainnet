@@ -122,9 +122,11 @@ class Application(tk.Frame):
 		self.info_txt.insert(tk.INSERT, _token.showAll() + "\n")
 
 	def create_account_tab(self):
-		tk.Button(self.account_tab, text="Update", command=self.update_amounts).grid(column=3, row=10, rowspan=1, sticky=tk.W)
+		tk.Button(self.account_tab, text="Update",
+				  command=self.update_amounts).grid(column=3, row=10, rowspan=1, sticky=tk.W)
 
-		tk.Button(self.account_tab, text="Save", command=self.save_all_my_accounts).grid(column=2, row=10, rowspan=1, sticky=tk.W)
+		tk.Button(self.account_tab, text="Save",
+				  command=self.save_all_my_accounts).grid(column=2, row=10, rowspan=1, sticky=tk.W)
 
 		#self.update_my_accounts()
 		self.amounts = {}
