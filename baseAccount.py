@@ -69,7 +69,7 @@ class CBaseAccount():
 		self.save(announce='Lock:'+account2address+':'+account1.address+':')
 
 		while dt.datetime.today() < time_to_close:
-			_par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
+			_par = self.kade.look_at('Lock:'+account1.address+':'+account2address+':'+self.address)
 			if _par is not None:
 				print(_par)
 				_token = self.load_base_account(self.address)
