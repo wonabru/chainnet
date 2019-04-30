@@ -25,8 +25,8 @@ class CInitBlock(CGenesis):
             self.initAtomicTransaction = CAtomicTransaction(self.initAccount, self.firstAccount, self.baseTotalSupply, optData='initTransaction', token=self.initAccount, time='2019-04-28 17:00:00')
             _hash = self.initAtomicTransaction.getHash()
             self.initTransaction = CTransaction(dt.datetime(2019, 4, 28, 17, 1, 0), 1)
-            _signature_wonabru = self.signature_wonabru # self.wallet_first.sign(_hash)
-            _signature_init = self.signature_init  # self.init_wallet.sign(_hash) # #
+            _signature_wonabru = self.signature_wonabru #self.wallet_first.sign(_hash) #
+            _signature_init = self.signature_init  #self.init_wallet.sign(_hash) # #
             self.initTransaction.add(self.initAtomicTransaction, _signature_init, _signature_wonabru)
             initBlock = self
         else:
