@@ -29,7 +29,8 @@ class CAccount(CBaseAccount):
         account.decimalPlace = baseAccount.decimalPlace
         account.amount = baseAccount.amount
         account.chain = baseAccount.chain
-
+        self.chain.uniqueAccounts[baseAccount.address] = account
+        baseAccount.chain.uniqueAccounts[self.address] = self
         return account
 
     def create(self, accountName, creator, address, save=True):
