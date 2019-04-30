@@ -135,8 +135,10 @@ class Application(tk.Frame):
 			self.add_new_account(add, acc['account'])
 
 	def save_all_my_accounts(self):
-		for acc in self.my_accounts.values():
-			acc['account'].save()
+		for i in range(30):
+			for acc in self.my_accounts.values():
+				acc['account'].save()
+			time.sleep(2)
 
 	def add_new_account(self, address, account):
 		self.accounts_balances[address] = {}
