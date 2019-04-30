@@ -69,6 +69,7 @@ class CBaseAccount():
 		self.save(announce='Lock:'+account1.address+':'+account2address+':')
 
 		while dt.datetime.today() < time_to_close:
+			self.save(announce='Lock:' + account1.address + ':' + account2address + ':')
 			_par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
 			#if _par is None: _par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
 			if _par is not None:
@@ -112,12 +113,13 @@ class CBaseAccount():
 
 		_signature = None
 		while dt.datetime.today() < time_to_close:
+			recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')
 			_signature = self.kade.look_at('SignatureRecipient:'+atomic.getHash())
 			if _signature is not None:
 				break
 			if time_to_close < dt.datetime.today():
 				raise Exception('Sign Transaction fails', 'Could not obtain valid signature from recipient till '+str(time_to_close))
-			time.sleep(0.1)
+			time.sleep(1)
 
 		self.wallet = self.load_wallet()
 		_my_signature = self.wallet.sign(atomic.getHash())
