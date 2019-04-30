@@ -503,7 +503,7 @@ class Application(tk.Frame):
 												  creator=self.my_main_account, address=_address, save=False)
 				else:
 					_wallet = None
-					_limitedToken = self.my_main_account.inviteLimitedToken(accountName=accountName, creator=self.my_main_account,
+					_limitedToken = self.my_main_account.inviteLimitedToken(accountName='__' + accountName, creator=self.my_main_account,
 													 address=address)
 
 				if _limitedToken is None:
@@ -537,7 +537,7 @@ class Application(tk.Frame):
 												address=_address, save=False)
 				else:
 					_wallet = None
-					_actionToken = self.my_main_account.inviteActionToken(accountName=accountName,
+					_actionToken = self.my_main_account.inviteActionToken(accountName='__' + accountName,
 																		creator=self.my_main_account,
 																		address=address)
 				if _actionToken is None:

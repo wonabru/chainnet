@@ -20,8 +20,7 @@ class CBaseAccount():
 
 	def setAmount(self, token, amount, save=True):
 		if amount < 0:
-			print('Amount of tokens cannot be less than zero')
-			return False
+			raise Exception('set amount error', 'Amount of tokens cannot be less than zero')
 		print('Account: ',self.accountName,' is setting amount ', amount, ' [ ', token.accountName, ' ] ')
 		self.amount[token.address] = np.round(amount, self.decimalPlace)
 
@@ -36,8 +35,8 @@ class CBaseAccount():
 	def addAmount(self, token, amount, save=True):
 
 		if token.address not in self.amount.keys():
-			print('Attach first please')
-			return False
+			self.setAmount(token, 0)
+			print('Warning: there was no set any initial amount. Set to 0')
 
 		temp_amount = self.amount[token.address] + amount
 		if temp_amount < 0:

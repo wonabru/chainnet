@@ -4,6 +4,7 @@ from baseAccount import CBaseAccount
 from initBlock import CInitBlock
 from baseLimitedToken import CBaseLimitedToken
 from genesis import CGenesis
+import time
 
 class CAccount(CBaseAccount):
     def __init__(self, DB, accountName, creator, address):
@@ -66,9 +67,10 @@ class CAccount(CBaseAccount):
         from limitedToken import CLimitedToken
         self.kade.get('Account:' + address)
 
-        account = CLimitedToken(self.kade, accountName, 0, creator, address, save=False)
-        while account is None:
+        account = CLimitedToken(self.kade, accountName, -1, creator, address, save=False)
+        while account.accountName.find('__') >= 0:
             account.update_look_at()
+            time.sleep(1)
         check_if_common_connection(creator, account)
 
         #self.chain.uniqueAccounts[account.address] = account
@@ -84,9 +86,10 @@ class CAccount(CBaseAccount):
         from actionToken import CActionToken
         self.kade.get('Account:' + address)
 
-        account = CActionToken(self.kade, accountName, 0, creator, address, save=False)
-        while account is None:
+        account = CActionToken(self.kade, accountName, -1, creator, address, save=False)
+        while account.accountName.find('__') >= 0:
             account.update_look_at()
+            time.sleep(1)
         check_if_common_connection(creator, account)
 
         #self.chain.uniqueAccounts[account.address] = account
