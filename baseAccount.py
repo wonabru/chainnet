@@ -59,23 +59,24 @@ class CBaseAccount():
 		if CWallet().verify('Locking for deal: '+account1.address+' + '+
 							account2address+' till '+str(time_to_close),
 							signature1, account1.address):
-			self.isLocked[account2address] = account1.address
+			self.isLocked[account1.address] = account2address
 		else:
 			raise Exception('Lock Accounts fails. Signature not valid for account '+
 							account1.accountName,'Locking for deal fails: '+account1.address+' + '+
 							account2address+' till '+str(time_to_close))
 
 		#save means announce to World
-		self.save(announce='Lock:'+account2address+':'+account1.address+':')
+		self.save(announce='Lock:'+account1.address+':'+account2address+':')
 
 		while dt.datetime.today() < time_to_close:
-			_par = self.kade.look_at('Lock:'+account1.address+':'+account2address+':'+self.address)
+			_par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
+			#if _par is None: _par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
 			if _par is not None:
 				print(_par)
 				_token = self.load_base_account(self.address)
 				_token.setParameters(_par, with_chain=False)
-				if _token is not None and account1.address in _token.isLocked.keys() and _token.isLocked[account1.address] == account2address:
-					self.isLocked[account1.address] = account2address
+				if _token is not None and account2address in _token.isLocked.keys() and _token.isLocked[account2address] == account1.address:
+					self.isLocked[account2address] = account1.address
 					self.save()
 					break
 				if time_to_close < dt.datetime.today():
