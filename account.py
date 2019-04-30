@@ -61,6 +61,40 @@ class CAccount(CBaseAccount):
             creator.save()
         return account
 
+    def inviteLimitedToken(self, accountName, creator, address, save=True):
+        from transaction import check_if_common_connection
+        from limitedToken import CLimitedToken
+        self.kade.get('Account:' + address)
+
+        account = CLimitedToken(self.kade, accountName, 0, creator, address, save=False)
+        account.update_look_at()
+        check_if_common_connection(creator, account)
+
+        #self.chain.uniqueAccounts[account.address] = account
+        #account.chain.uniqueAccounts[self.address] = self
+        if save:
+            account.save(announce='DO NOT SAVE LOCAL')
+            self.save()
+            creator.save()
+        return account
+
+    def inviteActionToken(self, accountName, creator, address, save=True):
+        from transaction import check_if_common_connection
+        from actionToken import CActionToken
+        self.kade.get('Account:' + address)
+
+        account = CActionToken(self.kade, accountName, 0, creator, address, save=False)
+        account.update_look_at()
+        check_if_common_connection(creator, account)
+
+        #self.chain.uniqueAccounts[account.address] = account
+        #account.chain.uniqueAccounts[self.address] = self
+        if save:
+            account.save(announce='DO NOT SAVE LOCAL')
+            self.save()
+            creator.save()
+        return account
+
     def save(self, announce=''):
         super().save(announce)
         

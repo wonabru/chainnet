@@ -375,12 +375,12 @@ class Application(tk.Frame):
 			self.lbl_new_address.grid_remove()
 			self.new_address_ent.grid_remove()
 			self.create_new_account_btn_lbl.set("Create new account")
-		if self.selected_account.get() == 2:
+		if self.selected_account.get() in [2, 5,6]:
 			self.lbl_initial_supply_pos.grid_remove()
 			self.supply_spin.grid_remove()
 			self.lbl_new_address.grid(row=6, column=0, sticky=tk.W)
 			self.new_address_ent.grid(row=6, column=1, sticky=tk.W)
-			self.create_new_account_btn_lbl.set("Invite new account")
+			self.create_new_account_btn_lbl.set("Invite account")
 		if self.selected_account.get() == 3:
 			self.set_initial_supply_lbl.set('Set Total Supply for Limited Token:')
 			self.lbl_initial_supply_pos.grid(row=8, column=0, sticky=tk.W)
@@ -398,11 +398,11 @@ class Application(tk.Frame):
 
 
 	def create_create_tab(self):
-		tk.Label(self.create_tab, text='Set new account name:',
+		tk.Label(self.create_tab, text='Set account name:',
 								font=("Arial", 16)).grid(row=4, column=0, sticky=tk.W)
 		self.new_name_ent = tk.Entry(self.create_tab, width=30, font=("Arial", 16))
 		self.new_name_ent.grid(row=4, column=1, sticky=tk.W)
-		self.lbl_new_address = tk.Label(self.create_tab, text='New address:',
+		self.lbl_new_address = tk.Label(self.create_tab, text='Address:',
 								font=("Arial", 16))
 		self.new_address_ent = tk.Entry(self.create_tab, width=50, font=("Arial", 16))
 		_amount = tk.DoubleVar()
@@ -417,16 +417,22 @@ class Application(tk.Frame):
 		self.selected_account.set(1)
 		rad1 = tk.Radiobutton(self.create_tab, text='Create new simple account from scratch', value=1, bg='#fff000fff',
 		                      variable=self.selected_account, command=lambda: self.radiobtn_change(), indicatoron=0)
-		rad2 = tk.Radiobutton(self.create_tab, text='Invite new simple account using public address', bg='#fff000eee',
+		rad2 = tk.Radiobutton(self.create_tab, text='Invite simple account using public address', bg='#fff000eee',
 					   value=2, variable=self.selected_account, command=lambda: self.radiobtn_change(), indicatoron=0)
 		rad3 = tk.Radiobutton(self.create_tab, text='Create new Limited Token', bg='#fff000bbb',
 					   value=3, variable=self.selected_account, command=lambda: self.radiobtn_change(), indicatoron=0)
 		rad4 = tk.Radiobutton(self.create_tab, text='Create new Action Token', bg='#fff000999',
 					   value=4, variable=self.selected_account, command=lambda: self.radiobtn_change(), indicatoron=0)
+		rad5 = tk.Radiobutton(self.create_tab, text='Invite Limited Token using public address', bg='#fff000eee',
+					   value=5, variable=self.selected_account, command=lambda: self.radiobtn_change(), indicatoron=0)
+		rad6 = tk.Radiobutton(self.create_tab, text='Invite Action Token using public address', bg='#fff000eee',
+					   value=6, variable=self.selected_account, command=lambda: self.radiobtn_change(), indicatoron=0)
 		rad1.grid(row=0, column=0, sticky=tk.W)
-		rad2.grid(row=2, column=0, sticky=tk.W)
-		rad3.grid(row=0, column=1, sticky=tk.W)
-		rad4.grid(row=2, column=1, sticky=tk.W)
+		rad2.grid(row=0, column=1, sticky=tk.W)
+		rad3.grid(row=1, column=0, sticky=tk.W)
+		rad4.grid(row=2, column=0, sticky=tk.W)
+		rad5.grid(row=1, column=1, sticky=tk.W)
+		rad6.grid(row=2, column=1, sticky=tk.W)
 
 		self.create_new_account_btn_lbl = tk.StringVar()
 		self.create_new_account_btn_lbl.set("Create new account")
@@ -489,9 +495,17 @@ class Application(tk.Frame):
 				self.update_amounts()
 				messagebox.showinfo('Account added', _account.accountName + ' from now you are in Chainnet')
 
-			if self.selected_account.get() == 3:
-				_wallet = CWallet(accountName)
-				_limitedToken = CLimitedToken(self.chainnet.DB, accountName, initSupply, creator=self.my_main_account, address=_wallet.pubKey, save=False)
+			if self.selected_account.get() in [3, 5]:
+				if self.selected_account.get() == 3:
+					_wallet = CWallet(accountName)
+					_address = _wallet.pubKey
+					_limitedToken = CLimitedToken(self.chainnet.DB, accountName, initSupply,
+												  creator=self.my_main_account, address=_address, save=False)
+				else:
+					_wallet = None
+					_limitedToken = self.my_main_account.inviteLimitedToken(accountName=accountName, creator=self.my_main_account,
+													 address=address)
+
 				if _limitedToken is None:
 					messagebox.showerror(title='Error in token creating', message='Token is not created')
 					return
@@ -515,9 +529,17 @@ class Application(tk.Frame):
 				self.update_amounts()
 				messagebox.showinfo('Limited Token is created', _limitedToken.accountName + ' is now created with total supply: '+str(_limitedToken.totalSupply))
 
-			if self.selected_account.get() == 4:
-				_wallet = CWallet(accountName)
-				_actionToken = CActionToken(self.chainnet.DB, accountName, initSupply, creator=self.my_main_account, address=_wallet.pubKey, save=False)
+			if self.selected_account.get() in [4, 6]:
+				if self.selected_account.get() == 4:
+					_wallet = CWallet(accountName)
+					_address = _wallet.pubKey
+					_actionToken = CActionToken(self.chainnet.DB, accountName, initSupply, creator=self.my_main_account,
+												address=_address, save=False)
+				else:
+					_wallet = None
+					_actionToken = self.my_main_account.inviteActionToken(accountName=accountName,
+																		creator=self.my_main_account,
+																		address=address)
 				if _actionToken is None:
 					messagebox.showerror(title='Error in token creating', message='Token is not created')
 					return
