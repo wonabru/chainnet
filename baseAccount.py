@@ -145,8 +145,8 @@ class CBaseAccount():
 			_txn.remove(_atomic,_signSender, _signRecipient)
 			_txn.add(_atomic,_signSender, _signRecipient)
 			_atomic.token.save()
-			_sender.save()
-			_recipient.save()
+			_atomic.sender.save()
+			_atomic.recipient.save()
 
 
 
