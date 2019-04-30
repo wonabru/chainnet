@@ -67,7 +67,8 @@ class CAccount(CBaseAccount):
         self.kade.get('Account:' + address)
 
         account = CLimitedToken(self.kade, accountName, 0, creator, address, save=False)
-        account.update_look_at()
+        while account is None:
+            account.update_look_at()
         check_if_common_connection(creator, account)
 
         #self.chain.uniqueAccounts[account.address] = account
@@ -84,7 +85,8 @@ class CAccount(CBaseAccount):
         self.kade.get('Account:' + address)
 
         account = CActionToken(self.kade, accountName, 0, creator, address, save=False)
-        account.update_look_at()
+        while account is None:
+            account.update_look_at()
         check_if_common_connection(creator, account)
 
         #self.chain.uniqueAccounts[account.address] = account
