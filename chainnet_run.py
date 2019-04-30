@@ -121,18 +121,33 @@ class Application(tk.Frame):
 		self.info_txt.insert(tk.INSERT, _token.show() + "\n")
 		self.info_txt.insert(tk.INSERT, _token.showAll() + "\n")
 
+	def recreate_account_tab(self):
+		self.update_amounts()
+		self.account_tab.destroy()
+		self.account_tab = tk.Frame(self.tab_control)
+		self.tab_control.insert(0, self.account_tab, text='Accounts balances')
+		self.tab_control.select(0)
+		self.tab_control.pack()
+		self.create_account_tab()
+
 	def create_account_tab(self):
+
 		tk.Button(self.account_tab, text="Update",
-				  command=self.update_amounts).grid(column=3, row=10, rowspan=1, sticky=tk.W)
+				  command=self.update_amounts).grid(column=3, row=100, rowspan=1, sticky=tk.W)
 
 		tk.Button(self.account_tab, text="Save",
-				  command=self.save_all_my_accounts).grid(column=2, row=10, rowspan=1, sticky=tk.W)
+				  command=self.save_all_my_accounts).grid(column=2, row=100, rowspan=1, sticky=tk.W)
+
+		tk.Button(self.account_tab, text="Refresh",
+				  command=self.recreate_account_tab).grid(column=4, row=100, rowspan=1, sticky=tk.W)
 
 		self.amounts = {}
 		self.accounts_balances = {}
 		self.accounts_names_lbl = {}
+		_index = 0
 		for add, acc in self.my_accounts.items():
-			self.add_new_account(add, acc['account'])
+			self.add_new_account(add, acc['account'], _index)
+			_index += 1
 
 	def save_all_my_accounts(self):
 		for i in range(10):
@@ -140,11 +155,11 @@ class Application(tk.Frame):
 				acc['account'].save()
 			time.sleep(1)
 
-	def add_new_account(self, address, account):
+	def add_new_account(self, address, account, index):
 		self.accounts_balances[address] = {}
 		self.amounts[address] = {}
 		self.accounts_names_lbl[account.address] = tk.StringVar()
-		self.column_nr[address] = len(self.column_nr)
+		self.column_nr[address] = index
 		tk.Label(self.account_tab, textvariable=self.accounts_names_lbl[account.address],
 				 font=("Arial", 13), justify='right', relief="ridge",
 				 bg="#ddd555000", fg="#fffffffff").grid(column=self.column_nr[address] * 2, row=0, columnspan=2)
