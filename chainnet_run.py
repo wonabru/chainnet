@@ -128,9 +128,9 @@ class Application(tk.Frame):
 		tk.Button(self.account_tab, text="Save",
 				  command=self.save_all_my_accounts).grid(column=2, row=10, rowspan=1, sticky=tk.W)
 
-		#self.update_my_accounts()
 		self.amounts = {}
 		self.accounts_balances = {}
+		self.accounts_names_lbl = {}
 		for add, acc in self.my_accounts.items():
 			self.add_new_account(add, acc['account'])
 
@@ -143,11 +143,12 @@ class Application(tk.Frame):
 	def add_new_account(self, address, account):
 		self.accounts_balances[address] = {}
 		self.amounts[address] = {}
+		self.accounts_names_lbl[account.address] = tk.StringVar()
 		self.column_nr[address] = len(self.column_nr)
-		tk.Label(self.account_tab, text=account.accountName + "'s balances: ",
+		tk.Label(self.account_tab, textvariable=self.accounts_names_lbl[account.address],
 				 font=("Arial", 13), justify='right', relief="ridge",
 				 bg="#ddd555000", fg="#fffffffff").grid(column=self.column_nr[address] * 2, row=0, columnspan=2)
-
+		self.accounts_names_lbl[account.address].set(account.accountName + "'s balances: ")
 		self.add_new_amounts(address, account)
 		self.my_main_account.kade.save('my_main_accounts', str(list(self.my_accounts.keys())))
 		self.update_amounts()
@@ -565,6 +566,7 @@ class Application(tk.Frame):
 			for key, amount in _account.amount.items():
 				try:
 					token_name = self.chainnet.tokens[key].accountName
+					self.accounts_names_lbl[_account.address].set(_account.accountName+'\'s balances')
 					self.amounts[_acc][key].set(str(amount))
 					self.amounts[_acc][key+'l'].set(' [ '+token_name+' ] ')
 				except:
