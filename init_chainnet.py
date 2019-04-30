@@ -4,15 +4,19 @@ from database import CSQLLite
 from actionToken import CActionToken
 from wallet import CWallet
 from baseAccount import CBaseAccount
+from account import CAccount
+from genesis import CGenesis
 import ast
 
 class CInitChainnet:
 	def __init__(self):
+
 		self.tokens = {}
 		self.wallet = CWallet('main')
 		self.DB = CSQLLite(self.wallet.pubKey)
-		self.Qcoin = CInitBlock(self.DB)
-		_creator = CBaseAccount(self.DB, accountName='0', address='')
+
+		self.Qcoin = CInitBlock(self.DB, self.wallet)
+		_creator = CBaseAccount(self.DB, accountName='creator', address='')
 		self.baseToken = CLimitedToken(self.DB, tokenName='Q', totalSupply=self.Qcoin.baseTotalSupply, creator=_creator, address=self.Qcoin.getBaseToken().address, save=False)
 		self.baseToken = self.baseToken.copyFromBaseLimitToken(self.Qcoin.getBaseToken())
 		self.first_account = self.baseToken.copyFromBaseAccount(self.Qcoin.firstAccount)
@@ -26,7 +30,10 @@ class CInitChainnet:
 		if save:
 			self.DB.save('tokens', str(list(self.tokens.keys())))
 			token.owner.save()
-		token.save()
+			token.save()
+
+		if self.DB.get(token.address) is None:
+			token.save()
 
 	def get_token(self, address):
 		return self.tokens[address]
@@ -45,7 +52,14 @@ class CInitChainnet:
 			self.first_account.update(with_chain=True)
 		except:
 			self.first_account.save()
-		self.my_account = self.first_account
+
+		if self.wallet.pubKey == self.first_account.address:
+			self.my_account = self.first_account
+		else:
+			self.my_account = CAccount(self.DB, 'main', 0, self.wallet.pubKey)
+		if self.DB.get(self.my_account.address) is None:
+			self.my_account.main_account = 1
+			self.my_account.save()
 
 	def load_tokens(self):
 		self.init_account = self.Qcoin.initAccount
@@ -63,8 +77,8 @@ class CInitChainnet:
 					_token = CActionToken(self.DB, '__tempInitChainnet__', None, None, acc, False)
 					_token.update()
 				except Exception as ex:
-					print(str(ex))
-					_token = self.baseToken if acc == '0' else None
+					#raise Exception('Load tokens', 'My accounts have token address that there is not in DB')
+					_token = self.baseToken if acc == CGenesis().initAccountPubKey else None
 
 			if _token is not None:
 				self.tokens[_token.address] = _token

@@ -3,6 +3,7 @@ from chain import CChain
 from baseAccount import CBaseAccount
 from initBlock import CInitBlock
 from baseLimitedToken import CBaseLimitedToken
+from genesis import CGenesis
 
 class CAccount(CBaseAccount):
     def __init__(self, DB, accountName, creator, address):
@@ -13,7 +14,7 @@ class CAccount(CBaseAccount):
         self.initTransaction = None
         self.creator = creator
         self.init_block = CInitBlock()
-        self.chain.uniqueAccounts['0'] = self.init_block.getBaseToken()
+        self.chain.uniqueAccounts[CGenesis().initAccountPubKey] = self.init_block.getBaseToken()
         self.initTransaction = self.init_block.getInitTransaction()
         try:
             self.chain.uniqueAccounts[creator.address] = creator
@@ -28,24 +29,43 @@ class CAccount(CBaseAccount):
         account.decimalPlace = baseAccount.decimalPlace
         account.amount = baseAccount.amount
         account.chain = baseAccount.chain
-
+        self.chain.uniqueAccounts[baseAccount.address] = account
+        baseAccount.chain.uniqueAccounts[self.address] = self
         return account
 
     def create(self, accountName, creator, address, save=True):
         if address in self.chain.uniqueAccounts or accountName in self.chain.get_unique_account_names():
             return None
         account = CAccount(self.kade, accountName, creator, address)
-        self.chain.uniqueAccounts[account.address] = account
-        account.chain.uniqueAccounts[self.address] = self
+        #self.chain.uniqueAccounts[account.address] = account
+        #account.chain.uniqueAccounts[self.address] = self
         if save:
             account.save()
             self.save()
             creator.save()
         return account
 
-    def save(self):
-        super().save()
+    def invite(self, accountName, creator, address, save=True):
+        from transaction import check_if_common_connection
+        self.kade.get('Account:' + address)
+
+        account = CAccount(self.kade, accountName, creator, address)
+        account.update_look_at()
+        check_if_common_connection(creator, account)
+
+        #self.chain.uniqueAccounts[account.address] = account
+        #account.chain.uniqueAccounts[self.address] = self
+        if save:
+            account.save(announce='DO NOT SAVE LOCAL')
+            self.save()
+            creator.save()
+        return account
+
+    def save(self, announce=''):
+        super().save(announce)
         
     def update(self, with_chain=True):
         super().update(with_chain=with_chain)
 
+    def update_look_at(self, with_chain=True):
+        super().update_look_at(with_chain=with_chain)

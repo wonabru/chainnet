@@ -6,12 +6,13 @@ class CDataBase(object):
     def __init__(self):
         self.server = None
         self.loop = None
+        self.port = 10023
 
     def initiate(self):
         if self.server is None:
             self.loop = asyncio.get_event_loop()
-            self.server = Server()
-            self.loop.run_until_complete(self.server.listen(5679))
+            self.server = Server(ksize=100, alpha=10)
+            #self.loop.run_until_complete(self.server.listen(self.port+1000))
             handler = logging.StreamHandler()
             formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
@@ -20,39 +21,21 @@ class CDataBase(object):
             log.setLevel(logging.CRITICAL)
             self.loop.set_debug(True)
 
-    def runServer(self):
-        from multiprocessing import Process, Queue
-        serverQ = Queue()
-        loopQ = Queue()
-        pKademlia = Process(target=self.serverLoop, args=(serverQ, loopQ))
-        pKademlia.start()
-        serverQ.put(self.server)
-        loopQ.put(self.loop)
-
-    @staticmethod
-    def serverLoop(localServer, localLoop):
-        localServer.get()
-        localLoop.get()
-        try:
-            localLoop.run_forever()
-        except KeyboardInterrupt:
-            pass
-        finally:
-            localServer.stop()
-            localLoop.close()
-
     def set(self, key, value):
         self.loop = asyncio.get_event_loop()
         self.loop.run_until_complete(self.server.set(key, value))
+        return self.get(key)
 
     def get(self, key):
         self.loop = asyncio.get_event_loop()
-        result = self.loop.run_until_complete(self.server.get(key))
-        return result
+        return self.loop.run_until_complete(self.server.get(key))
 
-    def bootstrap(self, nodes, port):
+    def bootstrap(self, nodes):
         self.loop = asyncio.get_event_loop()
         bootstrap_node = []
-        for n in nodes:
-            bootstrap_node.append((n, int(port)))
-        self.loop.run_until_complete(self.server.bootstrap(bootstrap_node))
+        try:
+            for n in nodes:
+                bootstrap_node.append((n, self.port))
+            self.loop.run_until_complete(self.server.bootstrap(bootstrap_node))
+        except:
+            pass
