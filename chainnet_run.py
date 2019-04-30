@@ -175,7 +175,7 @@ class Application(tk.Frame):
 								font=("Arial", 16)).grid(row=1, column=0)
 		self.tokens_ent = tk.Entry(self.receive_tab, width=20, font=("Arial", 16))
 		self.tokens_ent.grid(row=2, column=0)
-		tk.Label(self.receive_tab, text='From account by name:',
+		tk.Label(self.receive_tab, text='From account by address:',
 								font=("Arial", 16)).grid(row=1, column=1)
 		self.from_account_ent = tk.Entry(self.receive_tab, width=20, font=("Arial", 16))
 		self.from_account_ent.grid(row=2, column=1)
@@ -213,9 +213,9 @@ class Application(tk.Frame):
 			self.time_to_close_ent.delete(0, tk.END)
 			self.time_to_close_ent.insert(0, self.atomicTransaction.time)
 
-	def sign_receive(self, accountName):
+	def sign_receive(self, address):
 		DB = self.my_main_account.kade
-		_account = self.select_my_acount_by_name(accountName)
+		_account = self.my_accounts[address]['account']
 		_wallet = _account.load_wallet()
 		_signature = _wallet.sign(self.atomicTransaction.getHash())
 		DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
