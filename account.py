@@ -36,8 +36,8 @@ class CAccount(CBaseAccount):
         if address in self.chain.uniqueAccounts or accountName in self.chain.get_unique_account_names():
             return None
         account = CAccount(self.kade, accountName, creator, address)
-        self.chain.uniqueAccounts[account.address] = account
-        account.chain.uniqueAccounts[self.address] = self
+        #self.chain.uniqueAccounts[account.address] = account
+        #account.chain.uniqueAccounts[self.address] = self
         if save:
             account.save()
             self.save()
@@ -52,8 +52,8 @@ class CAccount(CBaseAccount):
         account.update_look_at()
         check_if_common_connection(creator, account)
 
-        self.chain.uniqueAccounts[account.address] = account
-        account.chain.uniqueAccounts[self.address] = self
+        #self.chain.uniqueAccounts[account.address] = account
+        #account.chain.uniqueAccounts[self.address] = self
         if save:
             account.save(announce='DO NOT SAVE LOCAL')
             self.save()
