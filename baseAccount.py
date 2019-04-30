@@ -158,8 +158,7 @@ class CBaseAccount():
 			return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), self.main_account, \
 				   str({a: v for a, v in _accountsCreated.items()}), str(list(_uniqueAccounts.keys()))
 		else:
-			if __name__ == '__main__':
-				return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), \
+			return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), \
 					   self.main_account, "{}", "{}"
 
 	def setParameters(self, par, with_chain=True):
