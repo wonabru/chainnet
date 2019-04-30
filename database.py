@@ -42,7 +42,7 @@ class CSQLLite():
 
             if _not_save_local is None: _not_save_local = []
 
-            if key not in _not_save_local and announce == 'Account:':
+            if not (key in _not_save_local and announce == 'Account:'):
                 self.sqllite.set(key=key, value=value)
 
                 if announce != '':
