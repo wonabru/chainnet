@@ -220,7 +220,7 @@ class Application(tk.Frame):
 		DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
 
 		while True:
-			_txn = DB.look_at('FinalTransaction:'+self.atomicTransaction.getHash())
+			_txn = DB.look_at('FinalTransaction:'+self.atomicTransaction.getHash()+':Transaction')
 			if _txn is not None:
 				_account.process_transaction(_txn, dt.datetime.today())
 				break

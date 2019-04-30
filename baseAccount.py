@@ -99,7 +99,7 @@ class CBaseAccount():
 		self.kade.save(_key, _value, announce=announce)
 
 	def save_transaction(self, transaction, announce=''):
-		_key = ''
+		_key = ':Transaction'
 		_value = transaction.getParameters()
 		self.kade.save(_key, _value, announce=announce)
 
