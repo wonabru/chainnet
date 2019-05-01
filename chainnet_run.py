@@ -245,11 +245,12 @@ class Application(tk.Frame):
 			_wallet = _account.load_wallet()
 			_signature = _wallet.sign(self.atomicTransaction.getHash())
 			DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
-			i = 0
+			_finish = False
 			for i in range(1000):
-				if self.after(1000 * i, loop):
+				_finish = self.after(1000 * i, loop)
+				if _finish == True:
 					break
-			if i >= 999:
+			if _finish == False:
 				raise Exception('No signature', 'Could not obtain signature')
 
 			self.update_amounts()
