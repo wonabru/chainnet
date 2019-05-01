@@ -212,7 +212,9 @@ class CBaseAccount():
 		_signature = message[-1][1]
 		_check = message[-1][0]
 		_message = message[:-1]
-		if local_message == False and not (_check == 'Signature' and CWallet().verify(_message, _signature, self.address)):
+		if self.address != CGenesis().initAccountPubKey and\
+				local_message == False \
+				and not (_check == 'Signature' and CWallet().verify(_message, _signature, self.address)):
 			raise Exception('Verification Fails', 'Message does not have valid signature' + str(message))
 
 		return _message
