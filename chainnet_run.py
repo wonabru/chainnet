@@ -360,7 +360,7 @@ class Application(tk.Frame):
 			token = self.chainnet.get_token_by_name(token)
 			if attacher.address in token.chain.uniqueAccounts:
 				if token.attach(account, attacher=attacher):
-					self.add_new_amounts(account.address, account=account, index=len(self.my_accounts))
+					self.add_new_amounts(account.address, account=account)
 					self.update_amounts()
 					messagebox.showinfo(title='Attach with success', message=account.accountName + ' now can pay with ' +
 					                                                       token.accountName)
