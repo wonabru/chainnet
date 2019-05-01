@@ -246,8 +246,9 @@ class Application(tk.Frame):
 			DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
 			_finish = False
 			for i in range(1000):
-				_finish = self.after(1000 * i, loop)
-				if _finish == True:
+				if _finish == False:
+					_finish = self.after(1000 * i, loop)
+				else:
 					break
 			if _finish == False:
 				raise Exception('No signature', 'Could not obtain signature')
@@ -347,8 +348,9 @@ class Application(tk.Frame):
 
 			_finish = False
 			for i in range(int((time_to_close - dt.datetime.today()).total_seconds())):
-				_finish = self.after(1000 * i, token.lock_loop, my_account, other_account, time_to_close)
-				if _finish == True:
+				if _finish == False:
+					_finish = self.after(1000 * i, token.lock_loop, my_account, other_account, time_to_close)
+				else:
 					break
 
 			if time_to_close < dt.datetime.today():
@@ -391,11 +393,12 @@ class Application(tk.Frame):
 			token = self.chainnet.get_token_by_name(token)
 			if to_account.address in token.chain.uniqueAccounts:
 
-				_ret = False
+				_finish = False
 				atomic, time_to_close = from_account.send(to_account, token, amount, float(wating_time))
 				for i in range(int((time_to_close - dt.datetime.today()).total_seconds())):
-					_ret = self.after(1000 * i, from_account.send_loop, to_account, atomic, time_to_close)
-					if _ret == True:
+					if _finish == False:
+						_finish = self.after(1000 * i, from_account.send_loop, to_account, atomic, time_to_close)
+					else:
 						break
 
 				if time_to_close < dt.datetime.today():
