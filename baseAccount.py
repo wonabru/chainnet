@@ -194,7 +194,7 @@ class CBaseAccount():
 				announce = 'Account:'
 			self.wallet = self.load_wallet()
 			if self.wallet.pubKey == self.address:
-				par.append(['Signature', self.wallet.sign(par)])
+				par.append(['Signature', self.wallet.sign(str(par))])
 				self.verify(par)
 			else:
 				par.append(['No Signature', ''])
@@ -220,7 +220,7 @@ class CBaseAccount():
 		if _check == 'Signature':
 			if self.address != CGenesis().initAccountPubKey and\
 					local_message == False \
-					and not CWallet().verify(_message, _signature, self.address):
+					and not CWallet().verify(str(_message), _signature, self.address):
 				raise Exception('Verification Fails', 'Message does not have valid signature' + str(message))
 
 			return _message
