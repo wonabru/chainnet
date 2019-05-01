@@ -10,7 +10,7 @@ class CAccount(CBaseAccount):
     def __init__(self, DB, accountName, creator, address):
         self.kade = DB
         super().__init__(DB, accountName, address)
-
+        self.wallet = self.load_wallet()
         self.init_block = None
         self.initTransaction = None
         self.creator = creator
@@ -100,8 +100,8 @@ class CAccount(CBaseAccount):
             creator.save()
         return account
 
-    def save(self, announce=''):
-        super().save(announce)
+    def save(self, announce='', count=1):
+        super().save(announce, count=count)
         
     def update(self, with_chain=True):
         super().update(with_chain=with_chain)

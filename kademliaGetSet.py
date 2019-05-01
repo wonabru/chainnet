@@ -1,6 +1,7 @@
 import logging
 import asyncio
 from kademlia.network import Server
+import time
 
 class CDataBase(object):
     def __init__(self):
@@ -21,7 +22,7 @@ class CDataBase(object):
             log.setLevel(logging.CRITICAL)
             self.loop.set_debug(True)
 
-    def set(self, key, value):
+    def set(self, key, value, count):
         self.loop = asyncio.get_event_loop()
         self.loop.run_until_complete(self.server.set(key, value))
         return self.get(key)

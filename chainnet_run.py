@@ -9,7 +9,6 @@ from account import CAccount
 import ast
 from tkinter import scrolledtext
 from transaction import CAtomicTransaction
-import time
 import datetime as dt
 
 
@@ -132,14 +131,14 @@ class Application(tk.Frame):
 
 	def create_account_tab(self):
 
-		tk.Button(self.account_tab, text="Update",
-				  command=self.update_amounts).grid(column=3, row=100, rowspan=1, sticky=tk.W)
+		tk.Button(self.account_tab, text="Update external accounts", bg='yellow',
+				  command=self.update_amounts).grid(column=2, row=100, rowspan=1, sticky=tk.W)
 
-		tk.Button(self.account_tab, text="Save",
-				  command=self.save_all_my_accounts).grid(column=2, row=100, rowspan=1, sticky=tk.W)
+		tk.Button(self.account_tab, text="Save and spread info on your accounts", bg='yellow',
+				  command=self.save_all_my_accounts).grid(column=1, row=100, rowspan=1, sticky=tk.W)
 
-		tk.Button(self.account_tab, text="Refresh",
-				  command=self.recreate_account_tab).grid(column=4, row=100, rowspan=1, sticky=tk.W)
+		tk.Button(self.account_tab, text="Refresh graphic interface", bg='yellow',
+				  command=self.recreate_account_tab).grid(column=3, row=100, rowspan=1, sticky=tk.W)
 
 		self.amounts = {}
 		self.accounts_balances = {}
@@ -150,10 +149,12 @@ class Application(tk.Frame):
 			_index += 1
 
 	def save_all_my_accounts(self):
-		for i in range(10):
+		def spread():
 			for acc in self.my_accounts.values():
 				acc['account'].save()
-			time.sleep(1)
+
+		for i in range(50):
+			self.after(1000 * i, spread)
 
 	def add_new_account(self, address, account, index):
 		self.accounts_balances[address] = {}
@@ -229,40 +230,63 @@ class Application(tk.Frame):
 			self.time_to_close_ent.insert(0, self.atomicTransaction.time)
 
 	def sign_receive(self, address):
-		DB = self.my_main_account.kade
-		_account = self.my_accounts[address]['account']
-		_wallet = _account.load_wallet()
-		_signature = _wallet.sign(self.atomicTransaction.getHash())
-		DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
 
-		while True:
+		def loop():
 			_txn = DB.look_at('FinalTransaction:'+self.atomicTransaction.getHash()+':Transaction')
 			if _txn is not None:
+				self.atomicTransaction.sender.verify(_txn)
 				_account.process_transaction(_txn, dt.datetime.today())
-				break
-			time.sleep(1)
-		self.update_amounts()
-		messagebox.showinfo(title='Receive with success', message=self.atomicTransaction.sender.accountName + ' sent ' +
-		                                                       str(self.atomicTransaction.amount) + ' of ' + self.atomicTransaction.token.accountName + ' to account ' +
-		                                                       self.atomicTransaction.recipient.accountName)
+				return True
+			return False
+
+		try:
+			DB = self.my_main_account.kade
+			_account = self.my_accounts[address]['account']
+			_wallet = _account.load_wallet()
+			_signature = _wallet.sign(self.atomicTransaction.getHash())
+			DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
+			i = 0
+			for i in range(1000):
+				if self.after(1000 * i, loop):
+					break
+			if i >= 999:
+				raise Exception('No signature', 'Could not obtain signature')
+
+			self.update_amounts()
+			messagebox.showinfo(title='Receive with success', message=self.atomicTransaction.sender.accountName + ' sent ' +
+																   str(self.atomicTransaction.amount) + ' of ' + self.atomicTransaction.token.accountName + ' to account ' +
+																   self.atomicTransaction.recipient.accountName)
+		except Exception as ex:
+			self.showError(ex)
+
+	def showError(self, ex):
+		if len(ex.args) > 1:
+			_title, _err = ex.args
+		else:
+			_title, _err = 'Other error', ex.args
+		messagebox.showerror(title=str(_title), message=str(_err))
 
 	def look_for_deal(self):
-		_announcement = {}
-		DB = self.my_main_account.kade
-		_my_accounts = DB.get('my_main_accounts')
-		if _my_accounts is None:
-			_my_accounts = [self.my_main_account.address]
-		else:
-			_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
-		for acc in _my_accounts:
-			_announcement[acc] = DB.look_at('AtomicTransaction:' + 'AtomicTransaction:' + acc)
-			if _announcement[acc] is not None:
-				self.atomicTransaction = CAtomicTransaction(CAccount(DB, '__temp1__', None, "1"),
-	                                       CAccount(DB, '__temp2__', None, "2"),
-	                                       -1, "",
-	                                       CAccount(DB, '__temp3__', None, "3"))
-				self.atomicTransaction.setParameters(_announcement[acc])
-
+		try:
+			_announcement = {}
+			DB = self.my_main_account.kade
+			_my_accounts = DB.get('my_main_accounts')
+			if _my_accounts is None:
+				_my_accounts = [self.my_main_account.address]
+			else:
+				_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
+			for acc in _my_accounts:
+				_announcement[acc] = DB.look_at('AtomicTransaction:' + 'AtomicTransaction:' + acc)
+				if _announcement[acc] is not None:
+					self.atomicTransaction = CAtomicTransaction(CAccount(DB, '__temp1__', None, "1"),
+											   CAccount(DB, '__temp2__', None, "2"),
+											   -1, "",
+											   CAccount(DB, '__temp3__', None, "3"))
+					_messsage = _announcement[acc].split('?')[0]
+					self.atomicTransaction.setParameters(_messsage)
+					self.atomicTransaction.sender.verify(_announcement[acc])
+		except Exception as ex:
+			self.showError(ex)
 
 	def create_send_tab(self):
 		tk.Label(self.send_tab, text='Choose token name:',
@@ -320,14 +344,13 @@ class Application(tk.Frame):
 			token.lockAccounts(my_account, _wallet.sign('Locking for deal: ' + my_account.address + ' + ' +
 			                                          other_account + ' till ' + str(time_to_close)),
 			                   other_account, time_to_close)
-			messagebox.showinfo('Lock with Success', 'Locking for deal: ' + my_account.address + ' + ' +
-			                                          other_account + ' till ' + str(time_to_close))
+
+
+			for i in range(int((time_to_close - dt.datetime.today()).total_seconds())):
+				self.after(1000 * i, token.lock_loop, my_account, other_account, time_to_close)
+
 		except Exception as ex:
-			if len(ex.args) > 1:
-				_title, _err = ex.args
-			else:
-				_title, _err = 'Other error', ex.args
-			messagebox.showerror(title=str(_title), message=str(_err))
+			self.showError(ex)
 
 	def attach(self, account, attacher, token):
 		try:
@@ -337,7 +360,7 @@ class Application(tk.Frame):
 			token = self.chainnet.get_token_by_name(token)
 			if attacher.address in token.chain.uniqueAccounts:
 				if token.attach(account, attacher=attacher):
-					self.add_new_amounts(account.address, account=account)
+					self.add_new_amounts(account.address, account=account, index=len(self.my_accounts))
 					self.update_amounts()
 					messagebox.showinfo(title='Attach with success', message=account.accountName + ' now can pay with ' +
 					                                                       token.accountName)
@@ -351,11 +374,7 @@ class Application(tk.Frame):
 				messagebox.showerror(title='Attach', message=attacher.accountName + ' is not connected to ' +
 				                                                       token.accountName)
 		except Exception as ex:
-			if len(ex.args) > 1:
-				_title, _err = ex.args
-			else:
-				_title, _err = 'Other error', ex.args
-			messagebox.showerror(title=str(_title), message=str(_err))
+			self.showError(ex)
 
 	def send_coins(self, from_account, to_account, amount, token, wating_time):
 		try:
@@ -365,22 +384,18 @@ class Application(tk.Frame):
 			to_account = self.my_accounts[to_account]['account']
 			token = self.chainnet.get_token_by_name(token)
 			if to_account.address in token.chain.uniqueAccounts:
-				if from_account.send(to_account, token, amount, float(wating_time)):
-					self.update_amounts()
-					messagebox.showinfo(title='Send with success', message=from_account.accountName+' sent '+
-					                                                       str(amount)+' of '+token.accountName+' to account '+
-					                    to_account.accountName)
+
+				atomic, time_to_close = from_account.send(to_account, token, amount, float(wating_time))
+				for i in range(int((time_to_close - dt.datetime.today()).total_seconds())):
+					self.after(1000 * i, from_account.send_loop, to_account, atomic, time_to_close)
+
 					return
 				else:
 					messagebox.showerror(title='Send', message='Not enough funds on '+from_account.accountName)
 			else:
 				messagebox.showerror(title='Send', message='You need first attach '+to_account.accountName+' to '+token.accountName)
 		except Exception as ex:
-			if len(ex.args) > 1:
-				_title, _err = ex.args
-			else:
-				_title, _err = 'Other error', ex.args
-			messagebox.showerror(title=str(_title), message=str(_err))
+			self.showError(ex)
 
 	def radiobtn_change(self):
 
@@ -494,7 +509,7 @@ class Application(tk.Frame):
 				_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
 				self.my_accounts_cmb_info.config(values=_acc)
 				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
-				self.add_new_account(_account.address, account=_account)
+				self.add_new_account(_account.address, account=_account, index=len(self.my_accounts))
 				self.update_amounts()
 				messagebox.showinfo('Account created', _account.accountName + ' from now you are in Chainnet')
 
@@ -506,7 +521,7 @@ class Application(tk.Frame):
 				_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
 				self.my_accounts_cmb_info.config(values=_acc)
 				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
-				self.add_new_account(_account.address, account=_account)
+				self.add_new_account(_account.address, account=_account, index=len(self.my_accounts))
 				self.update_amounts()
 				messagebox.showinfo('Account added', _account.accountName + ' from now you are in Chainnet')
 
@@ -538,7 +553,7 @@ class Application(tk.Frame):
 				_token.extend([str(token.accountName) for key, token in self.chainnet.tokens.items()])
 				self.tokens_cmb_info.config(values=_token)
 				self.tokens_cmb.config(values=[str(token.accountName) for key, token in self.chainnet.tokens.items()])
-				self.add_new_account(_limitedToken.address, account=_limitedToken)
+				self.add_new_account(_limitedToken.address, account=_limitedToken, index=len(self.my_accounts))
 				self.add_new_amounts(self.my_main_account.address, account=_limitedToken)
 				self.add_new_amounts(_limitedToken.address, account=_limitedToken)
 				self.update_amounts()
@@ -572,7 +587,7 @@ class Application(tk.Frame):
 				_token.extend([str(token.accountName) for key, token in self.chainnet.tokens.items()])
 				self.tokens_cmb_info.config(values=_token)
 				self.tokens_cmb.config(values=[str(token.accountName) for key, token in self.chainnet.tokens.items()])
-				self.add_new_account(_actionToken.address, account=_actionToken)
+				self.add_new_account(_actionToken.address, account=_actionToken, index=len(self.my_accounts))
 				self.add_new_amounts(self.my_main_account.address, account=_actionToken)
 				self.add_new_amounts(_actionToken.address, account=_actionToken)
 				self.update_amounts()
@@ -581,11 +596,7 @@ class Application(tk.Frame):
 					                    _actionToken.totalSupply))
 
 		except Exception as ex:
-			if len(ex.args) > 1:
-				_title, _err = ex.args
-			else:
-				_title, _err = 'Other error', ex.args
-			messagebox.showerror(title=str(_title), message=str(_err))
+			self.showError(ex)
 
 	def select_my_acount_by_name(self, name, update=True):
 

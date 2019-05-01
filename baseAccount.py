@@ -4,7 +4,7 @@ from chain import CChain
 import ast
 from wallet import CWallet
 from genesis import CGenesis
-import time
+from tkinter import messagebox
 
 class CBaseAccount():
 	def __init__(self, DB, accountName, address):
@@ -67,39 +67,37 @@ class CBaseAccount():
 		#save means announce to World
 		self.save(announce='Lock:'+account1.address+':'+account2address+':')
 
-		while dt.datetime.today() < time_to_close:
-			self.save(announce='Lock:' + account1.address + ':' + account2address + ':')
-			_par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
-			#if _par is None: _par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
-			if _par is not None:
-				print(_par)
-				_token = self.load_base_account(self.address)
-				_token.setParameters(_par, with_chain=False)
-				if _token is not None and account2address in _token.isLocked.keys() and _token.isLocked[account2address] == account1.address:
-					self.isLocked[account2address] = account1.address
-					self.save()
-					break
-				if time_to_close < dt.datetime.today():
-					raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
-			time.sleep(1)
+	def lock_loop(self, account1, account2address, time_to_close):
+		self.save(announce='Lock:' + account1.address + ':' + account2address + ':')
+		_par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
+		if _par is not None:
+			print(_par)
+			_token = self.load_base_account(self.address)
+			_token.setParameters(_par, with_chain=False)
+			if _token is not None and account2address in _token.isLocked.keys() and _token.isLocked[account2address] == account1.address:
+				self.isLocked[account2address] = account1.address
+				self.save()
+				messagebox.showinfo('Lock with Success', 'Locking for deal: ' + account1.address + ' + ' +
+								account2address + ' till ' + str(time_to_close))
+			if time_to_close < dt.datetime.today():
+				raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
 
 	def getAmount(self, token):
 		return self.amount[token.address]
 
 	def load_wallet(self):
-		if self.wallet is None:
-			return CWallet(self.accountName.replace('wonabru','main'))
-		else:
-			return self.wallet
+		return CWallet(self.accountName)
 
 	def save_atomic_transaction(self, atomic_transaction, announce=''):
 		_key = atomic_transaction.recipient.address
 		_value = atomic_transaction.getParameters()
+		_value += ('?Signature?' + self.wallet.sign(_value), )
 		self.kade.save(announce+_key, _value, announce=announce)
 
 	def save_transaction(self, transaction, announce=''):
 		_key = ':Transaction'
 		_value = transaction.getParameters()
+		_value += ('?Signature?'+self.wallet.sign(_value), )
 		self.kade.save(_key, _value, announce=announce)
 
 	def send(self, recipient, token, amount, waiting_time=3600):
@@ -110,27 +108,32 @@ class CBaseAccount():
 		atomic = CAtomicTransaction(self, recipient, amount, optData='Simple TXN', token=token)
 		recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')
 
-		_signature = None
-		while dt.datetime.today() < time_to_close:
-			recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')
-			_signature = self.kade.look_at('SignatureRecipient:'+atomic.getHash())
-			if _signature is not None:
-				break
-			if time_to_close < dt.datetime.today():
-				raise Exception('Sign Transaction fails', 'Could not obtain valid signature from recipient till '+str(time_to_close))
-			time.sleep(1)
+		return atomic, time_to_close
 
+	def after_send_loop(self, recipient, atomic, signature, time_to_close):
+		from transaction import CTransaction
 		self.wallet = self.load_wallet()
 		_my_signature = self.wallet.sign(atomic.getHash())
 		txn = CTransaction(time_to_close, 1)
-		if txn.add(atomic, _my_signature, _signature) < 2:
+		if txn.add(atomic, _my_signature, signature) < 2:
 			raise Exception('Error in sending', 'Sending fails. Other fatal error')
 
 		self.save_transaction(txn, announce='FinalTransaction:'+atomic.getHash())
 		self.save()
 		recipient.save()
+		messagebox.showinfo(title='Send with success', message=atomic.sender.accountName + ' sent ' +
+															   str(atomic.amount) + ' of ' + atomic.token.accountName + ' to account ' +
+															   atomic.recipient.accountName)
 
-		return True
+	def send_loop(self, recipient, atomic, time_to_close):
+		recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')
+		_signature = self.kade.look_at('SignatureRecipient:' + atomic.getHash())
+		if _signature is not None:
+			self.after_send_loop(recipient, atomic, _signature, time_to_close)
+		if time_to_close < dt.datetime.today():
+			raise Exception('Sign Transaction fails',
+							'Could not obtain valid signature from recipient till ' + str(time_to_close))
+
 
 	def process_transaction(self, txn, time_to_close):
 		from transaction import CTransaction
@@ -178,29 +181,40 @@ class CBaseAccount():
 		self.main_account = main_account
 		self.isLocked = ast.literal_eval(isLocked.replace('true', 'True').replace('false', 'False'))
 
-	def save(self, announce=''):
+	def save(self, announce='', count=1):
 		_acc_chain, _acc_created = self.chain.getParameters()
 		par = self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), self.main_account,\
 			  str(_acc_created), str(list(_acc_chain.keys()))
 		if self.accountName != '' and self.address != '' and self.accountName.find('__') < 0:
 			if announce == '':
 				announce = 'Account:'
-			print('SAVED = ' + str(self.kade.save(self.address, par, announce)))
+			_value = par + ('?Signature?' + self.wallet.sign(par), )
+			print('SAVED = ' + str(self.kade.save(self.address, _value, announce, count=count)))
 
 	def update(self, with_chain = True):
 		_par = self.kade.get(self.address)
 		if _par is not None:
-			decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = _par
+			decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = self.verify(_par, local_message=True)
 			self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
 								_acc_created, _acc_chain], with_chain)
 		else:
 			self.update_look_at(with_chain=with_chain)
 
 
+	def verify(self, message, local_message=False):
+
+		_signature = message[-1].split('?')[2]
+		_check = message[-1].split('?')[1]
+		_message = message[:-1]
+		if local_message == False and not (_check == 'Signature' and CWallet().verify(_message, _signature, self.address)):
+			raise Exception('Verification Fails', 'Message does not have valid signature' + str(message))
+
+		return _message
+
 	def update_look_at(self, with_chain = True):
 		_par = self.kade.look_at('Account:'+self.address)
 		if _par is not None:
-			decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = _par
+			decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = self.verify(_par)
 			self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
 								_acc_created, _acc_chain], with_chain)
 
