@@ -404,11 +404,9 @@ class Application(tk.Frame):
 					raise Exception('Sign Transaction fails',
 									'Could not obtain valid signature from recipient till ' + str(time_to_close))
 
-				if _ret == True:
-					messagebox.showinfo(title='Send with success', message=atomic.sender.accountName + ' sent ' +
-																		   str(
-																			   atomic.amount) + ' of ' + atomic.token.accountName + ' to account ' +
-																		   atomic.recipient.accountName)
+				messagebox.showinfo(title='Send with success', message=atomic.sender.accountName + ' sent ' +
+										str(atomic.amount) + ' of ' + atomic.token.accountName + ' to account ' +
+										atomic.recipient.accountName)
 
 			else:
 				messagebox.showerror(title='Send', message='You need first attach '+to_account.accountName+' to '+token.accountName)
