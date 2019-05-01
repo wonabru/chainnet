@@ -282,7 +282,7 @@ class Application(tk.Frame):
 											   CAccount(DB, '__temp2__', None, "2"),
 											   -1, "",
 											   CAccount(DB, '__temp3__', None, "3"))
-					_messsage = _announcement[acc].split('?')[0]
+					_messsage = _announcement[acc][-1][0]
 					self.atomicTransaction.setParameters(_messsage)
 					self.atomicTransaction.sender.verify(_announcement[acc])
 		except Exception as ex:
