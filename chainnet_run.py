@@ -361,7 +361,9 @@ class Application(tk.Frame):
 
 			if time_to_close < dt.datetime.today():
 					raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
-			messagebox.showinfo('Lock with Success', 'Locking for deal: ' + my_account.address + ' + ' +
+
+			if _finish.finish:
+				messagebox.showinfo('Lock with Success', 'Locking for deal: ' + my_account.address + ' + ' +
 									other_account + ' till ' + str(time_to_close))
 		except Exception as ex:
 			self.showError(ex)
@@ -411,7 +413,8 @@ class Application(tk.Frame):
 					raise Exception('Sign Transaction fails',
 									'Could not obtain valid signature from recipient till ' + str(time_to_close))
 
-				messagebox.showinfo(title='Send with success', message=atomic.sender.accountName + ' sent ' +
+				if _finish.finish:
+					messagebox.showinfo(title='Send with success', message=atomic.sender.accountName + ' sent ' +
 										str(atomic.amount) + ' of ' + atomic.token.accountName + ' to account ' +
 										atomic.recipient.accountName)
 

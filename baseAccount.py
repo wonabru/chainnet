@@ -71,7 +71,7 @@ class CBaseAccount():
 		self.save(announce='Lock:' + account1.address + ':' + account2address + ':')
 		_par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
 		if _par is not None:
-			_par = self.verify(_par, account1.address)
+			_par = self.verify(_par, account2address)
 			_token = self.load_base_account(self.address)
 			_token.setParameters(_par, with_chain=False)
 			if _token is not None and account2address in _token.isLocked.keys() and _token.isLocked[account2address] == account1.address:
