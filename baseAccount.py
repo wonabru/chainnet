@@ -67,19 +67,20 @@ class CBaseAccount():
 		#save means announce to World
 		self.save(announce='Lock:'+account1.address+':'+account2address+':')
 
-	def lock_loop(self, account1, account2address, time_to_close):
+	def lock_loop(self, account1, account2address, time_to_close, finish):
 		self.save(announce='Lock:' + account1.address + ':' + account2address + ':')
 		_par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
 		if _par is not None:
-			_par = self.verify(_par)
+			_par = account1.verify(_par)
 			_token = self.load_base_account(self.address)
 			_token.setParameters(_par, with_chain=False)
 			if _token is not None and account2address in _token.isLocked.keys() and _token.isLocked[account2address] == account1.address:
 				self.isLocked[account2address] = account1.address
 				self.save()
-				return True
+				finish.finish = True
+				return
 
-		return False
+		finish.finish = False
 
 	def getAmount(self, token):
 		return self.amount[token.address]
@@ -121,15 +122,16 @@ class CBaseAccount():
 		self.save_transaction(txn, announce='FinalTransaction:'+atomic.getHash())
 		self.save()
 		recipient.save()
-		return True
 
-	def send_loop(self, recipient, atomic, time_to_close):
+	def send_loop(self, recipient, atomic, time_to_close, finish):
 		recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')
 		_signature = self.kade.look_at('SignatureRecipient:' + atomic.getHash())
 		if _signature is not None:
-			return self.after_send_loop(recipient, atomic, _signature, time_to_close)
+			self.after_send_loop(recipient, atomic, _signature, time_to_close)
+			finish.finish = True
+			return
 
-		return False
+		finish.finish = False
 
 	def process_transaction(self, txn, time_to_close):
 		from transaction import CTransaction

@@ -12,6 +12,9 @@ from transaction import CAtomicTransaction
 import datetime as dt
 
 
+class CFinish:
+	finish = False
+
 class Application(tk.Frame):
 	def __init__(self, master, chainnet):
 		super().__init__(master)
@@ -231,12 +234,13 @@ class Application(tk.Frame):
 
 	def sign_receive(self, address):
 
-		def loop():
+		def loop(finish):
 			_txn = DB.look_at('FinalTransaction:'+self.atomicTransaction.getHash()+':Transaction')
 			if _txn is not None:
 				_account.process_transaction(_txn, dt.datetime.today())
-				return True
-			return False
+				finish.finish = True
+				return
+			finish.finish = False
 
 		try:
 			DB = self.my_main_account.kade
@@ -244,13 +248,15 @@ class Application(tk.Frame):
 			_wallet = _account.load_wallet()
 			_signature = _wallet.sign(self.atomicTransaction.getHash())
 			DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
-			_finish = False
+
+			_finish = CFinish()
+
 			for i in range(1000):
-				if _finish == False:
-					_finish = self.after(1000 * i, loop)
+				if _finish.finish == False:
+					self.after(1000 * i, loop, _finish)
 				else:
 					break
-			if _finish == False:
+			if _finish.finish == False:
 				raise Exception('No signature', 'Could not obtain signature')
 
 			self.update_amounts()
@@ -346,10 +352,10 @@ class Application(tk.Frame):
 			                                          other_account + ' till ' + str(time_to_close)),
 			                   other_account, time_to_close)
 
-			_finish = False
+			_finish = CFinish()
 			for i in range(int((time_to_close - dt.datetime.today()).total_seconds())):
-				if _finish == False:
-					_finish = self.after(1000 * i, token.lock_loop, my_account, other_account, time_to_close)
+				if _finish.finish == False:
+					self.after(1000 * i, token.lock_loop, my_account, other_account, time_to_close, _finish)
 				else:
 					break
 
@@ -393,11 +399,11 @@ class Application(tk.Frame):
 			token = self.chainnet.get_token_by_name(token)
 			if to_account.address in token.chain.uniqueAccounts:
 
-				_finish = False
+				_finish = CFinish()
 				atomic, time_to_close = from_account.send(to_account, token, amount, float(wating_time))
 				for i in range(int((time_to_close - dt.datetime.today()).total_seconds())):
-					if _finish == False:
-						_finish = self.after(1000 * i, from_account.send_loop, to_account, atomic, time_to_close)
+					if _finish.finish == False:
+						self.after(1000 * i, from_account.send_loop, to_account, atomic, time_to_close, _finish)
 					else:
 						break
 
