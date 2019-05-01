@@ -77,7 +77,7 @@ class CBaseAccount():
 			if _token is not None and account2address in _token.isLocked.keys() and _token.isLocked[account2address] == account1.address:
 				self.isLocked[account2address] = account1.address
 				self.save()
-				messagebox.showinfo('Lock with Success', 'Locking for deal: ' + account1.address + ' + ' +
+				raise Exception('Lock with Success', 'Locking for deal: ' + account1.address + ' + ' +
 								account2address + ' till ' + str(time_to_close))
 			if time_to_close < dt.datetime.today():
 				raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
