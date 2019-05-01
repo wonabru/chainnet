@@ -393,13 +393,23 @@ class Application(tk.Frame):
 			token = self.chainnet.get_token_by_name(token)
 			if to_account.address in token.chain.uniqueAccounts:
 
+				_ret = False
 				atomic, time_to_close = from_account.send(to_account, token, amount, float(wating_time))
 				for i in range(int((time_to_close - dt.datetime.today()).total_seconds())):
-					self.after(1000 * i, from_account.send_loop, to_account, atomic, time_to_close)
+					_ret = self.after(1000 * i, from_account.send_loop, to_account, atomic, time_to_close)
+					if _ret:
+						break
 
-					return
-				else:
-					messagebox.showerror(title='Send', message='Not enough funds on '+from_account.accountName)
+				if time_to_close < dt.datetime.today():
+					raise Exception('Sign Transaction fails',
+									'Could not obtain valid signature from recipient till ' + str(time_to_close))
+
+				if _ret:
+					messagebox.showinfo(title='Send with success', message=atomic.sender.accountName + ' sent ' +
+																		   str(
+																			   atomic.amount) + ' of ' + atomic.token.accountName + ' to account ' +
+																		   atomic.recipient.accountName)
+
 			else:
 				messagebox.showerror(title='Send', message='You need first attach '+to_account.accountName+' to '+token.accountName)
 		except Exception as ex:

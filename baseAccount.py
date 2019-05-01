@@ -124,19 +124,15 @@ class CBaseAccount():
 		self.save_transaction(txn, announce='FinalTransaction:'+atomic.getHash())
 		self.save()
 		recipient.save()
-		messagebox.showinfo(title='Send with success', message=atomic.sender.accountName + ' sent ' +
-															   str(atomic.amount) + ' of ' + atomic.token.accountName + ' to account ' +
-															   atomic.recipient.accountName)
+		return True
 
 	def send_loop(self, recipient, atomic, time_to_close):
 		recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')
 		_signature = self.kade.look_at('SignatureRecipient:' + atomic.getHash())
 		if _signature is not None:
-			self.after_send_loop(recipient, atomic, _signature, time_to_close)
-		if time_to_close < dt.datetime.today():
-			raise Exception('Sign Transaction fails',
-							'Could not obtain valid signature from recipient till ' + str(time_to_close))
+			return self.after_send_loop(recipient, atomic, _signature, time_to_close)
 
+		return False
 
 	def process_transaction(self, txn, time_to_close):
 		from transaction import CTransaction
