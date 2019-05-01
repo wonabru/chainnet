@@ -61,7 +61,7 @@ class CAtomicTransaction():
         _token = self.token.getParameters(with_chain=False)
         _sender = self.sender.getParameters(with_chain=False)
         _recipient = self.recipient.getParameters(with_chain=False)
-        return _token, _sender, _recipient, self.amount, self.optData, self.time
+        return [_token, _sender, _recipient, self.amount, self.optData, self.time]
 
     def setParameters(self, par):
         _token, _sender, _recipient, self.amount, self.optData, self.time = par
@@ -97,7 +97,7 @@ class CTransaction():
         _senders = [sender.getParameters(with_chain=False) for sender in self.senders]
         _recipients = [recipient.getParameters(with_chain=False) for recipient in self.recipients]
         _signatures = str(self.signatures)
-        return _atomics, _signatures, _senders, _recipients, self.timeToClose, self.noAtomicTransactions
+        return [_atomics, _signatures, _senders, _recipients, self.timeToClose, self.noAtomicTransactions]
 
     def get_for_hash(self):
         _atomics = [atomic.get_for_hash() for atomic in self.atomicTransactions]

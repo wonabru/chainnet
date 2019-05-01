@@ -91,13 +91,13 @@ class CBaseAccount():
 	def save_atomic_transaction(self, atomic_transaction, announce=''):
 		_key = atomic_transaction.recipient.address
 		_value = atomic_transaction.getParameters()
-		_value += ('?Signature?' + self.wallet.sign(_value), )
+		_value.append(['Signature', self.wallet.sign(_value)])
 		self.kade.save(announce+_key, _value, announce=announce)
 
 	def save_transaction(self, transaction, announce=''):
 		_key = ':Transaction'
 		_value = transaction.getParameters()
-		_value += ('?Signature?'+self.wallet.sign(_value), )
+		_value.append(['Signature', self.wallet.sign(_value)])
 		self.kade.save(_key, _value, announce=announce)
 
 	def send(self, recipient, token, amount, waiting_time=3600):
@@ -183,13 +183,13 @@ class CBaseAccount():
 
 	def save(self, announce='', count=1):
 		_acc_chain, _acc_created = self.chain.getParameters()
-		par = self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), self.main_account,\
-			  str(_acc_created), str(list(_acc_chain.keys()))
+		par = [self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), self.main_account,\
+			  str(_acc_created), str(list(_acc_chain.keys()))]
 		if self.accountName != '' and self.address != '' and self.accountName.find('__') < 0:
 			if announce == '':
 				announce = 'Account:'
-			_value = par + ('?Signature?' + self.wallet.sign(par), )
-			print('SAVED = ' + str(self.kade.save(self.address, _value, announce, count=count)))
+			par.append(['Signature', self.wallet.sign(par)])
+			print('SAVED = ' + str(self.kade.save(self.address, par, announce, count=count)))
 
 	def update(self, with_chain = True):
 		_par = self.kade.get(self.address)
@@ -203,8 +203,8 @@ class CBaseAccount():
 
 	def verify(self, message, local_message=False):
 
-		_signature = message[-1].split('?')[2]
-		_check = message[-1].split('?')[1]
+		_signature = message[-1][1]
+		_check = message[-1][0]
 		_message = message[:-1]
 		if local_message == False and not (_check == 'Signature' and CWallet().verify(_message, _signature, self.address)):
 			raise Exception('Verification Fails', 'Message does not have valid signature' + str(message))
