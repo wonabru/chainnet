@@ -65,7 +65,7 @@ class CBaseAccount():
 							account2address+' till '+str(time_to_close))
 
 		#save means announce to World
-		self.save(announce='Lock:'+account1.address+':'+account2address+':')
+		account1.save(announce='Lock:'+account1.address+':'+account2address+':')
 
 	def lock_loop(self, account1, account2address, time_to_close, finish):
 		self.save(announce='Lock:' + account1.address + ':' + account2address + ':')
