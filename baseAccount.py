@@ -88,7 +88,7 @@ class CBaseAccount():
 		return CWallet(self.accountName)
 
 	def save_atomic_transaction(self, atomic_transaction, announce=''):
-		self.wallet = self.load_wallet()
+		self.wallet = atomic_transaction.sender.load_wallet()
 		_key = atomic_transaction.recipient.address
 		_value = atomic_transaction.getParameters()
 		_value.append(['Signature', self.wallet.sign(str(_value))])
