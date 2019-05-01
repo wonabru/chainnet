@@ -353,7 +353,7 @@ class Application(tk.Frame):
 			                   other_account, time_to_close)
 
 			_finish = CFinish()
-			for i in range(int((time_to_close - dt.datetime.today()).total_seconds())):
+			for i in range(30):
 				if _finish.finish == False:
 					self.after(1000 * i, token.lock_loop, my_account, other_account, time_to_close, _finish)
 				else:
@@ -403,7 +403,7 @@ class Application(tk.Frame):
 
 				_finish = CFinish()
 				atomic, time_to_close = from_account.send(to_account, token, amount, float(wating_time))
-				for i in range(int((time_to_close - dt.datetime.today()).total_seconds())):
+				for i in range(30):
 					if _finish.finish == False:
 						self.after(1000 * i, from_account.send_loop, to_account, atomic, time_to_close, _finish)
 					else:
