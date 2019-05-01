@@ -193,15 +193,21 @@ class CBaseAccount():
 			if announce == '':
 				announce = 'Account:'
 			self.wallet = self.load_wallet()
-			par.append(['Signature', self.wallet.sign(par)])
+			if self.wallet.pubKey == self.address:
+				par.append(['Signature', self.wallet.sign(par)])
+				self.verify(par)
+			else:
+				par.append(['No Signature', ''])
 			print('SAVED = ' + str(self.kade.save(self.address, par, announce, count=count)))
 
 	def update(self, with_chain = True):
 		_par = self.kade.get(self.address)
 		if _par is not None:
-			decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = self.verify(_par, local_message=True)
-			self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
-								_acc_created, _acc_chain], with_chain)
+			_par = self.verify(_par, local_message=True)
+			if _par is not None:
+				decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = _par
+				self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
+									_acc_created, _acc_chain], with_chain)
 		else:
 			self.update_look_at(with_chain=with_chain)
 
@@ -211,19 +217,24 @@ class CBaseAccount():
 		_signature = message[-1][1]
 		_check = message[-1][0]
 		_message = message[:-1]
-		if self.address != CGenesis().initAccountPubKey and\
-				local_message == False \
-				and not (_check == 'Signature' and CWallet().verify(_message, _signature, self.address)):
-			raise Exception('Verification Fails', 'Message does not have valid signature' + str(message))
+		if _check == 'Signature':
+			if self.address != CGenesis().initAccountPubKey and\
+					local_message == False \
+					and not CWallet().verify(_message, _signature, self.address):
+				raise Exception('Verification Fails', 'Message does not have valid signature' + str(message))
 
-		return _message
+			return _message
+		else:
+			return None
 
 	def update_look_at(self, with_chain = True):
 		_par = self.kade.look_at('Account:'+self.address)
 		if _par is not None:
-			decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = self.verify(_par)
-			self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
-								_acc_created, _acc_chain], with_chain)
+			_par = self.verify(_par)
+			if _par is not None:
+				decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = _par
+				self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
+									_acc_created, _acc_chain], with_chain)
 
 
 	def show(self):
