@@ -45,10 +45,10 @@ class Application(tk.Frame):
 				if acc not in [self.chainnet.init_account.address, ]:
 					_account = CAccount(self.my_main_account.kade, '__tempRun__', None, acc)
 					try:
+						_account.load_wallet()
 						_account.update(with_chain=True)
-						_wallet = CWallet(_account.accountName)
 
-						self.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
+						self.my_accounts[_account.address] = {'account': _account, 'wallet': _account.wallet}
 						self.my_accounts_names[_account.address] = _account.accountName
 					except Exception as ex:
 						messagebox.showerror(title='Error loading file', message=str(ex))
