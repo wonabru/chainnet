@@ -153,7 +153,7 @@ class Application(tk.Frame):
 			for acc in self.my_accounts.values():
 				acc['account'].save()
 
-		for i in range(50):
+		for i in range(10):
 			self.after(1000 * i, spread)
 
 	def add_new_account(self, address, account, index):
