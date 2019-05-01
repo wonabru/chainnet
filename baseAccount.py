@@ -89,15 +89,19 @@ class CBaseAccount():
 		return CWallet(self.accountName)
 
 	def save_atomic_transaction(self, atomic_transaction, announce=''):
+		self.wallet = self.load_wallet()
 		_key = atomic_transaction.recipient.address
 		_value = atomic_transaction.getParameters()
 		_value.append(['Signature', self.wallet.sign(_value)])
+		self.verify(_value)
 		self.kade.save(announce+_key, _value, announce=announce)
 
 	def save_transaction(self, transaction, announce=''):
+		self.wallet = self.load_wallet()
 		_key = ':Transaction'
 		_value = transaction.getParameters()
 		_value.append(['Signature', self.wallet.sign(_value)])
+		self.verify(_value)
 		self.kade.save(_key, _value, announce=announce)
 
 	def send(self, recipient, token, amount, waiting_time=3600):
@@ -188,7 +192,9 @@ class CBaseAccount():
 		if self.accountName != '' and self.address != '' and self.accountName.find('__') < 0:
 			if announce == '':
 				announce = 'Account:'
+			self.wallet = self.load_wallet()
 			par.append(['Signature', self.wallet.sign(par)])
+			self.verify(par)
 			print('SAVED = ' + str(self.kade.save(self.address, par, announce, count=count)))
 
 	def update(self, with_chain = True):

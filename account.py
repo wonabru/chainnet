@@ -10,7 +10,6 @@ class CAccount(CBaseAccount):
     def __init__(self, DB, accountName, creator, address):
         self.kade = DB
         super().__init__(DB, accountName, address)
-        self.wallet = self.load_wallet()
         self.init_block = None
         self.initTransaction = None
         self.creator = creator
