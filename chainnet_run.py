@@ -153,7 +153,7 @@ class Application(tk.Frame):
 			for acc in self.my_accounts.values():
 				acc['account'].save()
 
-		for i in range(50):
+		for i in range(10):
 			self.after(1000 * i, spread)
 
 	def add_new_account(self, address, account, index):
@@ -354,9 +354,7 @@ class Application(tk.Frame):
 
 			if time_to_close < dt.datetime.today():
 					raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
-
-			if _finish == True:
-				messagebox.showinfo('Lock with Success', 'Locking for deal: ' + my_account.address + ' + ' +
+			messagebox.showinfo('Lock with Success', 'Locking for deal: ' + my_account.address + ' + ' +
 									other_account + ' till ' + str(time_to_close))
 		except Exception as ex:
 			self.showError(ex)
