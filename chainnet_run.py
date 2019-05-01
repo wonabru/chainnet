@@ -132,13 +132,13 @@ class Application(tk.Frame):
 	def create_account_tab(self):
 
 		tk.Button(self.account_tab, text="Update external accounts", bg='yellow',
-				  command=self.update_amounts).grid(column=2, row=100, rowspan=1, sticky=tk.W)
+				  command=self.update_amounts).grid(column=2, row=100, columnspan=2, sticky=tk.W)
 
 		tk.Button(self.account_tab, text="Save and spread info on your accounts", bg='yellow',
-				  command=self.save_all_my_accounts).grid(column=1, row=100, rowspan=1, sticky=tk.W)
+				  command=self.save_all_my_accounts).grid(column=0, row=100, columnspan=2, sticky=tk.W)
 
-		tk.Button(self.account_tab, text="Refresh graphic interface", bg='yellow',
-				  command=self.recreate_account_tab).grid(column=3, row=100, rowspan=1, sticky=tk.W)
+		tk.Button(self.account_tab, text="Refresh graphic's interface", bg='yellow',
+				  command=self.recreate_account_tab).grid(column=4, row=100, columnspan=2, sticky=tk.W)
 
 		self.amounts = {}
 		self.accounts_balances = {}
