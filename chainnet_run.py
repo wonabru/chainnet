@@ -345,10 +345,18 @@ class Application(tk.Frame):
 			                                          other_account + ' till ' + str(time_to_close)),
 			                   other_account, time_to_close)
 
-
+			_finish = False
 			for i in range(int((time_to_close - dt.datetime.today()).total_seconds())):
-				self.after(1000 * i, token.lock_loop, my_account, other_account, time_to_close)
+				_finish = self.after(1000 * i, token.lock_loop, my_account, other_account, time_to_close)
+				if _finish:
+					break
 
+			if _finish:
+				if time_to_close < dt.datetime.today():
+					raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
+				else:
+					messagebox.showinfo('Lock with Success', 'Locking for deal: ' + my_account.address + ' + ' +
+									other_account + ' till ' + str(time_to_close))
 		except Exception as ex:
 			self.showError(ex)
 
