@@ -348,14 +348,14 @@ class Application(tk.Frame):
 			_finish = False
 			for i in range(int((time_to_close - dt.datetime.today()).total_seconds())):
 				_finish = self.after(1000 * i, token.lock_loop, my_account, other_account, time_to_close)
-				if _finish:
+				if _finish == True:
 					break
 
-			if _finish:
-				if time_to_close < dt.datetime.today():
+			if time_to_close < dt.datetime.today():
 					raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
-				else:
-					messagebox.showinfo('Lock with Success', 'Locking for deal: ' + my_account.address + ' + ' +
+
+			if _finish == True:
+				messagebox.showinfo('Lock with Success', 'Locking for deal: ' + my_account.address + ' + ' +
 									other_account + ' till ' + str(time_to_close))
 		except Exception as ex:
 			self.showError(ex)
@@ -397,14 +397,14 @@ class Application(tk.Frame):
 				atomic, time_to_close = from_account.send(to_account, token, amount, float(wating_time))
 				for i in range(int((time_to_close - dt.datetime.today()).total_seconds())):
 					_ret = self.after(1000 * i, from_account.send_loop, to_account, atomic, time_to_close)
-					if _ret:
+					if _ret == True:
 						break
 
 				if time_to_close < dt.datetime.today():
 					raise Exception('Sign Transaction fails',
 									'Could not obtain valid signature from recipient till ' + str(time_to_close))
 
-				if _ret:
+				if _ret == True:
 					messagebox.showinfo(title='Send with success', message=atomic.sender.accountName + ' sent ' +
 																		   str(
 																			   atomic.amount) + ' of ' + atomic.token.accountName + ' to account ' +
