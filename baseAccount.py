@@ -217,15 +217,13 @@ class CBaseAccount():
 		_signature = message[-1][1]
 		_check = message[-1][0]
 		_message = message[:-1]
-		if _check == 'Signature':
-			if self.address != CGenesis().initAccountPubKey and\
-					local_message == False \
-					and not CWallet().verify(str(_message), _signature, self.address):
+		if local_message == False and self.address != CGenesis().initAccountPubKey:
+			if not CWallet().verify(str(_message), _signature, self.address):
 				raise Exception('Verification Fails', 'Message does not have valid signature' + str(message))
 
 			return _message
 		else:
-			raise Exception('No signature', 'Message without signature ' + str(message))
+			return _message
 
 	def update_look_at(self, with_chain = True):
 		_par = self.kade.look_at('Account:'+self.address)
