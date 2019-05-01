@@ -184,12 +184,12 @@ class CTransaction():
                         if atomic.sender.address != CGenesis().initAccountPubKey:
                             del atomic.token.isLocked[atomic.sender.address]
                     except:
-                        raise Exception('Add Transaction', "Key sender address not found in isLocked")
+                        print('Add Transaction', "Key sender address not found in isLocked")
                     try:
                         if atomic.sender.address != CGenesis().initAccountPubKey:
                             del atomic.token.isLocked[atomic.recipient.address]
                     except:
-                        raise Exception('Add Transaction', "Key recipient address not found in isLocked")
+                        print('Add Transaction', "Key recipient address not found in isLocked")
                     
                     if atomic.sender.address != CGenesis().initAccountPubKey:
                         return 2
