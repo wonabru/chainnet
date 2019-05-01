@@ -91,7 +91,7 @@ class CBaseAccount():
 		self.wallet = self.load_wallet()
 		_key = atomic_transaction.recipient.address
 		_value = atomic_transaction.getParameters()
-		_value.append(['Signature', self.wallet.sign(_value)])
+		_value.append(['Signature', self.wallet.sign(str(_value))])
 		#self.verify(_value)
 		self.kade.save(announce+_key, _value, announce=announce)
 
@@ -99,7 +99,7 @@ class CBaseAccount():
 		self.wallet = self.load_wallet()
 		_key = ':Transaction'
 		_value = transaction.getParameters()
-		_value.append(['Signature', self.wallet.sign(_value)])
+		_value.append(['Signature', self.wallet.sign(str(_value))])
 		#self.verify(_value)
 		self.kade.save(_key, _value, announce=announce)
 
