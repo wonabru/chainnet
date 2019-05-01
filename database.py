@@ -26,7 +26,7 @@ class CSQLLite():
             self.kade = instance_kade.kade
 
 
-    def save(self, key, value, announce='', count=1):
+    def save(self, key, value, announce=''):
         if isinstance(key, str) == False:
             key = str(key)
         if announce == 'DO NOT SAVE LOCAL':
@@ -46,15 +46,15 @@ class CSQLLite():
                 self.sqllite.set(key=key, value=value)
 
                 if announce != '':
-                    self.announce(announce+key, value, count)
+                    self.announce(announce+key, value)
         return self.sqllite.get(key)
 
     def get(self, key):
         if isinstance(key, str) == False: key = str(key)
         return self.sqllite.get(key=key)
 
-    def announce(self, key, value, count):
-        print('KADEMLIA SET: ',key,' = ',self.kade.set(key=key, value=str(value), count=count))
+    def announce(self, key, value):
+        print('KADEMLIA SET: ',key,' = ',self.kade.set(key=key, value=str(value)))
 
     def look_at(self, key):
         import ast
