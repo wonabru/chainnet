@@ -225,7 +225,7 @@ class CBaseAccount():
 
 			return _message
 		else:
-			return None
+			raise Exception('No signature', 'Message without signature ' + str(message))
 
 	def update_look_at(self, with_chain = True):
 		_par = self.kade.look_at('Account:'+self.address)
