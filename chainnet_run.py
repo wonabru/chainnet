@@ -234,7 +234,6 @@ class Application(tk.Frame):
 		def loop():
 			_txn = DB.look_at('FinalTransaction:'+self.atomicTransaction.getHash()+':Transaction')
 			if _txn is not None:
-				self.atomicTransaction.sender.verify(_txn)
 				_account.process_transaction(_txn, dt.datetime.today())
 				return True
 			return False

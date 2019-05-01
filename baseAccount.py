@@ -96,11 +96,8 @@ class CBaseAccount():
 		self.kade.save(announce+_key, _value, announce=announce)
 
 	def save_transaction(self, transaction, announce=''):
-		self.wallet = transaction.atomicTransactions[0].sender.load_wallet()
 		_key = ':Transaction'
 		_value = transaction.getParameters()
-		_value.append(['Signature', self.wallet.sign(str(_value))])
-		#self.verify(_value)
 		self.kade.save(_key, _value, announce=announce)
 
 	def send(self, recipient, token, amount, waiting_time=3600):

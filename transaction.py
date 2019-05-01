@@ -110,8 +110,8 @@ class CTransaction():
         from account import CAccount
         import ast
 
-        _atomics, _signatures, _senders, _recipients, self.timeToClose, self.noAtomicTransactions = \
-            self.atomicTransactions[0].sender.verify(par)
+
+        _atomics, _signatures, _senders, _recipients, self.timeToClose, self.noAtomicTransactions = par
 
         response = {}
         try:
