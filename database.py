@@ -6,7 +6,7 @@ import socket
 instance_kade = None
 
 class CSQLLite():
-    def __init__(self, ownAddress):
+    def __init__(self):
 
         global instance_kade
         if instance_kade is None:
@@ -25,7 +25,7 @@ class CSQLLite():
     def save(self, key, value, announce=''):
         if isinstance(key, str) == False:
             key = str(key)
-        if announce == 'DO NOT SAVE LOCAL':
+        if announce == 'EXTERNAL':
             _current = self.sqllite.get(announce)
             if _current is None:
                 self.sqllite.set(key=announce, value=[key, ])
@@ -34,7 +34,7 @@ class CSQLLite():
                 self.sqllite.set(key=announce, value=_current)
 
         else:
-            _not_save_local = self.sqllite.get('DO NOT SAVE LOCAL')
+            _not_save_local = self.sqllite.get('EXTERNAL')
 
             if _not_save_local is None: _not_save_local = []
 

@@ -14,7 +14,7 @@ class CInitChainnet:
 		self.tokens = {}
 
 		self.wallet = CWallet('main')
-		self.DB = CSQLLite(self.wallet.pubKey)
+		self.DB = CSQLLite()
 
 		self.Qcoin = CInitBlock(self.DB)
 		_creator = CBaseAccount(self.DB, accountName='creator', address='')
@@ -70,6 +70,23 @@ class CInitChainnet:
 
 		self.my_accounts[self.my_account.address] = {'account': self.my_account, 'wallet': self.wallet}
 		self.DB.save('my_main_accounts', str(list(set(self.my_accounts.keys()))))
+
+	def get_external_addresses(self):
+		_external_accounts = self.DB.get('EXTERNAL')
+		if _external_accounts is not None:
+			#_external_accounts = ast.literal_eval(_external_accounts.replace('true', 'True').replace('false', 'False'))
+			return _external_accounts
+		else:
+			return []
+
+	def get_my_accounts(self):
+		_my_accounts = self.DB.get('my_main_accounts')
+		if _my_accounts is None:
+			_my_accounts = list(self.my_accounts.keys())
+		else:
+			_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
+
+		return _my_accounts + self.get_external_addresses()
 
 	def load_tokens(self):
 		self.init_account = self.Qcoin.initAccount

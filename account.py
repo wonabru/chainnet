@@ -53,7 +53,7 @@ class CAccount(CBaseAccount):
         #self.chain.uniqueAccounts[account.address] = account
         #account.chain.uniqueAccounts[self.address] = self
         if save:
-            account.save(announce='DO NOT SAVE LOCAL')
+            account.save(announce='EXTERNAL')
             self.save()
             creator.save()
         return account
@@ -72,7 +72,7 @@ class CAccount(CBaseAccount):
         #self.chain.uniqueAccounts[account.address] = account
         #account.chain.uniqueAccounts[self.address] = self
         if save:
-            account.save(announce='DO NOT SAVE LOCAL')
+            account.save(announce='EXTERNAL')
             self.save()
             creator.save()
         return account
@@ -91,7 +91,7 @@ class CAccount(CBaseAccount):
         #self.chain.uniqueAccounts[account.address] = account
         #account.chain.uniqueAccounts[self.address] = self
         if save:
-            account.save(announce='DO NOT SAVE LOCAL')
+            account.save(announce='EXTERNAL')
             self.save()
             creator.save()
         return account

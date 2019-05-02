@@ -39,11 +39,8 @@ class Application(tk.Frame):
 	def update_my_accounts(self):
 		try:
 			self.init_account = self.chainnet.Qcoin.initAccount
-			_my_accounts = self.my_main_account.kade.get('my_main_accounts')
-			if _my_accounts is None:
-				_my_accounts = [self.my_main_account.address]
-			else:
-				_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
+
+			_my_accounts = self.chainnet.get_my_accounts()
 			for acc in _my_accounts:
 
 				_account = CAccount(self.my_main_account.kade, '__tempRun__', None, acc)
@@ -178,7 +175,12 @@ class Application(tk.Frame):
 				 bg="#ddd555000", fg="#fffffffff").grid(column=self.column_nr[address] * 2, row=0, columnspan=2)
 		self.accounts_names_lbl[account.address].set(account.accountName + "'s balances: ")
 		self.add_new_amounts(address, account)
-		self.my_main_account.kade.save('my_main_accounts', str(list(set(self.chainnet.my_accounts.keys()))))
+
+		_my_accounts = self.chainnet.get_my_accounts()
+		_my_accounts += list(self.chainnet.my_accounts.keys())
+
+		self.chainnet.DB.save('my_main_accounts', str(list(set(_my_accounts))))
+
 		self.update_amounts()
 
 
