@@ -1,8 +1,5 @@
-import numpy as np
-from chain import CChain
 from baseAccount import CBaseAccount
 from initBlock import CInitBlock
-from baseLimitedToken import CBaseLimitedToken
 from genesis import CGenesis
 import time
 
@@ -25,7 +22,7 @@ class CAccount(CBaseAccount):
             print('Warning: creator is not valid account')
 
     def copyFromBaseAccount(self, baseAccount):
-        account = self.create(baseAccount.accountName, baseAccount, baseAccount.address, save=False)
+        account = CAccount(self.kade, baseAccount.accountName, baseAccount, baseAccount.address)
         account.decimalPlace = baseAccount.decimalPlace
         account.amount = baseAccount.amount
         account.chain = baseAccount.chain

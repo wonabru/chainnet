@@ -105,6 +105,16 @@ class CBaseAccount():
 
 		return atomic, time_to_close
 
+	def send_loop(self, recipient, atomic, time_to_close, finish):
+		recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')
+		_signature = self.kade.look_at('SignatureRecipient:' + atomic.getHash())
+		if _signature is not None:
+			self.after_send_loop(recipient, atomic, _signature, time_to_close)
+			finish.finish = True
+			return
+
+		finish.finish = False
+
 	def after_send_loop(self, recipient, atomic, signature, time_to_close):
 		from transaction import CTransaction
 		self.wallet = self.load_wallet()
@@ -122,16 +132,6 @@ class CBaseAccount():
 			recipient.save()
 		else:
 			print('Transaction is just on place')
-
-	def send_loop(self, recipient, atomic, time_to_close, finish):
-		recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')
-		_signature = self.kade.look_at('SignatureRecipient:' + atomic.getHash())
-		if _signature is not None:
-			self.after_send_loop(recipient, atomic, _signature, time_to_close)
-			finish.finish = True
-			return
-
-		finish.finish = False
 
 	def process_transaction(self, txn, time_to_close):
 		_txn = CTransaction(time_to_close, 1)

@@ -15,6 +15,9 @@ class CLimitedToken(CAccount):
     def copyFromBaseLimitToken(self, baseLimitToken):
         token = CLimitedToken(self.kade, baseLimitToken.accountName, baseLimitToken.totalSupply,
                               baseLimitToken, address=baseLimitToken.address)
+
+        token.chain = baseLimitToken.chain
+
         return token
 
     def save(self, announce=''):

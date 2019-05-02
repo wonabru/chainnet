@@ -36,6 +36,8 @@ class CInitBlock(CGenesis):
             _signature_init = self.signature_init  #self.init_wallet.sign(_hash) # #
 
             self.initTransaction.add(self.initAtomicTransaction, _signature_init, _signature_wonabru)
+            self.initAccount.chain.addTransaction(self.initTransaction)
+            self.initAccount.save_transactions(self.initAccount.chain.transactions)
             initBlock = self
         else:
             self.baseTotalSupply = initBlock.baseTotalSupply
