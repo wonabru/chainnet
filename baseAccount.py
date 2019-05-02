@@ -253,7 +253,7 @@ class CBaseAccount():
 			_par = self.verify(_par, self.address)
 			if _par is not None:
 				decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain, _txn = _par
-				self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
+				self.setParameters([decimalPlace, amount, address, 'External: '+accountName, isLocked, main_account,
 									_acc_created, _acc_chain, _txn], with_chain)
 
 
