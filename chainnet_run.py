@@ -251,13 +251,11 @@ class Application(tk.Frame):
 
 			_finish = CFinish()
 
-			for i in range(1000):
+			for i in range(30):
 				if _finish.finish == False:
 					self.after(1000 * i, loop, _finish)
 				else:
 					break
-			if _finish.finish == False:
-				raise Exception('No signature', 'Could not obtain signature')
 
 			self.update_amounts()
 			messagebox.showinfo(title='Receive with success', message=self.atomicTransaction.sender.accountName + ' sent ' +

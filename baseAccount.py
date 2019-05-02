@@ -4,7 +4,7 @@ from chain import CChain
 import ast
 from wallet import CWallet
 from genesis import CGenesis
-from tkinter import messagebox
+from transaction import CTransaction, CAtomicTransaction
 
 class CBaseAccount():
 	def __init__(self, DB, accountName, address):
@@ -119,6 +119,7 @@ class CBaseAccount():
 		if txn.add(atomic, _my_signature, signature) < 2:
 			raise Exception('Error in sending', 'Sending fails. Other fatal error')
 
+		self.chain.addTransaction(txn)
 		self.save_transaction(txn, announce='FinalTransaction:'+atomic.getHash())
 		self.save()
 		recipient.save()
@@ -134,43 +135,52 @@ class CBaseAccount():
 		finish.finish = False
 
 	def process_transaction(self, txn, time_to_close):
-		from transaction import CTransaction
 		_txn = CTransaction(time_to_close, 1)
 		_txn.setParameters(self.kade, txn)
 		for i in range(_txn.noAtomicTransactions):
 			_atomic = _txn.atomicTransactions[i]
+			_atomic = CAtomicTransaction(_atomic.sender, _atomic.recipient,
+										 _atomic.amount, _atomic.optData, _atomic.token, _atomic.time)
 			_sender = _txn.senders[i]
 			_recipient = _txn.recipients[i]
 			_signSender = _txn.signatures[_sender.address]
 			_signRecipient = _txn.signatures[_recipient.address]
 			_txn.remove(_atomic,_signSender, _signRecipient)
 			_txn.add(_atomic,_signSender, _signRecipient)
+			_atomic.token.chain.addTransaction(_txn)
 			_atomic.token.save()
 			_atomic.sender.save()
 			_atomic.recipient.save()
 
-
-
-
 	def getParameters(self, with_chain=True):
-		_uniqueAccounts, _accountsCreated = self.chain.getParameters()
+		_uniqueAccounts, _accountsCreated, _transactions = self.chain.getParameters()
 		if with_chain:
 			return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), self.main_account, \
-				   str({a: v for a, v in _accountsCreated.items()}), str(list(_uniqueAccounts.keys()))
+				   str({a: v for a, v in _accountsCreated.items()}), str(list(_uniqueAccounts.keys())), \
+				   str({a: v for a, v in _transactions.items()}),
 		else:
 			return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), \
 					   self.main_account, "{}", "{}"
 
 	def setParameters(self, par, with_chain=True):
-		decimalPlace, amount, address, accountName, isLocked, main_account, acc_created, acc_chain = par
+		decimalPlace, amount, address, accountName, isLocked, main_account, acc_created, acc_chain, transactions = par
 		if with_chain:
-			_temp_chain = {}
+
 			acc_chain = ast.literal_eval(acc_chain.replace('true', 'True').replace('false', 'False'))
 			acc_created = ast.literal_eval(acc_created.replace('true', 'True').replace('false', 'False'))
+			transactions = ast.literal_eval(transactions.replace('true', 'True').replace('false', 'False'))
+
+			_temp_chain = {}
 			for acc in acc_chain:
 				_temp_chain[acc] = CBaseAccount(self.kade, '__tempBaseAccount__', acc)
 				_temp_chain[acc].update(with_chain=False)
-			self.chain.setParameters([acc_created, _temp_chain])
+
+			_temp_transactions = {}
+			for txn in transactions:
+				_tx = CTransaction(dt.datetime.today(), 1)
+				_tx.setParameters(self.kade, txn)
+				_temp_transactions[_tx.getHash()] = _tx
+			self.chain.setParameters([acc_created, _temp_chain, _temp_transactions])
 
 		self.decimalPlace = decimalPlace
 		self.amount = amount
