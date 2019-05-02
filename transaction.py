@@ -181,7 +181,7 @@ class CTransaction():
 
     def add(self, atomicTransaction, signSender, signRecipient):
         
-        self.check_add(atomicTransaction, signSender, signRecipient)
+        self.check_add_return_hash(atomicTransaction, signSender, signRecipient)
 
         self.atomicTransactions.append(atomicTransaction)
         self.senders.append(atomicTransaction.sender)
