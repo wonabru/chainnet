@@ -56,7 +56,7 @@ class CActionToken(CAccount):
             account_1.chain.uniqueAccounts[account_2.address] = account_2
             account_2.chain.uniqueAccounts[account_1.address] = account_1
             #awarded should be oldest connection binding two accounts
-            attacher.addAmount(self, self.minAmount, save=False)
+            attacher.addAmount(self, self.minAmount)
             self.totalSupply += self.minAmount
             return [attacher]
         
@@ -96,12 +96,12 @@ class CActionToken(CAccount):
         
         noCreated = self.chain.accountsCreated[attacher.address] - 1
         
-        if attacher.addAmount(self, -(self.minAmount * noCreated), save=False) == False:
+        if attacher.addAmount(self, -(self.minAmount * noCreated)) == False:
             self.chain.accountsCreated[attacher.address] -= 1
             raise Exception("Attach", "Not enough funds on " + attacher.accountName + ". It is needed "+str(self.minAmount * noCreated)+" [ "+self.accountName+" ] ")
         
         self.totalSupply -= (self.minAmount * noCreated)
-        account.setAmount(self, 0, save=False)
+        account.setAmount(self, 0)
         self.chain.uniqueAccounts[account.address] = account
         account.chain.uniqueAccounts[self.address] = self
         
@@ -109,7 +109,7 @@ class CActionToken(CAccount):
         index_account = sorted_pubKey.index((account.address, account)) - 1
         
         dad = sorted_pubKey[index_account][1]
-        dad.addAmount(self, self.minAmount, save=False)
+        dad.addAmount(self, self.minAmount)
         self.totalSupply += self.minAmount
 
         listToSpread.append(attacher)
