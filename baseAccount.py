@@ -18,21 +18,15 @@ class CBaseAccount():
 		self.wallet = None
 		self.main_account = 0
 
-	def setAmount(self, token, amount, save=True):
+	def setAmount(self, token, amount):
 		if amount < 0:
 			raise Exception('set amount error', 'Amount of tokens cannot be less than zero')
 		print('Account: ',self.accountName,' is setting amount ', amount, ' [ ', token.accountName, ' ] ')
 		self.amount[token.address] = np.round(amount, self.decimalPlace)
 
-		'''
-		if save:
-			self.save()
-			token.save()
-		'''
-
 		return True
 
-	def addAmount(self, token, amount, save=True):
+	def addAmount(self, token, amount):
 
 		if token.address not in self.amount.keys():
 			self.setAmount(token, 0)
@@ -42,7 +36,7 @@ class CBaseAccount():
 		if temp_amount < 0:
 			print('not enough funds')
 			return False
-		return self.setAmount(token, temp_amount, save)
+		return self.setAmount(token, temp_amount)
 
 	def load_base_account(self, address):
 		try:
@@ -93,7 +87,7 @@ class CBaseAccount():
 		_key = atomic_transaction.recipient.address
 		_value = atomic_transaction.getParameters()
 		_value.append(['Signature', self.wallet.sign(str(_value))])
-		#self.verify(_value)
+
 		self.kade.save(announce+_key, _value, announce=announce)
 
 	def save_transaction(self, transaction, announce=''):
@@ -153,6 +147,8 @@ class CBaseAccount():
 			_txn.remove_atomic_for_addresses(_signSender, _signRecipient, _sender.address, _recipient.address)
 			_txn.add(_atomic,_signSender, _signRecipient)
 			_atomic.token.chain.addTransaction(_txn)
+			_atomic.sender.chain.addTransaction(_txn)
+			_atomic.recipient.chain.addTransaction(_txn)
 			_atomic.token.save()
 			_atomic.sender.save()
 			_atomic.recipient.save()

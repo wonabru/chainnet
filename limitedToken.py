@@ -1,7 +1,7 @@
 from account import CAccount
 
 class CLimitedToken(CAccount):
-    def __init__(self, DB, tokenName, totalSupply, creator, address, save=True):
+    def __init__(self, DB, tokenName, totalSupply, creator, address):
         self.creator = 0
         super().__init__(DB, tokenName, creator, address)
         self.totalSupply = totalSupply
@@ -9,8 +9,8 @@ class CLimitedToken(CAccount):
             self.owner = CAccount(DB, '__creator__', None, -1)
         else:
             self.owner = creator
-            self.owner.setAmount(self, totalSupply, save=save)
-        self.setAmount(self, 0, save=save)
+            self.owner.setAmount(self, totalSupply)
+        self.setAmount(self, 0)
 
     def copyFromBaseLimitToken(self, baseLimitToken):
         token = CLimitedToken(self.kade, baseLimitToken.accountName, baseLimitToken.totalSupply,
@@ -19,11 +19,11 @@ class CLimitedToken(CAccount):
 
     def save(self, announce=''):
         super().save(announce)
-        self.kade.save('limitedToken ' + self.address, [self.totalSupply, self.owner.address])
+        self.kade.save('limitedToken:' + self.address, [self.totalSupply, self.owner.address])
 
     def update(self, with_chain=True):
         super().update()
-        par = self.kade.get('limitedToken ' + self.address)
+        par = self.kade.get('limitedToken:' + self.address)
         self.totalSupply, _address = par
         _account = CAccount(self.kade, '__tempLimited__', None, _address)
         _account.update(with_chain)

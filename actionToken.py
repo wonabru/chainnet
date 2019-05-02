@@ -2,7 +2,7 @@ import operator
 from account import CAccount
 
 class CActionToken(CAccount):
-    def __init__(self, DB, tokenName, initialSupply, creator, address, save=True):
+    def __init__(self, DB, tokenName, initialSupply, creator, address):
         self.creator = 0
         super().__init__(DB, tokenName, creator, address)
         self.minAmount = 10 ** -self.decimalPlace
@@ -11,17 +11,17 @@ class CActionToken(CAccount):
             self.owner = CAccount(DB, '__creator__', None, -1)
         else:
             self.owner = creator
-            self.owner.setAmount(self, initialSupply, save=save)
-        self.setAmount(self, 0, save=save)
+            self.owner.setAmount(self, initialSupply)
+        self.setAmount(self, 0)
 
     def save(self, announce=''):
         super().save(announce)
-        self.kade.save('actionToken ' + self.address, [self.totalSupply, self.owner.address])
+        self.kade.save('actionToken:' + self.address, [self.totalSupply, self.owner.address])
 
     def update(self, with_chain=True):
         super().update()
         self.minAmount = 10 ** -self.decimalPlace
-        par = self.kade.get('actionToken ' + self.address)
+        par = self.kade.get('actionToken:' + self.address)
         self.totalSupply, _address = par
         _account = CAccount(self.kade, '__tempAction__', None, _address)
         _account.update(with_chain)

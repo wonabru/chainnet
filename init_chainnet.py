@@ -18,7 +18,7 @@ class CInitChainnet:
 		self.Qcoin = CInitBlock(self.DB)
 		_creator = CBaseAccount(self.DB, accountName='creator', address='')
 		self.baseToken = CLimitedToken(self.DB, tokenName='Q', totalSupply=self.Qcoin.baseTotalSupply,
-									   creator=_creator, address=self.Qcoin.getBaseToken().address, save=False)
+									   creator=_creator, address=self.Qcoin.getBaseToken().address)
 
 		self.baseToken = self.baseToken.copyFromBaseLimitToken(self.Qcoin.getBaseToken())
 		self.first_account = self.baseToken.copyFromBaseAccount(self.Qcoin.firstAccount)
@@ -28,7 +28,6 @@ class CInitChainnet:
 		self.set_my_account()
 		self.load_tokens()
 		self.baseToken = self.tokens[self.baseToken.address]
-		self.baseToken.save()
 
 	def add_token(self, token, save=True):
 		self.tokens[token.address] = token
@@ -37,7 +36,7 @@ class CInitChainnet:
 			token.owner.save()
 			token.save()
 
-		if self.DB.get(token.address) is None:
+		if self.DB.get('Account:' + token.address) is None:
 			token.save()
 
 	def get_token(self, address):
@@ -75,11 +74,11 @@ class CInitChainnet:
 			_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
 		for acc in _my_accounts:
 			try:
-				_token = CLimitedToken(self.DB, '__tempInitChainnet__', None, None, acc, False)
+				_token = CLimitedToken(self.DB, '__tempInitChainnet__', None, None, acc)
 				_token.update()
 			except:
 				try:
-					_token = CActionToken(self.DB, '__tempInitChainnet__', None, None, acc, False)
+					_token = CActionToken(self.DB, '__tempInitChainnet__', None, None, acc)
 					_token.update()
 				except Exception as ex:
 					_token = self.baseToken if acc == CGenesis().initAccountPubKey else None

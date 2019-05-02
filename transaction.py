@@ -194,7 +194,7 @@ class CTransaction():
         if self.noAtomicTransactions == len(self.atomicTransactions):
             if self.checkTransaction() == True:
                 for atomic in self.atomicTransactions:
-                    if atomic.sender.addAmount(atomic.token, -atomic.amount, False) == False or atomic.recipient.addAmount(atomic.token, atomic.amount, False) == False:
+                    if atomic.sender.addAmount(atomic.token, -atomic.amount) == False or atomic.recipient.addAmount(atomic.token, atomic.amount) == False:
                         raise Exception('Add Transaction','sender has not enough funds')
 
                     atomic.sender.chain.addTransaction(self)
@@ -216,7 +216,7 @@ class CTransaction():
                         atomic.sender.save()
                         atomic.recipient.save()
                         atomic.token.save()
-                        
+
                         return 2
                 return 1
             else:

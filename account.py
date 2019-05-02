@@ -66,7 +66,7 @@ class CAccount(CBaseAccount):
         from limitedToken import CLimitedToken
         self.kade.get('Account:' + address)
 
-        account = CLimitedToken(self.kade, accountName, 0, creator, address, save=False)
+        account = CLimitedToken(self.kade, accountName, 0, creator, address)
         while account.accountName.find('__') > 0:
             account.update_look_at()
             time.sleep(1)
@@ -85,7 +85,7 @@ class CAccount(CBaseAccount):
         from actionToken import CActionToken
         self.kade.get('Account:' + address)
 
-        account = CActionToken(self.kade, accountName, 0, creator, address, save=False)
+        account = CActionToken(self.kade, accountName, 0, creator, address)
         while account.accountName.find('__') > 0:
             account.update_look_at()
             time.sleep(1)

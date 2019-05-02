@@ -554,7 +554,7 @@ class Application(tk.Frame):
 					_wallet = CWallet(accountName)
 					_address = _wallet.pubKey
 					_limitedToken = CLimitedToken(self.chainnet.DB, accountName, initSupply,
-												  creator=self.my_main_account, address=_address, save=False)
+												  creator=self.my_main_account, address=_address)
 				else:
 					_wallet = None
 					_limitedToken = self.my_main_account.inviteLimitedToken(accountName='__' + accountName, creator=self.my_main_account,
@@ -588,7 +588,7 @@ class Application(tk.Frame):
 					_wallet = CWallet(accountName)
 					_address = _wallet.pubKey
 					_actionToken = CActionToken(self.chainnet.DB, accountName, initSupply, creator=self.my_main_account,
-												address=_address, save=False)
+												address=_address)
 				else:
 					_wallet = None
 					_actionToken = self.my_main_account.inviteActionToken(accountName='__' + accountName,
