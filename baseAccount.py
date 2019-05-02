@@ -145,7 +145,7 @@ class CBaseAccount():
 			_recipient = _txn.recipients[i]
 			_signSender = _txn.signatures[_sender.address]
 			_signRecipient = _txn.signatures[_recipient.address]
-			_txn.remove(_atomic,_signSender, _signRecipient)
+			_txn.remove_atomic_for_addresses(_signSender, _signRecipient, _sender.address, _recipient.address)
 			_txn.add(_atomic,_signSender, _signRecipient)
 			_atomic.token.chain.addTransaction(_txn)
 			_atomic.token.save()

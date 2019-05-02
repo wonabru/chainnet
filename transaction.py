@@ -206,6 +206,18 @@ class CTransaction():
         self.atomicTransactions.remove(atomicTransaction)
         return True
 
+    def remove_atomic_for_addresses(self, signSender, signRecipient, senderAddress, recipientAddress):
+
+        _atomicTransactions = []
+        for atomic in self.atomicTransactions:
+            if atomic.sender.address != senderAddress and atomic.recipient.address != recipientAddress:
+                _atomicTransactions.append(atomic)
+            elif self.verify(atomic, signSender, signRecipient) == False:
+                raise Exception('Remove Transaction', 'Verification fails')
+
+        self.atomicTransactions = _atomicTransactions
+        return True
+
     def checkTransaction(self):
         if self.noAtomicTransactions == 1:
             return True
