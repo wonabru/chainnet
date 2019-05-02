@@ -2,8 +2,8 @@ from sqllite import CDataBase as sqllite
 from kademliaGetSet import CDataBase
 import socket
 
-instance_kade = None
 
+instance_kade = None
 
 class CSQLLite():
     def __init__(self, ownAddress):
@@ -11,14 +11,10 @@ class CSQLLite():
         global instance_kade
         if instance_kade is None:
             node_identifier = socket.gethostbyname(socket.gethostname())
-            self.nodes = []
             self.sqllite = sqllite()
-
+            self.nodes = ["192.168.0.38", "192.168.56.1", "10.0.2.2", "10.0.2.15", "127.0.0.1", node_identifier]
             self.kade = CDataBase()
             self.kade.initiate()
-            from node import run_kademlia_node
-
-            run_kademlia_node(self.kade.port, self.kade.server, self.kade.loop)
             instance_kade = self
         else:
             self.nodes = instance_kade.nodes
