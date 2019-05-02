@@ -157,10 +157,10 @@ class CBaseAccount():
 		if with_chain:
 			return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), self.main_account, \
 				   str({a: v for a, v in _accountsCreated.items()}), str(list(_uniqueAccounts.keys())), \
-				   str({a: v for a, v in _transactions.items()}),
+				   str({a: v for a, v in _transactions.items()})
 		else:
 			return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), \
-					   self.main_account, "{}", "{}"
+					   self.main_account, "{}", "{}", "{}"
 
 	def setParameters(self, par, with_chain=True):
 		decimalPlace, amount, address, accountName, isLocked, main_account, acc_created, acc_chain, transactions = par
@@ -178,7 +178,8 @@ class CBaseAccount():
 			_temp_transactions = {}
 			for txn in transactions:
 				_tx = CTransaction(dt.datetime.today(), 1)
-				_tx.setParameters(self.kade, txn)
+				par = self.kade.get('txn:' + txn)
+				_tx.setParameters(self.kade, par)
 				_temp_transactions[_tx.getHash()] = _tx
 			self.chain.setParameters([acc_created, _temp_chain, _temp_transactions])
 
@@ -190,28 +191,43 @@ class CBaseAccount():
 		self.isLocked = ast.literal_eval(isLocked.replace('true', 'True').replace('false', 'False'))
 
 	def save(self, announce=''):
-		_acc_chain, _acc_created = self.chain.getParameters()
+		_acc_chain, _acc_created, _transactions = self.chain.getParameters()
+
+		self.save_transactions(_transactions)
+
 		par = [self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), self.main_account,\
-			  str(_acc_created), str(list(_acc_chain.keys()))]
+			  str(_acc_created), str(list(_acc_chain.keys())), str(list(_transactions.keys()))]
+
 		if self.accountName != '' and self.address != '' and self.accountName.find('__') < 0:
 			if announce == '':
 				announce = 'Account:'
+
 			self.wallet = self.load_wallet()
 			if self.wallet.pubKey == self.address:
 				par.append(['Signature', self.wallet.sign(str(par))])
 				self.verify(par, self.address)
 			else:
 				par.append(['No Signature', ''])
+
 			print('SAVED = ' + str(self.kade.save(self.address, par, announce)))
 
+	def save_transactions(self, transactions):
+
+		for _key, tx in transactions.items():
+			_value = tx.getParameters()
+			self.kade.save(_key, _value, 'txn:')
+
 	def update(self, with_chain = True):
-		_par = self.kade.get(self.address)
+		_par = self.kade.get('Account:' + self.address)
+
 		if _par is not None:
 			_par = self.verify(_par, self.address, local_message=True)
 			if _par is not None:
-				decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = _par
+				decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain, _txn = _par
+
 				self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
-									_acc_created, _acc_chain], with_chain)
+									_acc_created, _acc_chain, _txn], with_chain)
+
 		else:
 			self.update_look_at(with_chain=with_chain)
 
@@ -221,8 +237,10 @@ class CBaseAccount():
 		_signature = message[-1][1]
 		_check = message[-1][0]
 		_message = message[:-1]
+
 		if local_message == False and self.address != CGenesis().initAccountPubKey:
 			if not CWallet().verify(str(_message), _signature, address):
+
 				raise Exception('Verification Fails', 'Message does not have valid signature' + str(message))
 
 			return _message
@@ -234,9 +252,9 @@ class CBaseAccount():
 		if _par is not None:
 			_par = self.verify(_par, self.address)
 			if _par is not None:
-				decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = _par
+				decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain, _txn = _par
 				self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
-									_acc_created, _acc_chain], with_chain)
+									_acc_created, _acc_chain, _txn], with_chain)
 
 
 	def show(self):
@@ -248,6 +266,8 @@ class CBaseAccount():
 		ret += ', '.join(['%s' % (key[:5]) for (key, value) in self.chain.uniqueAccounts.items()])
 		ret += '\nLockedAccounts: '
 		ret += ', '.join(['%s' % (key[:5]) for (key, value) in self.isLocked.items()])
+		ret += '\nTransactions: '
+		ret += ', '.join(['%s' % (key[:5]) for (key, value) in self.chain.transactions.items()])
 		ret += '\nEnd print'
 		print(ret)
 		return ret

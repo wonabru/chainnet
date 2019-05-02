@@ -3,7 +3,6 @@ class CChain():
     def __init__(self):
         self.transactions = {}
         self.uniqueAccounts = {}
-        #TO DO
         self.accountsCreated = {}
 
 
@@ -19,12 +18,15 @@ class CChain():
     #This should be called when transaction is spread and accepted in blockchain
     def addTransaction(self, transaction):
         if transaction.getHash() in self.transactions.keys():
-            raise Exception('Add transaction', 'The transaction just was added before')
+            print('Add transaction: ', 'The transaction just was added before')
+            return
 
         self.transactions[transaction.getHash()] = transaction
         for atomic in transaction.atomicTransactions:
             self.uniqueAccounts[atomic.sender.address] = atomic.sender
             self.uniqueAccounts[atomic.recipient.address] = atomic.recipient
+
+
 
     def get_unique_account_names(self):
         return [acc.accountName for acc in self.uniqueAccounts.values()]

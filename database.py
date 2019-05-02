@@ -43,11 +43,11 @@ class CSQLLite():
             if _not_save_local is None: _not_save_local = []
 
             if not (key in _not_save_local and announce == 'Account:'):
-                self.sqllite.set(key=key, value=value)
+                self.sqllite.set(key=announce + key, value=value)
 
                 if announce != '':
-                    self.announce(announce+key, value)
-        return self.sqllite.get(key)
+                    self.announce(announce + key, value)
+        return self.sqllite.get(announce + key)
 
     def get(self, key):
         if isinstance(key, str) == False: key = str(key)

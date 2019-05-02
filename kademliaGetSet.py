@@ -8,6 +8,7 @@ class CDataBase(object):
         self.server = None
         self.loop = None
         self.port = 10023
+        self.log = None
 
     def initiate(self):
         if self.server is None:
@@ -17,9 +18,9 @@ class CDataBase(object):
             handler = logging.StreamHandler()
             formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
-            log = logging.getLogger('kademlia')
-            log.addHandler(handler)
-            log.setLevel(logging.CRITICAL)
+            self.log = logging.getLogger('kademlia')
+            self.log.addHandler(handler)
+            self.log.setLevel(logging.CRITICAL)
             self.loop.set_debug(True)
 
     def set(self, key, value):

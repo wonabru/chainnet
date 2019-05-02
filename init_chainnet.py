@@ -15,9 +15,11 @@ class CInitChainnet:
 		self.wallet = CWallet('main')
 		self.DB = CSQLLite(self.wallet.pubKey)
 
-		self.Qcoin = CInitBlock(self.DB, self.wallet)
+		self.Qcoin = CInitBlock(self.DB)
 		_creator = CBaseAccount(self.DB, accountName='creator', address='')
-		self.baseToken = CLimitedToken(self.DB, tokenName='Q', totalSupply=self.Qcoin.baseTotalSupply, creator=_creator, address=self.Qcoin.getBaseToken().address, save=False)
+		self.baseToken = CLimitedToken(self.DB, tokenName='Q', totalSupply=self.Qcoin.baseTotalSupply,
+									   creator=_creator, address=self.Qcoin.getBaseToken().address, save=False)
+
 		self.baseToken = self.baseToken.copyFromBaseLimitToken(self.Qcoin.getBaseToken())
 		self.first_account = self.baseToken.copyFromBaseAccount(self.Qcoin.firstAccount)
 		self.first_account.chain.uniqueAccounts[self.baseToken.address] = self.baseToken
@@ -77,7 +79,6 @@ class CInitChainnet:
 					_token = CActionToken(self.DB, '__tempInitChainnet__', None, None, acc, False)
 					_token.update()
 				except Exception as ex:
-					#raise Exception('Load tokens', 'My accounts have token address that there is not in DB')
 					_token = self.baseToken if acc == CGenesis().initAccountPubKey else None
 
 			if _token is not None:

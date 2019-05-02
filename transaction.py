@@ -179,6 +179,8 @@ class CTransaction():
                     
                     atomic.sender.chain.addTransaction(self)
                     atomic.recipient.chain.addTransaction(self)
+                    atomic.token.chain.addTransaction(self)
+
                     try:
                         if atomic.sender.address != CGenesis().initAccountPubKey:
                             del atomic.token.isLocked[atomic.sender.address]
