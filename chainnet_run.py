@@ -45,16 +45,16 @@ class Application(tk.Frame):
 			else:
 				_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
 			for acc in _my_accounts:
-				if acc not in [self.chainnet.init_account.address, ]:
-					_account = CAccount(self.my_main_account.kade, '__tempRun__', None, acc)
-					try:
-						_account.load_wallet()
-						_account.update(with_chain=True)
 
-						self.chainnet.my_accounts[_account.address] = {'account': _account, 'wallet': _account.wallet}
-						self.my_accounts_names[_account.address] = _account.accountName
-					except Exception as ex:
-						messagebox.showerror(title='Error updating account in update_my_accounts', message=str(ex))
+				_account = CAccount(self.my_main_account.kade, '__tempRun__', None, acc)
+				try:
+					_account.load_wallet()
+					_account.update(with_chain=True)
+
+					self.chainnet.my_accounts[_account.address] = {'account': _account, 'wallet': _account.wallet}
+					self.my_accounts_names[_account.address] = _account.accountName
+				except Exception as ex:
+					messagebox.showerror(title='Error updating account in update_my_accounts', message=str(ex))
 
 			_temp_my_main_account = self.select_my_acount_by_name(self.my_main_account.accountName, update=False)
 			self.my_main_account = _temp_my_main_account if _temp_my_main_account is not None else self.my_main_account
