@@ -676,6 +676,7 @@ class Application(tk.Frame):
 
 	def update_amounts(self):
 		self.update_my_accounts()
+		self.chainnet.load_tokens()
 		for _acc in self.chainnet.my_accounts:
 			_account = self.chainnet.my_accounts[_acc]['account']
 			for key, amount in _account.amount.items():
