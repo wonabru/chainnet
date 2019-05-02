@@ -197,7 +197,6 @@ class CTransaction():
                     if atomic.sender.addAmount(atomic.token, -atomic.amount, False) == False or atomic.recipient.addAmount(atomic.token, atomic.amount, False) == False:
                         raise Exception('Add Transaction','sender has not enough funds')
 
-                    
                     atomic.sender.chain.addTransaction(self)
                     atomic.recipient.chain.addTransaction(self)
                     atomic.token.chain.addTransaction(self)
@@ -212,8 +211,12 @@ class CTransaction():
                             del atomic.token.isLocked[atomic.recipient.address]
                     except:
                         print('Add Transaction', "Key recipient address not found in isLocked")
-                    
+
                     if atomic.sender.address != CGenesis().initAccountPubKey:
+                        atomic.sender.save()
+                        atomic.recipient.save()
+                        atomic.token.save()
+                        
                         return 2
                 return 1
             else:

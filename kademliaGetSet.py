@@ -20,7 +20,7 @@ class CDataBase(object):
             handler.setFormatter(formatter)
             log = logging.getLogger('kademlia')
             log.addHandler(handler)
-            log.setLevel(logging.CRITICAL)
+            log.setLevel(logging.DEBUG)
             self.loop.set_debug(True)
 
     def set(self, key, value):

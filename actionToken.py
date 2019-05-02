@@ -18,24 +18,25 @@ class CActionToken(CAccount):
         super().save(announce)
         self.kade.save('actionToken ' + self.address, [self.totalSupply, self.owner.address])
 
-    def update(self):
+    def update(self, with_chain=True):
         super().update()
         self.minAmount = 10 ** -self.decimalPlace
         par = self.kade.get('actionToken ' + self.address)
         self.totalSupply, _address = par
         _account = CAccount(self.kade, '__tempAction__', None, _address)
-        _account.update()
+        _account.update(with_chain)
         self.owner = _account
 
     def showAll(self):
         self.update()
         totalSupply = 0
         for acc in self.chain.uniqueAccounts:
+            self.chain.uniqueAccounts[acc].update(with_chain=False)
             self.chain.uniqueAccounts[acc].show()
             totalSupply = totalSupply + self.chain.uniqueAccounts[acc].amount[self.address] \
             if self.address in self.chain.uniqueAccounts[acc].amount.keys() else totalSupply
         
-        ret = self.accountName + ' total Supply: ' + str(totalSupply)
+        ret = self.accountName + ' total Supply: ' + str(self.totalSupply) + ' and on all accounts: ' + str(totalSupply)
         return ret
     
     def handshake(self, account_1, account_2, attacher):
@@ -54,7 +55,7 @@ class CActionToken(CAccount):
         if attacher is not None:
             account_1.chain.uniqueAccounts[account_2.address] = account_2
             account_2.chain.uniqueAccounts[account_1.address] = account_1
-            #awarded should be oldest connection
+            #awarded should be oldest connection binding two accounts
             attacher.addAmount(self, self.minAmount, save=False)
             self.totalSupply += self.minAmount
             return [attacher]

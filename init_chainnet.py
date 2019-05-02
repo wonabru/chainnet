@@ -24,8 +24,11 @@ class CInitChainnet:
 		self.first_account = self.baseToken.copyFromBaseAccount(self.Qcoin.firstAccount)
 		self.first_account.chain.uniqueAccounts[self.baseToken.address] = self.baseToken
 		self.add_token(self.baseToken, save=False)
+
 		self.set_my_account()
 		self.load_tokens()
+		self.baseToken = self.tokens[self.baseToken.address]
+		self.baseToken.save()
 
 	def add_token(self, token, save=True):
 		self.tokens[token.address] = token
