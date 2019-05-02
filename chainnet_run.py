@@ -37,6 +37,8 @@ class Application(tk.Frame):
 		self.pack()
 		self.add_node('')
 		self.save_all_my_accounts()
+		self.update_my_accounts()
+		self.recreate_account_tab()
 
 	def update_my_accounts(self):
 		try:
