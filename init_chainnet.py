@@ -12,6 +12,7 @@ class CInitChainnet:
 	def __init__(self):
 
 		self.tokens = {}
+
 		self.wallet = CWallet('main')
 		self.DB = CSQLLite(self.wallet.pubKey)
 
@@ -24,7 +25,7 @@ class CInitChainnet:
 		self.first_account = self.baseToken.copyFromBaseAccount(self.Qcoin.firstAccount)
 		self.first_account.chain.uniqueAccounts[self.baseToken.address] = self.baseToken
 		self.add_token(self.baseToken, save=False)
-
+		self.my_accounts = {}
 		self.set_my_account()
 		self.load_tokens()
 		self.baseToken = self.tokens[self.baseToken.address]
@@ -57,13 +58,18 @@ class CInitChainnet:
 		except:
 			self.first_account.save()
 
-		if self.wallet.pubKey == self.first_account.address:
+		if self.check_is_first_account():
 			self.my_account = self.first_account
+			self.my_accounts[self.baseToken.address] = {'account': self.baseToken, 'wallet': CGenesis().getPrivKey()}
 		else:
 			self.my_account = CAccount(self.DB, 'main', 0, self.wallet.pubKey)
+
 		if self.DB.get(self.my_account.address) is None:
 			self.my_account.main_account = 1
 			self.my_account.save()
+
+		self.my_accounts[self.my_account.address] = {'account': self.my_account, 'wallet': self.wallet}
+		self.DB.save('my_main_accounts', str(list(set(self.my_accounts.keys()))))
 
 	def load_tokens(self):
 		self.init_account = self.Qcoin.initAccount

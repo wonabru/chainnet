@@ -21,7 +21,7 @@ class Application(tk.Frame):
 		self.chainnet = chainnet
 		self.my_main_wallet = self.chainnet.wallet
 		self.my_main_account = self.chainnet.my_account
-		self.my_accounts = {}
+
 		self.column_nr = {}
 		self.my_accounts_names = {}
 		self.master = master
@@ -51,7 +51,7 @@ class Application(tk.Frame):
 						_account.load_wallet()
 						_account.update(with_chain=True)
 
-						self.my_accounts[_account.address] = {'account': _account, 'wallet': _account.wallet}
+						self.chainnet.my_accounts[_account.address] = {'account': _account, 'wallet': _account.wallet}
 						self.my_accounts_names[_account.address] = _account.accountName
 					except Exception as ex:
 						messagebox.showerror(title='Error updating account in update_my_accounts', message=str(ex))
@@ -93,7 +93,7 @@ class Application(tk.Frame):
 		self.my_accounts_cmb_info = ttk.Combobox(self.info_tab)
 
 		_acc = []
-		_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
+		_acc.extend([acc['account'].accountName for acc in self.chainnet.my_accounts.values()])
 		self.my_accounts_cmb_info['values'] = _acc
 		self.my_accounts_cmb_info.set(_acc[0])
 		self.my_accounts_cmb_info.grid(column=1, row=1, sticky=tk.W)
@@ -156,13 +156,13 @@ class Application(tk.Frame):
 		self.accounts_balances = {}
 		self.accounts_names_lbl = {}
 		_index = 0
-		for add, acc in self.my_accounts.items():
+		for add, acc in self.chainnet.my_accounts.items():
 			self.add_new_account(add, acc['account'], _index)
 			_index += 1
 
 	def save_all_my_accounts(self):
 		def spread():
-			for acc in self.my_accounts.values():
+			for acc in self.chainnet.my_accounts.values():
 				acc['account'].save()
 
 		for i in range(10):
@@ -178,7 +178,7 @@ class Application(tk.Frame):
 				 bg="#ddd555000", fg="#fffffffff").grid(column=self.column_nr[address] * 2, row=0, columnspan=2)
 		self.accounts_names_lbl[account.address].set(account.accountName + "'s balances: ")
 		self.add_new_amounts(address, account)
-		self.my_main_account.kade.save('my_main_accounts', str(list(self.my_accounts.keys())))
+		self.my_main_account.kade.save('my_main_accounts', str(list(set(self.chainnet.my_accounts.keys()))))
 		self.update_amounts()
 
 
@@ -253,7 +253,7 @@ class Application(tk.Frame):
 
 		try:
 			DB = self.my_main_account.kade
-			_account = self.my_accounts[address]['account']
+			_account = self.chainnet.my_accounts[address]['account']
 			_wallet = _account.load_wallet()
 			_signature = _wallet.sign(self.atomicTransaction.getHash())
 			DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
@@ -314,7 +314,7 @@ class Application(tk.Frame):
 		self.my_accounts_cmb['values'] = [acc['account'].accountName+' '+
 		                                  ''.join(str(value)+' '+str(self.chainnet.get_token(key).accountName+' ')
 		                                           for key, value in acc['account'].amount.items())
-		                                  for acc in self.my_accounts.values()]
+		                                  for acc in self.chainnet.my_accounts.values()]
 		self.my_accounts_cmb.grid(row=2, column=1)
 		tk.Label(self.send_tab, text='To account by address:',
 								font=("Arial", 16)).grid(row=4, column=1)
@@ -378,7 +378,7 @@ class Application(tk.Frame):
 	def attach(self, account, attacher, token):
 		try:
 			self.update_my_accounts()
-			account = self.my_accounts[account]['account']
+			account = self.chainnet.my_accounts[account]['account']
 			attacher = self.select_my_acount_by_name(attacher)
 			token = self.chainnet.get_token_by_name(token)
 			if attacher.address in token.chain.uniqueAccounts:
@@ -404,7 +404,7 @@ class Application(tk.Frame):
 			amount = float(amount)
 			self.update_my_accounts()
 			from_account = self.select_my_acount_by_name(from_account)
-			to_account = self.my_accounts[to_account]['account']
+			to_account = self.chainnet.my_accounts[to_account]['account']
 			token = self.chainnet.get_token_by_name(token)
 			if to_account.address in token.chain.uniqueAccounts:
 
@@ -551,15 +551,15 @@ class Application(tk.Frame):
 					return
 
 				_account.save()
-				self.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
+				self.chainnet.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
 
 				_acc = []
-				_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
+				_acc.extend([acc['account'].accountName for acc in self.chainnet.my_accounts.values()])
 
 				self.my_accounts_cmb_info.config(values=_acc)
-				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
+				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.chainnet.my_accounts.values()])
 
-				self.add_new_account(_account.address, account=_account, index=len(self.my_accounts))
+				self.add_new_account(_account.address, account=_account, index=len(self.chainnet.my_accounts))
 
 				self.update_amounts()
 
@@ -569,15 +569,15 @@ class Application(tk.Frame):
 				_account = self.chainnet.baseToken.invite(accountName=accountName, creator=self.my_main_account, address=address)
 				_account.save()
 
-				self.my_accounts[_account.address] = {'account': _account, 'wallet': None}
+				self.chainnet.my_accounts[_account.address] = {'account': _account, 'wallet': None}
 
 				_acc = []
-				_acc.extend([acc['account'].accountName for acc in self.my_accounts.values()])
+				_acc.extend([acc['account'].accountName for acc in self.chainnet.my_accounts.values()])
 
 				self.my_accounts_cmb_info.config(values=_acc)
-				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
+				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.chainnet.my_accounts.values()])
 
-				self.add_new_account(_account.address, account=_account, index=len(self.my_accounts))
+				self.add_new_account(_account.address, account=_account, index=len(self.chainnet.my_accounts))
 
 				self.update_amounts()
 
@@ -601,8 +601,8 @@ class Application(tk.Frame):
 				self.my_main_account.save()
 				_limitedToken.save()
 
-				self.my_accounts[_limitedToken.address] = {'account': _limitedToken, 'wallet': _wallet}
-				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
+				self.chainnet.my_accounts[_limitedToken.address] = {'account': _limitedToken, 'wallet': _wallet}
+				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.chainnet.my_accounts.values()])
 				self.chainnet.add_token(_limitedToken)
 
 				_token = []
@@ -611,7 +611,7 @@ class Application(tk.Frame):
 				self.tokens_cmb_info.config(values=_token)
 				self.tokens_cmb.config(values=[str(token.accountName) for key, token in self.chainnet.tokens.items()])
 
-				self.add_new_account(_limitedToken.address, account=_limitedToken, index=len(self.my_accounts))
+				self.add_new_account(_limitedToken.address, account=_limitedToken, index=len(self.chainnet.my_accounts))
 				self.add_new_amounts(self.my_main_account.address, account=_limitedToken)
 				self.add_new_amounts(_limitedToken.address, account=_limitedToken)
 
@@ -637,8 +637,8 @@ class Application(tk.Frame):
 				self.my_main_account.save()
 				_actionToken.save()
 
-				self.my_accounts[_actionToken.address] = {'account': _actionToken, 'wallet': _wallet}
-				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.my_accounts.values()])
+				self.chainnet.my_accounts[_actionToken.address] = {'account': _actionToken, 'wallet': _wallet}
+				self.my_accounts_cmb.config(values=[acc['account'].accountName for acc in self.chainnet.my_accounts.values()])
 				self.chainnet.add_token(_actionToken)
 
 				_token = []
@@ -646,7 +646,7 @@ class Application(tk.Frame):
 				self.tokens_cmb_info.config(values=_token)
 				self.tokens_cmb.config(values=[str(token.accountName) for key, token in self.chainnet.tokens.items()])
 
-				self.add_new_account(_actionToken.address, account=_actionToken, index=len(self.my_accounts))
+				self.add_new_account(_actionToken.address, account=_actionToken, index=len(self.chainnet.my_accounts))
 				self.add_new_amounts(self.my_main_account.address, account=_actionToken)
 				self.add_new_amounts(_actionToken.address, account=_actionToken)
 
@@ -663,15 +663,15 @@ class Application(tk.Frame):
 
 		if update: self.update_my_accounts()
 
-		for add, acc in self.my_accounts.items():
+		for add, acc in self.chainnet.my_accounts.items():
 			if acc['account'].accountName == name.split(' ')[0]:
 				return acc['account']
 		return None
 
 	def update_amounts(self):
 		self.update_my_accounts()
-		for _acc in self.my_accounts:
-			_account = self.my_accounts[_acc]['account']
+		for _acc in self.chainnet.my_accounts:
+			_account = self.chainnet.my_accounts[_acc]['account']
 			for key, amount in _account.amount.items():
 				try:
 					token_name = self.chainnet.tokens[key].accountName
