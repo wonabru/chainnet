@@ -83,8 +83,10 @@ class CActionToken(CAccount):
             raise Exception("Attach", "Account cannot be attached to itself.")
 
         listToSpread = self.handshake(self, account, attacher)
+
         if listToSpread is None:
             raise Exception("Attach", "Nothing to attach")
+
         if attacher.address == listToSpread[0].address:
             attacher = listToSpread[0]
             listToSpread.remove(attacher)

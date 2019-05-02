@@ -85,7 +85,7 @@ class CLimitedToken(CAccount):
         else:
             self.chain.accountsCreated[attacher.address] += 1
 
-        account.setAmount(self, 0, save=False)
+        account.setAmount(self, 0)
         self.chain.uniqueAccounts[account.address] = account
         account.chain.uniqueAccounts[self.address] = self
 
