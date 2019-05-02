@@ -79,6 +79,15 @@ class CInitChainnet:
 		else:
 			return []
 
+	def get_tokens_addresses(self):
+		_my_accounts = self.DB.get('tokens')
+		if _my_accounts is None:
+			_my_accounts = [self.baseToken.address]
+		else:
+			_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
+
+		return _my_accounts
+
 	def get_my_accounts(self):
 		_my_accounts = self.DB.get('my_main_accounts')
 		if _my_accounts is None:
@@ -86,15 +95,11 @@ class CInitChainnet:
 		else:
 			_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
 
-		return _my_accounts + self.get_external_addresses()
+		return list(set(_my_accounts + self.get_external_addresses() + self.get_tokens_addresses()))
 
 	def load_tokens(self):
 		self.init_account = self.Qcoin.initAccount
-		_my_accounts = self.DB.get('tokens')
-		if _my_accounts is None:
-			_my_accounts = [self.baseToken.address]
-		else:
-			_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
+		_my_accounts = self.get_tokens_addresses()
 		for acc in _my_accounts:
 			try:
 				_token = CLimitedToken(self.DB, '__tempInitChainnet__', None, None, acc)
