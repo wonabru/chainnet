@@ -35,6 +35,8 @@ class Application(tk.Frame):
 		self.create_info_tab()
 		self.create_node_tab()
 		self.pack()
+		self.add_node('')
+		self.save_all_my_accounts()
 
 	def update_my_accounts(self):
 		try:
