@@ -144,8 +144,8 @@ class CTransaction():
             self.atomicTransactions.append(_temp)
 
 
-    def add(self, atomicTransaction, signSender, signRecipient):
-        
+    def check_add_return_hash(self, atomicTransaction, signSender, signRecipient):
+
         if self.noAtomicTransactions == len(self.atomicTransactions):
             raise Exception('Add Transaction',
                             'Stack is full. Please first remove one atomicTransaction in order to add new one')
@@ -153,23 +153,44 @@ class CTransaction():
         if self.verify(atomicTransaction, signSender, signRecipient) == False:
             raise Exception('Add Transaction', 'Verification fails')
 
-        
         try:
-            if dt.datetime.strptime(self.timeToClose, '%Y-%m-%d %H:%M:%S') < dt.datetime.strptime(atomicTransaction.time, '%Y-%m-%d %H:%M:%S'):
+            if dt.datetime.strptime(self.timeToClose, '%Y-%m-%d %H:%M:%S') < dt.datetime.strptime(
+                    atomicTransaction.time, '%Y-%m-%d %H:%M:%S'):
                 raise Exception('Add Transaction', 'Time to finish transaction just elapsed')
 
-        except:
-            raise Exception('Add Transaction', 'AtomicTransaction fails to build')
+        except Exception as ex:
+            raise Exception('Add Transaction', 'AtomicTransaction fails to build' + str(ex))
 
-        
         self.atomicTransactions.append(atomicTransaction)
         self.senders.append(atomicTransaction.sender)
         self.recipients.append(atomicTransaction.recipient)
-        
+
         self.signatures[atomicTransaction.sender.address] = signSender
-            
+
         self.signatures[atomicTransaction.recipient.address] = signRecipient
+
+        hash = self.getHash()
+
+        self.atomicTransactions.remove(atomicTransaction)
+        self.senders.remove(atomicTransaction.sender)
+        self.recipients.remove(atomicTransaction.recipient)
+        del self.signatures[atomicTransaction.sender.address]
+        del self.signatures[atomicTransaction.recipient.address]
+
+        return hash
+
+    def add(self, atomicTransaction, signSender, signRecipient):
         
+        self.check_add(atomicTransaction, signSender, signRecipient)
+
+        self.atomicTransactions.append(atomicTransaction)
+        self.senders.append(atomicTransaction.sender)
+        self.recipients.append(atomicTransaction.recipient)
+
+        self.signatures[atomicTransaction.sender.address] = signSender
+
+        self.signatures[atomicTransaction.recipient.address] = signRecipient
+
         if self.noAtomicTransactions == len(self.atomicTransactions):
             if self.checkTransaction() == True:
                 for atomic in self.atomicTransactions:

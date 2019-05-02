@@ -116,13 +116,18 @@ class CBaseAccount():
 		self.wallet = self.load_wallet()
 		_my_signature = self.wallet.sign(atomic.getHash())
 		txn = CTransaction(time_to_close, 1)
-		if txn.add(atomic, _my_signature, signature) < 2:
-			raise Exception('Error in sending', 'Sending fails. Other fatal error')
 
-		self.chain.addTransaction(txn)
-		self.save_transaction(txn, announce='FinalTransaction:'+atomic.getHash())
-		self.save()
-		recipient.save()
+		if self.chain.check_transaction_to_add(txn.check_add_return_hash(atomic, _my_signature, signature)):
+
+			if txn.add(atomic, _my_signature, signature) < 2:
+				raise Exception('Error in sending', 'Sending fails. Other fatal error')
+
+			self.chain.addTransaction(txn)
+			self.save_transaction(txn, announce='FinalTransaction:'+atomic.getHash())
+			self.save()
+			recipient.save()
+		else:
+			print('Transaction is just on place')
 
 	def send_loop(self, recipient, atomic, time_to_close, finish):
 		recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')

@@ -8,19 +8,19 @@ class CDataBase(object):
         self.server = None
         self.loop = None
         self.port = 10023
-        self.log = None
 
     def initiate(self):
         if self.server is None:
             self.loop = asyncio.get_event_loop()
             self.server = Server(ksize=100, alpha=10)
             self.loop.run_until_complete(self.server.listen(self.port))
+
             handler = logging.StreamHandler()
             formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
-            self.log = logging.getLogger('kademlia')
-            self.log.addHandler(handler)
-            self.log.setLevel(logging.CRITICAL)
+            log = logging.getLogger('kademlia')
+            log.addHandler(handler)
+            log.setLevel(logging.CRITICAL)
             self.loop.set_debug(True)
 
     def set(self, key, value):
