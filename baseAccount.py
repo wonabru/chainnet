@@ -229,7 +229,7 @@ class CBaseAccount():
 									_acc_created, _acc_chain, _txn], with_chain)
 
 		else:
-			self.update_look_at(with_chain=with_chain)
+			self.update_look_at(with_chain=False)
 
 
 	def verify(self, message, address, local_message=False):
