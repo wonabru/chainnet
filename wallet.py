@@ -3,11 +3,11 @@ from Crypto import Hash
 from isolated_functions import *
 
 class CWallet:
-	def __init__(self, name_of_wallet = None):
+	def __init__(self, name_of_wallet = None, from_scratch=False):
 		if name_of_wallet is None or name_of_wallet.find('?') >= 0:
 			return
 		else:
-			self.RSAkey = self.checkWalletExist(name_of_wallet)
+			self.RSAkey = self.checkWalletExist(name_of_wallet, raiseErrorIfNotExist=not from_scratch)
 		self.pubKey = self.getPublicKey(self.RSAkey)
 
 	def getPublicKey(self, key):

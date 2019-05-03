@@ -199,8 +199,8 @@ class CBaseAccount():
 
 		self.save_transactions(_transactions)
 
-		par = [self.decimalPlace, self.amount, self.address, self.accountName[1:], str(self.isLocked), self.main_account,\
-			  str(_acc_created), str(list(_acc_chain.keys())), str(list(_transactions.keys()))]
+		par = [self.decimalPlace, self.amount, self.address, self.accountName[1:], str(self.isLocked),
+			   self.main_account, str(_acc_created), str(list(_acc_chain.keys())), str(list(_transactions.keys()))]
 
 		if self.accountName != '' and self.address != '' and self.accountName.find('?') < 0:
 			if announce == '':
@@ -224,7 +224,7 @@ class CBaseAccount():
 		_par = self.kade.get('Account:' + self.address)
 
 		if _par is not None:
-			_par = self.verify(_par, self.address, local_message=True)
+			_par = self.verify(_par, self.address)
 			if _par is not None:
 				decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain, _txn = _par
 
@@ -233,7 +233,6 @@ class CBaseAccount():
 
 		else:
 			self.update_look_at(with_chain=False)
-
 
 	def update_look_at(self, with_chain = True):
 		_par = self.kade.look_at('Account:'+self.address)
@@ -244,21 +243,16 @@ class CBaseAccount():
 				self.setParameters([decimalPlace, amount, address, '#'+accountName, isLocked, main_account,
 									_acc_created, _acc_chain, _txn], with_chain)
 
-	def verify(self, message, address, local_message=False):
+	def verify(self, message, address):
 
 		_signature = message[-1][1]
 		_check = message[-1][0]
 		_message = message[:-1]
 
-		#if local_message == False:
 		if not CWallet().verify(str(_message), _signature, address):
-
 			raise Exception('Verification Fails', 'Message does not have valid signature' + str(message))
 
 		return _message
-
-		#else:
-		#	return _message
 
 	def show(self):
 		ret = ' ' + self.accountName + ' = ' + str(self.address) + '\n'
