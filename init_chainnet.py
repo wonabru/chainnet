@@ -14,7 +14,7 @@ class CInitChainnet:
 
 		self.tokens = {}
 		self.my_accounts_names = {}
-		self.wallet = CWallet('main')
+		self.wallet = CWallet('@main')
 		self.DB = CSQLLite()
 
 		self.Qcoin = CInitBlock(self.DB)
@@ -63,7 +63,7 @@ class CInitChainnet:
 			self.my_account = self.first_account
 			self.my_accounts[self.baseToken.address] = {'account': self.baseToken, 'wallet': CWallet('Q')}
 		else:
-			self.my_account = CAccount(self.DB, 'main', 0, self.wallet.pubKey)
+			self.my_account = CAccount(self.DB, '@main', 0, self.wallet.pubKey)
 
 		if self.DB.get('Account:' + self.my_account.address) is None:
 			self.my_account.main_account = 1
@@ -127,11 +127,11 @@ class CInitChainnet:
 		_my_accounts = self.get_tokens_addresses()
 		for acc in _my_accounts:
 			try:
-				_token = CLimitedToken(self.DB, '__tempInitChainnet__', None, None, acc)
+				_token = CLimitedToken(self.DB, '?', None, None, acc)
 				_token.update()
 			except:
 				try:
-					_token = CActionToken(self.DB, '__tempInitChainnet__', None, None, acc)
+					_token = CActionToken(self.DB, '?', None, None, acc)
 					_token.update()
 				except Exception as ex:
 					_token = self.baseToken if acc == CGenesis().initAccountPubKey else None
@@ -152,7 +152,7 @@ class CInitChainnet:
 			_my_accounts = self.get_my_accounts()
 			for acc in _my_accounts:
 
-				_account = CAccount(self.DB, '__tempRun__', None, acc)
+				_account = CAccount(self.DB, '?', None, acc)
 				try:
 					_account.load_wallet()
 					_account.update(with_chain=True)

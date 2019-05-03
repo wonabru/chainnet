@@ -275,10 +275,10 @@ class Application(tk.Frame):
 				_announcement[acc] = DB.look_at('AtomicTransaction:' + 'AtomicTransaction:' + acc)
 
 				if _announcement[acc] is not None:
-					self.atomicTransaction = CAtomicTransaction(CAccount(DB, '__temp1__', None, "1"),
-											   CAccount(DB, '__temp2__', None, "2"),
+					self.atomicTransaction = CAtomicTransaction(CAccount(DB, '?', None, "1"),
+											   CAccount(DB, '?', None, "2"),
 											   -1, "",
-											   CAccount(DB, '__temp3__', None, "3"))
+											   CAccount(DB, '?', None, "3"))
 					_messsage = _announcement[acc][:-1]
 					self.atomicTransaction.setParameters(_messsage)
 					self.atomicTransaction.sender.verify(_announcement[acc], self.atomicTransaction.sender.address)
@@ -587,7 +587,7 @@ class Application(tk.Frame):
 												  creator=self.my_main_account, address=_address)
 				else:
 					_wallet = None
-					_limitedToken = self.my_main_account.inviteLimitedToken(accountName='__' + accountName,
+					_limitedToken = self.my_main_account.inviteLimitedToken(accountName='?' + accountName,
 																			creator=self.my_main_account,
 													 						address=address)
 
@@ -624,7 +624,7 @@ class Application(tk.Frame):
 												address=_address)
 				else:
 					_wallet = None
-					_actionToken = self.my_main_account.inviteActionToken(accountName='__' + accountName,
+					_actionToken = self.my_main_account.inviteActionToken(accountName='?' + accountName,
 																		  creator=self.my_main_account,
 																		  address=address)
 				if _actionToken is None:

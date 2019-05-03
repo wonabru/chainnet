@@ -27,7 +27,7 @@ class rsa_temp:
 
 class CWallet:
 	def __init__(self, name_of_wallet = None):
-		if name_of_wallet is None:
+		if name_of_wallet is None or name_of_wallet.find('?') >= 0:
 			return
 		else:
 			self.RSAkey = self.checkWalletExist(name_of_wallet)

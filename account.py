@@ -62,7 +62,7 @@ class CAccount(CBaseAccount):
         from limitedToken import CLimitedToken
 
         account = CLimitedToken(self.kade, accountName, 0, creator, address)
-        while account.accountName.find('__') > 0:
+        while account.accountName.find('?') > 0:
             account.update_look_at()
             time.sleep(1)
         check_if_common_connection(creator, account)
@@ -80,7 +80,7 @@ class CAccount(CBaseAccount):
         from actionToken import CActionToken
 
         account = CActionToken(self.kade, accountName, 0, creator, address)
-        while account.accountName.find('__') > 0:
+        while account.accountName.find('?') > 0:
             account.update_look_at()
             time.sleep(1)
         check_if_common_connection(creator, account)

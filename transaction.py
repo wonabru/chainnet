@@ -120,14 +120,14 @@ class CTransaction():
 
         self.senders = []
         for _sender in _senders:
-            _temp_sender = CAccount(DB, '__tempTransaction__', None, None)
+            _temp_sender = CAccount(DB, '?', None, None)
             _temp_sender.setParameters(_sender, with_chain=False)
             _temp_sender.update(with_chain=False)
             self.senders.append(_temp_sender)
 
         self.recipients = []
         for _recipient in _recipients:
-            _temp_recipient = CAccount(DB, '__tempTransaction__', None, None)
+            _temp_recipient = CAccount(DB, '?', None, None)
             _temp_recipient.setParameters(_recipient, with_chain=False)
             _temp_recipient.update(with_chain=False)
             self.recipients.append(_temp_recipient)
@@ -135,10 +135,10 @@ class CTransaction():
 
         self.atomicTransactions = []
         for _atomic in _atomics:
-            _temp = CAtomicTransaction(CAccount(DB, '__temp__', None, ""),
-                                       CAccount(DB, '__temp__', None, ""),
+            _temp = CAtomicTransaction(CAccount(DB, '?', None, ""),
+                                       CAccount(DB, '?', None, ""),
                                        -1, "",
-                                       CAccount(DB, '__temp__', None, ""))
+                                       CAccount(DB, '?', None, ""))
             _temp.setParameters(_atomic)
             self.atomicTransactions.append(_temp)
 
@@ -256,8 +256,8 @@ class CTransaction():
         return digest.hexdigest()
 
     def verify(self, atomicTransaction, signSender, signRecipient):
-        if signSender == '__future__' or CWallet().verify(atomicTransaction.getHash(), signSender, atomicTransaction.sender.address):
-            if signRecipient == '__future__' or  CWallet().verify(atomicTransaction.getHash(), signRecipient, atomicTransaction.recipient.address):
+        if CWallet().verify(atomicTransaction.getHash(), signSender, atomicTransaction.sender.address):
+            if CWallet().verify(atomicTransaction.getHash(), signRecipient, atomicTransaction.recipient.address):
                 return True
             else:
                 raise Exception('Verify Transaction', 'Recipient signature is not valid')
