@@ -206,7 +206,7 @@ class CBaseAccount():
 			if announce == '':
 				announce = 'Account:'
 
-			self.wallet = self.load_wallet()
+			self.load_wallet()
 			if self.wallet is not None and self.wallet.pubKey == self.address:
 				par.append(['Signature', self.wallet.sign(str(par))])
 				self.verify(par, self.address)
