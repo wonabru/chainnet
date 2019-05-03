@@ -61,7 +61,7 @@ class CInitChainnet:
 
 		if self.check_is_first_account():
 			self.my_account = self.first_account
-			self.my_accounts[self.baseToken.address] = {'account': self.baseToken, 'wallet': CWallet('Q')}
+			self.my_accounts[self.baseToken.address] = {'account': self.baseToken, 'wallet': CGenesis().getPrivKey()}
 		else:
 			self.my_account = CAccount(self.DB, '@main', 0, self.wallet.pubKey)
 
