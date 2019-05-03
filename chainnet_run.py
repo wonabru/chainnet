@@ -257,7 +257,7 @@ class Application(tk.Frame):
 																	  ' to account ' +
 																   self.atomicTransaction.recipient.accountName)
 		except Exception as ex:
-			self.showError(ex)
+			showError(ex)
 
 	def look_for_deal(self):
 		try:
@@ -280,7 +280,7 @@ class Application(tk.Frame):
 					self.atomicTransaction.setParameters(_messsage)
 					self.atomicTransaction.sender.verify(_announcement[acc], self.atomicTransaction.sender.address)
 		except Exception as ex:
-			self.showError(ex)
+			showError(ex)
 
 	def create_send_tab(self):
 		tk.Label(self.send_tab, text='Choose token name:',
@@ -369,7 +369,7 @@ class Application(tk.Frame):
 				messagebox.showinfo('Lock with Success', 'Locking for deal: ' + my_account.address + ' + ' +
 									other_account + ' till ' + str(time_to_close))
 		except Exception as ex:
-			self.showError(ex)
+			showError(ex)
 
 	def attach(self, account, attacher, token):
 		try:
@@ -393,7 +393,7 @@ class Application(tk.Frame):
 				messagebox.showerror(title='Attach', message=attacher.accountName + ' is not connected to ' +
 				                                                       token.accountName)
 		except Exception as ex:
-			self.showError(ex)
+			showError(ex)
 
 	def send_coins(self, from_account, to_account, amount, token, wating_time):
 		try:
@@ -425,7 +425,7 @@ class Application(tk.Frame):
 				messagebox.showerror(title='Send', message='You need first attach '+
 									 to_account.accountName+' to '+token.accountName)
 		except Exception as ex:
-			self.showError(ex)
+			showError(ex)
 
 	def radiobtn_change(self):
 
@@ -661,7 +661,7 @@ class Application(tk.Frame):
 										_actionToken.accountName + ' is now invited')
 
 		except Exception as ex:
-			self.showError(ex)
+			showError(ex)
 
 	def update_amounts(self):
 		self.chainnet.update_my_accounts()
