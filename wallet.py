@@ -63,7 +63,8 @@ class CWallet:
 	def checkWalletExist(self, name_of_wallet, raiseErrorIfNotExist = True):
 		self.RSAkey = self.loadWallet(name_of_wallet)
 		if raiseErrorIfNotExist and self.RSAkey is None:
-			raise 'Wallet file ' + name_of_wallet + '.wallet.dat not found !!'
+			print('Wallet file ' + name_of_wallet + '.wallet.dat not found !!')
+			return None
 		if self.RSAkey is None:
 			self.RSAkey = RSA.generate(1024)
 			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey))

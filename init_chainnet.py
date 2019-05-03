@@ -65,10 +65,14 @@ class CInitChainnet:
 		else:
 			self.my_account = CAccount(self.DB, '@main', 0, self.wallet.pubKey)
 
-		qcoin_wallet = CWallet(self.baseToken.address)
+		try:
+			qcoin_wallet = CWallet(self.baseToken.address)
 
-		if qcoin_wallet is not None:
-			self.my_accounts[self.baseToken.address] = {'account': self.baseToken, 'wallet': qcoin_wallet}
+			if qcoin_wallet is not None:
+				self.my_accounts[self.baseToken.address] = {'account': self.baseToken, 'wallet': qcoin_wallet}
+		except:
+			print('Could not load wallet for Q account')
+
 
 		if self.DB.get('Account:' + self.my_account.address) is None:
 			self.my_account.main_account = 1

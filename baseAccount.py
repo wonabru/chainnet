@@ -213,9 +213,6 @@ class CBaseAccount():
 				print('SAVED = ' + str(self.kade.save(self.address, par, announce)))
 			else:
 				print('No signature','wrong wallet was load')
-				#par.append(['No Signature', ''])
-
-
 
 	def save_transactions(self, transactions):
 
