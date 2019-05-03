@@ -81,7 +81,7 @@ class CBaseAccount():
 
 	def load_wallet(self):
 		try:
-			return CWallet(self.address)
+			self.wallet = CWallet(self.address)
 		except Exception as ex:
 			print('load wallet', 'could not found wallet: '+str(ex))
 
