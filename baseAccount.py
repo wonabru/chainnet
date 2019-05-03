@@ -68,7 +68,7 @@ class CBaseAccount():
 			_par = self.verify(_par, account2address)
 			_token = self.load_base_account(self.address)
 			_token.setParameters(_par, with_chain=2)
-			if _token is not None and account2address in _token.isLocked.keys() and _token.isLocked[account2address] == account1.address:
+			if _token is not None and account1.address in _token.isLocked.keys() and _token.isLocked[account1.address] == account2address:
 				self.isLocked[account2address] = account1.address
 				self.save()
 				finish.finish = True
