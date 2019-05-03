@@ -9,6 +9,11 @@ def str2obj(s):
     return ast.literal_eval(s.replace('true', 'True').replace('false', 'False'))
 
 
+def trim_name(name):
+
+	return name.replace('@','').replace('#','')
+
+
 def remove_special_char(in_seq):
 	"""
 	Function is responsible for normalize strings to defined format (UPPERCASE with '_' replacing any special character)

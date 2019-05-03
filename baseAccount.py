@@ -207,7 +207,7 @@ class CBaseAccount():
 
 		self.save_transactions(_transactions)
 
-		par = [self.decimalPlace, self.amount, self.address, self.accountName.replace('@','').replace('#',''), str(self.isLocked),
+		par = [self.decimalPlace, self.amount, self.address, trim_name(self.accountName), str(self.isLocked),
 			   self.main_account, str(_acc_created), str(list(_acc_chain.keys())), str(list(_transactions.keys()))]
 
 		if self.accountName != '' and self.address != '' and self.accountName.find('?') < 0:
@@ -251,7 +251,7 @@ class CBaseAccount():
 			if with_chain <= 0: with_chain = 0
 			self.update_look_at(with_chain=with_chain)
 
-	def update_look_at(self, with_chain = True):
+	def update_look_at(self, with_chain = 2):
 		_par = self.kade.look_at('Account:'+self.address)
 		if _par is not None:
 			_par = self.verify(_par, self.address)
