@@ -199,7 +199,7 @@ class CBaseAccount():
 
 		self.save_transactions(_transactions)
 
-		par = [self.decimalPlace, self.amount, self.address, self.accountName[1:], str(self.isLocked),
+		par = [self.decimalPlace, self.amount, self.address, self.accountName.replace('@','').replace('#',''), str(self.isLocked),
 			   self.main_account, str(_acc_created), str(list(_acc_chain.keys())), str(list(_transactions.keys()))]
 
 		if self.accountName != '' and self.address != '' and self.accountName.find('?') < 0:
