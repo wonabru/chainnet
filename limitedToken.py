@@ -20,8 +20,8 @@ class CLimitedToken(CAccount):
 
         return token
 
-    def save(self, announce=''):
-        super().save(announce)
+    def save(self, announce='', who_is_signing=None):
+        super().save(announce, who_is_signing)
         self.kade.save('limitedToken:' + self.address, [self.totalSupply, self.owner.address])
 
     def update(self, with_chain=2):

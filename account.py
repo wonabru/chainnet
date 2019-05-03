@@ -93,8 +93,8 @@ class CAccount(CBaseAccount):
             creator.save()
         return account
 
-    def save(self, announce=''):
-        super().save(announce)
+    def save(self, announce='', who_is_signing=None):
+        super().save(announce, who_is_signing=who_is_signing)
         
     def update(self, with_chain=2):
         super().update(with_chain=with_chain)
