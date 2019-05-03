@@ -1,5 +1,8 @@
 import ast
 import re
+import pickle
+from Crypto.PublicKey import RSA
+from base64 import b64decode,b64encode
 
 def str2obj(s):
     return ast.literal_eval(s.replace('true', 'True').replace('false', 'False'))
@@ -11,11 +14,36 @@ def remove_special_char(in_seq):
 	:param in_seq: list of strings
 	:return: list of strings
 	"""
-	_sub = re.sub(" {1,3}", "_", in_seq.strip()).upper()
-	_chars = ['*', '\\', '&', '/']
+	_sub = re.sub(" {1,5}", "_", in_seq.strip()).upper()
+	_chars = ['*', '\\', '&', '/', '+']
 	for x in _chars: _sub = _sub.replace(x, '_')
 	return _sub
 
 
 class CFinish:
 	finish = False
+
+
+def serialize(message):
+	return pickle.dumps(message)
+
+
+def unserialize(ser_message):
+	return pickle.loads(ser_message)
+
+
+def encode(n):
+	b = bytearray()
+	while n:
+		b.append(n & 0xFF)
+		n >>= 8
+	return b64encode(b).decode('utf-8')
+
+
+def decode(s):
+	b = bytearray(b64decode(s.encode('utf-8')))  # in case you're passing in a bytes/str
+	return sum((1 << (bi * 8)) * bb for (bi, bb) in enumerate(b))
+
+
+class rsa_temp:
+	key = RSA.generate(1024)

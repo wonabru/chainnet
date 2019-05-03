@@ -80,7 +80,10 @@ class CBaseAccount():
 		return self.amount[token.address]
 
 	def load_wallet(self):
-		return CWallet(self.address)
+		try:
+			return CWallet(self.address)
+		except Exception as ex:
+			print('load wallet', 'could not found wallet: '+str(ex))
 
 	def save_atomic_transaction(self, atomic_transaction, announce=''):
 		self.wallet = atomic_transaction.sender.load_wallet()
@@ -204,7 +207,7 @@ class CBaseAccount():
 				announce = 'Account:'
 
 			self.wallet = self.load_wallet()
-			if self.wallet.pubKey == self.address:
+			if self.wallet is not None and self.wallet.pubKey == self.address:
 				par.append(['Signature', self.wallet.sign(str(par))])
 				self.verify(par, self.address)
 				print('SAVED = ' + str(self.kade.save(self.address, par, announce)))

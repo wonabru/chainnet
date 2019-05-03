@@ -539,7 +539,7 @@ class Application(tk.Frame):
 		try:
 			initSupply = float(initSupply)
 			if self.selected_account.get() == 1:
-				_wallet = CWallet(accountName)
+				_wallet = CWallet(address)
 
 				_account = self.chainnet.baseToken.create(accountName=accountName, creator=self.my_main_account, address=_wallet.pubKey)
 				if _account is None:
@@ -581,7 +581,7 @@ class Application(tk.Frame):
 
 			if self.selected_account.get() in [3, 5]:
 				if self.selected_account.get() == 3:
-					_wallet = CWallet(accountName)
+					_wallet = CWallet(address)
 					_address = _wallet.pubKey
 					_limitedToken = CLimitedToken(self.chainnet.DB, accountName, initSupply,
 												  creator=self.my_main_account, address=_address)
@@ -618,7 +618,7 @@ class Application(tk.Frame):
 
 			if self.selected_account.get() in [4, 6]:
 				if self.selected_account.get() == 4:
-					_wallet = CWallet(accountName)
+					_wallet = CWallet(address)
 					_address = _wallet.pubKey
 					_actionToken = CActionToken(self.chainnet.DB, accountName, initSupply, creator=self.my_main_account,
 												address=_address)
