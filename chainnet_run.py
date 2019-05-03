@@ -326,6 +326,12 @@ class Application(tk.Frame):
 		self.waiting_time_ent.insert(tk.END, '3600')
 		self.waiting_time_ent.grid(row=7, column=0)
 
+		self.lbl_Lock_info_value = tk.StringVar()
+		self.lbl_Lock_info = tk.Label(self.send_tab, textvariable=self.lbl_Lock_info_value,
+									  font=("Arial", 16)).grid(row=10, column=0, columnspan=3)
+
+		self.lbl_Lock_info_value.set('No lock')
+
 		tk.Button(self.send_tab, text="Lock Account", bg='orange', fg='black', font=("Arial", 16),
 									command=lambda: self.lock(self.my_accounts_cmb.get(),
 																	self.send_address_ent.get(),
@@ -366,6 +372,7 @@ class Application(tk.Frame):
 			for i in range(30):
 				if _finish.finish == False:
 					self.after(1000 * i, token.lock_loop, my_account, other_account, time_to_close, _finish)
+					self.after(1100 * i, self.lbl_Lock_info_value.set, 'Locked: '+str([l[:5] for l in token.isLocked.keys()]))
 				else:
 					break
 
@@ -550,7 +557,7 @@ class Application(tk.Frame):
 			if self.selected_account.get() == 1:
 				_wallet = CWallet('', from_scratch=True)
 
-				_account = self.chainnet.baseToken.create(accountName=accountName, creator=self.my_main_account, address=_wallet.pubKey)
+				_account = self.chainnet.baseToken.create(accountName=accountName, creator=self.my_main_account, address=_wallet.pubKey, save=False)
 				if _account is None:
 					messagebox.showerror(title='Error in account creating', message='Account is not created')
 					return
