@@ -86,10 +86,10 @@ class CBaseAccount():
 			print('load wallet', 'could not found wallet: '+str(ex))
 
 	def save_atomic_transaction(self, atomic_transaction, announce=''):
-		self.wallet = atomic_transaction.sender.load_wallet()
+		atomic_transaction.sender.load_wallet()
 		_key = atomic_transaction.recipient.address
 		_value = atomic_transaction.getParameters()
-		_value.append(['Signature', self.wallet.sign(str(_value))])
+		_value.append(['Signature', atomic_transaction.sender.sign(str(_value))])
 
 		self.kade.save(announce+_key, _value, announce=announce)
 
@@ -100,7 +100,7 @@ class CBaseAccount():
 
 	def send(self, recipient, token, amount, waiting_time=3600):
 		from transaction import CAtomicTransaction, CTransaction
-		self.wallet = self.load_wallet()
+		self.load_wallet()
 		time_to_close = dt.datetime.today() + dt.timedelta(seconds=waiting_time)
 
 		atomic = CAtomicTransaction(self, recipient, amount, optData='Simple TXN', token=token)
@@ -120,7 +120,7 @@ class CBaseAccount():
 
 	def after_send_loop(self, recipient, atomic, signature, time_to_close):
 		from transaction import CTransaction
-		self.wallet = self.load_wallet()
+		self.load_wallet()
 		_my_signature = self.wallet.sign(atomic.getHash())
 		txn = CTransaction(time_to_close, 1)
 

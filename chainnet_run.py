@@ -238,8 +238,8 @@ class Application(tk.Frame):
 		try:
 			DB = self.my_main_account.kade
 			_account = self.chainnet.my_accounts[address]['account']
-			_wallet = _account.load_wallet()
-			_signature = _wallet.sign(self.atomicTransaction.getHash())
+			_account.wallet = self.chainnet.my_accounts[address]['wallet']
+			_signature = _account.wallet.sign(self.atomicTransaction.getHash())
 			DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
 
 			_finish = CFinish()
@@ -348,10 +348,10 @@ class Application(tk.Frame):
 			self.chainnet.update_my_accounts()
 			my_account = self.chainnet.select_my_acount_by_name(my_account)
 			token = self.chainnet.get_token_by_name(token)
-			_wallet = my_account.load_wallet()
+			my_account.load_wallet()
 			time_to_close = dt.datetime.today() + dt.timedelta(seconds=float(waiting_time))
 
-			token.lockAccounts(my_account, _wallet.sign('Locking for deal: ' + my_account.address + ' + ' +
+			token.lockAccounts(my_account, my_account.wallet.sign('Locking for deal: ' + my_account.address + ' + ' +
 			                                          other_account + ' till ' + str(time_to_close)),
 			                   other_account, time_to_close)
 
