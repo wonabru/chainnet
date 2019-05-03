@@ -1,10 +1,10 @@
 import numpy as np
 import datetime as dt
 from chain import CChain
-import ast
 from wallet import CWallet
 from genesis import CGenesis
-import time
+from transaction import CTransaction, CAtomicTransaction
+from isolated_functions import *
 
 class CBaseAccount():
 	def __init__(self, DB, accountName, address):
@@ -18,36 +18,29 @@ class CBaseAccount():
 		self.wallet = None
 		self.main_account = 0
 
-	def setAmount(self, token, amount, save=True):
+	def setAmount(self, token, amount):
 		if amount < 0:
-			print('Amount of tokens cannot be less than zero')
-			return False
+			raise Exception('set amount error', 'Amount of tokens cannot be less than zero')
 		print('Account: ',self.accountName,' is setting amount ', amount, ' [ ', token.accountName, ' ] ')
 		self.amount[token.address] = np.round(amount, self.decimalPlace)
 
-		'''
-		if save:
-			self.save()
-			token.save()
-		'''
-
 		return True
 
-	def addAmount(self, token, amount, save=True):
+	def addAmount(self, token, amount):
 
 		if token.address not in self.amount.keys():
-			print('Attach first please')
-			return False
+			self.setAmount(token, 0)
+			print('Warning: there was no set any initial amount. Set to 0')
 
 		temp_amount = self.amount[token.address] + amount
 		if temp_amount < 0:
 			print('not enough funds')
 			return False
-		return self.setAmount(token, temp_amount, save)
+		return self.setAmount(token, temp_amount)
 
 	def load_base_account(self, address):
 		try:
-			_account = CBaseAccount(self.kade, '__tempInitChainnet__', address)
+			_account = CBaseAccount(self.kade, '?', address)
 			_account.update()
 		except Exception as ex:
 			raise Exception('Load base account', str(ex))
@@ -66,36 +59,38 @@ class CBaseAccount():
 							account2address+' till '+str(time_to_close))
 
 		#save means announce to World
-		self.save(announce='Lock:'+account1.address+':'+account2address+':')
+		account1.save(announce='Lock:'+account1.address+':'+account2address+':')
 
-		while dt.datetime.today() < time_to_close:
-			self.save(announce='Lock:' + account1.address + ':' + account2address + ':')
-			_par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
-			#if _par is None: _par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
-			if _par is not None:
-				print(_par)
-				_token = self.load_base_account(self.address)
-				_token.setParameters(_par, with_chain=False)
-				if _token is not None and account2address in _token.isLocked.keys() and _token.isLocked[account2address] == account1.address:
-					self.isLocked[account2address] = account1.address
-					self.save()
-					break
-				if time_to_close < dt.datetime.today():
-					raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
-			time.sleep(1)
+	def lock_loop(self, account1, account2address, time_to_close, finish):
+		self.save(announce='Lock:' + account1.address + ':' + account2address + ':')
+		_par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
+		if _par is not None:
+			_par = self.verify(_par, account2address)
+			_token = self.load_base_account(self.address)
+			_token.setParameters(_par, with_chain=False)
+			if _token is not None and account2address in _token.isLocked.keys() and _token.isLocked[account2address] == account1.address:
+				self.isLocked[account2address] = account1.address
+				self.save()
+				finish.finish = True
+				return
+
+		finish.finish = False
 
 	def getAmount(self, token):
 		return self.amount[token.address]
 
 	def load_wallet(self):
-		if self.wallet is None:
-			return CWallet(self.accountName.replace('wonabru','main'))
-		else:
-			return self.wallet
+		try:
+			return CWallet(self.address)
+		except Exception as ex:
+			print('load wallet', 'could not found wallet: '+str(ex))
 
 	def save_atomic_transaction(self, atomic_transaction, announce=''):
+		self.wallet = atomic_transaction.sender.load_wallet()
 		_key = atomic_transaction.recipient.address
 		_value = atomic_transaction.getParameters()
+		_value.append(['Signature', self.wallet.sign(str(_value))])
+
 		self.kade.save(announce+_key, _value, announce=announce)
 
 	def save_transaction(self, transaction, announce=''):
@@ -111,100 +106,153 @@ class CBaseAccount():
 		atomic = CAtomicTransaction(self, recipient, amount, optData='Simple TXN', token=token)
 		recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')
 
-		_signature = None
-		while dt.datetime.today() < time_to_close:
-			recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')
-			_signature = self.kade.look_at('SignatureRecipient:'+atomic.getHash())
-			if _signature is not None:
-				break
-			if time_to_close < dt.datetime.today():
-				raise Exception('Sign Transaction fails', 'Could not obtain valid signature from recipient till '+str(time_to_close))
-			time.sleep(1)
+		return atomic, time_to_close
 
+	def send_loop(self, recipient, atomic, time_to_close, finish):
+		recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')
+		_signature = self.kade.look_at('SignatureRecipient:' + atomic.getHash())
+		if _signature is not None:
+			self.after_send_loop(recipient, atomic, _signature, time_to_close)
+			finish.finish = True
+			return
+
+		finish.finish = False
+
+	def after_send_loop(self, recipient, atomic, signature, time_to_close):
+		from transaction import CTransaction
 		self.wallet = self.load_wallet()
 		_my_signature = self.wallet.sign(atomic.getHash())
 		txn = CTransaction(time_to_close, 1)
-		if txn.add(atomic, _my_signature, _signature) < 2:
-			raise Exception('Error in sending', 'Sending fails. Other fatal error')
 
-		self.save_transaction(txn, announce='FinalTransaction:'+atomic.getHash())
-		self.save()
-		recipient.save()
+		if self.chain.check_transaction_to_add(txn.check_add_return_hash(atomic, _my_signature, signature)):
 
-		return True
+			if txn.add(atomic, _my_signature, signature) < 2:
+				raise Exception('Error in sending', 'Sending fails. Other fatal error')
+
+			self.chain.addTransaction(txn)
+			self.save_transaction(txn, announce='FinalTransaction:'+atomic.getHash())
+			self.save()
+			recipient.save()
+		else:
+			print('Transaction is just on place')
 
 	def process_transaction(self, txn, time_to_close):
-		from transaction import CTransaction
 		_txn = CTransaction(time_to_close, 1)
 		_txn.setParameters(self.kade, txn)
 		for i in range(_txn.noAtomicTransactions):
 			_atomic = _txn.atomicTransactions[i]
+			_atomic = CAtomicTransaction(_atomic.sender, _atomic.recipient,
+										 _atomic.amount, _atomic.optData, _atomic.token, _atomic.time)
 			_sender = _txn.senders[i]
 			_recipient = _txn.recipients[i]
 			_signSender = _txn.signatures[_sender.address]
 			_signRecipient = _txn.signatures[_recipient.address]
-			_txn.remove(_atomic,_signSender, _signRecipient)
+			_txn.remove_atomic_for_addresses(_signSender, _signRecipient, _sender.address, _recipient.address)
 			_txn.add(_atomic,_signSender, _signRecipient)
+			_atomic.token.chain.addTransaction(_txn)
+			_atomic.sender.chain.addTransaction(_txn)
+			_atomic.recipient.chain.addTransaction(_txn)
 			_atomic.token.save()
-			_sender.save()
-			_recipient.save()
-
-
-
+			_atomic.sender.save()
+			_atomic.recipient.save()
 
 	def getParameters(self, with_chain=True):
-		_uniqueAccounts, _accountsCreated = self.chain.getParameters()
+		_uniqueAccounts, _accountsCreated, _transactions = self.chain.getParameters()
 		if with_chain:
 			return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), self.main_account, \
-				   str({a: v for a, v in _accountsCreated.items()}), str(list(_uniqueAccounts.keys()))
+				   str({a: v for a, v in _accountsCreated.items()}), str(list(_uniqueAccounts.keys())), \
+				   str({a: v for a, v in _transactions.items()})
 		else:
 			return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), \
-					   self.main_account, "{}", "{}"
+					   self.main_account, "{}", "{}", "{}"
 
 	def setParameters(self, par, with_chain=True):
-		decimalPlace, amount, address, accountName, isLocked, main_account, acc_created, acc_chain = par
+		decimalPlace, amount, address, accountName, isLocked, main_account, acc_created, acc_chain, transactions = par
 		if with_chain:
+
+			acc_chain = str2obj(acc_chain)
+			acc_created = str2obj(acc_created)
+			transactions = str2obj(transactions)
+
 			_temp_chain = {}
-			acc_chain = ast.literal_eval(acc_chain.replace('true', 'True').replace('false', 'False'))
-			acc_created = ast.literal_eval(acc_created.replace('true', 'True').replace('false', 'False'))
 			for acc in acc_chain:
-				_temp_chain[acc] = CBaseAccount(self.kade, '__tempBaseAccount__', acc)
+				_temp_chain[acc] = CBaseAccount(self.kade, '?', acc)
 				_temp_chain[acc].update(with_chain=False)
-			self.chain.setParameters([acc_created, _temp_chain])
+
+			_temp_transactions = {}
+			for txn in transactions:
+				_tx = CTransaction(dt.datetime.today(), 1)
+				par = self.kade.get('txn:' + txn)
+				_tx.setParameters(self.kade, par)
+				_temp_transactions[_tx.getHash()] = _tx
+			self.chain.setParameters([acc_created, _temp_chain, _temp_transactions])
 
 		self.decimalPlace = decimalPlace
 		self.amount = amount
 		self.address = address
 		self.accountName = accountName
 		self.main_account = main_account
-		self.isLocked = ast.literal_eval(isLocked.replace('true', 'True').replace('false', 'False'))
+		self.isLocked = str2obj(isLocked)
 
 	def save(self, announce=''):
-		_acc_chain, _acc_created = self.chain.getParameters()
-		par = self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), self.main_account,\
-			  str(_acc_created), str(list(_acc_chain.keys()))
-		if self.accountName != '' and self.address != '' and self.accountName.find('__') < 0:
+		_acc_chain, _acc_created, _transactions = self.chain.getParameters()
+
+		self.save_transactions(_transactions)
+
+		par = [self.decimalPlace, self.amount, self.address, self.accountName[1:], str(self.isLocked),
+			   self.main_account, str(_acc_created), str(list(_acc_chain.keys())), str(list(_transactions.keys()))]
+
+		if self.accountName != '' and self.address != '' and self.accountName.find('?') < 0:
 			if announce == '':
 				announce = 'Account:'
-			print('SAVED = ' + str(self.kade.save(self.address, par, announce)))
+
+			self.wallet = self.load_wallet()
+			if self.wallet is not None and self.wallet.pubKey == self.address:
+				par.append(['Signature', self.wallet.sign(str(par))])
+				self.verify(par, self.address)
+				print('SAVED = ' + str(self.kade.save(self.address, par, announce)))
+			else:
+				print('No signature','wrong wallet was load')
+
+	def save_transactions(self, transactions):
+
+		for _key, tx in transactions.items():
+			_value = tx.getParameters()
+			self.kade.save(_key, _value, 'txn:')
 
 	def update(self, with_chain = True):
-		_par = self.kade.get(self.address)
-		if _par is not None:
-			decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = _par
-			self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
-								_acc_created, _acc_chain], with_chain)
-		else:
-			self.update_look_at(with_chain=with_chain)
+		_par = self.kade.get('Account:' + self.address)
 
+		if _par is not None:
+			_par = self.verify(_par, self.address)
+			if _par is not None:
+				decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain, _txn = _par
+
+				self.setParameters([decimalPlace, amount, address, '@'+accountName, isLocked, main_account,
+									_acc_created, _acc_chain, _txn], with_chain)
+
+		else:
+			self.update_look_at(with_chain=False)
 
 	def update_look_at(self, with_chain = True):
 		_par = self.kade.look_at('Account:'+self.address)
 		if _par is not None:
-			decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain = _par
-			self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
-								_acc_created, _acc_chain], with_chain)
+			_par = self.verify(_par, self.address)
+			if _par is not None:
+				decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain, _txn = _par
+				self.setParameters([decimalPlace, amount, address, '#'+accountName, isLocked, main_account,
+									_acc_created, _acc_chain, _txn], with_chain)
 
+	def verify(self, message, address):
+
+		_signature = message[-1][1]
+		_check = message[-1][0]
+		_message = message[:-1]
+
+		if not CWallet().verify(str(_message), _signature, address):
+			raise Exception('Verification Fails', 'Message does not have valid signature' + str(message))
+
+		return _message
 
 	def show(self):
 		ret = ' ' + self.accountName + ' = ' + str(self.address) + '\n'
@@ -215,6 +263,8 @@ class CBaseAccount():
 		ret += ', '.join(['%s' % (key[:5]) for (key, value) in self.chain.uniqueAccounts.items()])
 		ret += '\nLockedAccounts: '
 		ret += ', '.join(['%s' % (key[:5]) for (key, value) in self.isLocked.items()])
+		ret += '\nTransactions: '
+		ret += ', '.join(['%s' % (key[:5]) for (key, value) in self.chain.transactions.items()])
 		ret += '\nEnd print'
 		print(ret)
 		return ret

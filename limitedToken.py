@@ -1,7 +1,7 @@
 from account import CAccount
 
 class CLimitedToken(CAccount):
-    def __init__(self, DB, tokenName, totalSupply, creator, address, save=True):
+    def __init__(self, DB, tokenName, totalSupply, creator, address):
         self.creator = 0
         super().__init__(DB, tokenName, creator, address)
         self.totalSupply = totalSupply
@@ -9,55 +9,42 @@ class CLimitedToken(CAccount):
             self.owner = CAccount(DB, '__creator__', None, -1)
         else:
             self.owner = creator
-            self.owner.setAmount(self, totalSupply, save=save)
-        self.setAmount(self, 0, save=save)
+            self.owner.setAmount(self, totalSupply)
+        self.setAmount(self, 0)
 
     def copyFromBaseLimitToken(self, baseLimitToken):
         token = CLimitedToken(self.kade, baseLimitToken.accountName, baseLimitToken.totalSupply,
                               baseLimitToken, address=baseLimitToken.address)
+
+        token.chain = baseLimitToken.chain
+
         return token
 
     def save(self, announce=''):
         super().save(announce)
-        self.kade.save('limitedToken ' + self.address, [self.totalSupply, self.owner.address])
+        self.kade.save('limitedToken:' + self.address, [self.totalSupply, self.owner.address])
 
-    def update(self):
+    def update(self, with_chain=True):
         super().update()
-        par = self.kade.get('limitedToken ' + self.address)
+        par = self.kade.get('limitedToken:' + self.address)
         self.totalSupply, _address = par
         _account = CAccount(self.kade, '__tempLimited__', None, _address)
-        _account.update()
+        _account.update(with_chain)
         self.owner = _account
-        '''
-        for acc in self.chain.uniqueAccounts:
-            if acc != self.address:
-                self.chain.uniqueAccounts[acc].update()
-        '''
 
     def showAll(self):
-        self.update()
+        #self.update()
         totalSupply = 0
         for acc in self.chain.uniqueAccounts:
-            try:
-                self.chain.uniqueAccounts[acc].show()
-                totalSupply += self.chain.uniqueAccounts[acc].amount[self.address]
-            except:
-                pass
-        
-        return self.accountName + ' total Supply: ' + str(totalSupply)
+            #self.chain.uniqueAccounts[acc].update(with_chain=False)
+            self.chain.uniqueAccounts[acc].show()
+            totalSupply = totalSupply + self.chain.uniqueAccounts[acc].amount[self.address] \
+                if self.address in self.chain.uniqueAccounts[acc].amount.keys() else totalSupply
+
+        ret = self.accountName + ' total Supply: ' + str(self.totalSupply) + ' and on all accounts: ' + str(totalSupply)
+        return ret
 
     def handshake(self, account_1, account_2, attacher):
-
-        list1 = account_1.chain.uniqueAccounts
-        list2 = account_2.chain.uniqueAccounts
-
-        '''
-        account = None
-        for key, value in list1.items():
-            if key in list2:
-                account = value
-                break
-        '''
 
         if attacher is not None:
             account_1.chain.uniqueAccounts[account_2.address] = account_2
@@ -98,7 +85,7 @@ class CLimitedToken(CAccount):
         else:
             self.chain.accountsCreated[attacher.address] += 1
 
-        account.setAmount(self, 0, save=False)
+        account.setAmount(self, 0)
         self.chain.uniqueAccounts[account.address] = account
         account.chain.uniqueAccounts[self.address] = self
 

@@ -1,6 +1,7 @@
 import logging
 import asyncio
 from kademlia.network import Server
+import time
 
 class CDataBase(object):
     def __init__(self):
@@ -12,13 +13,14 @@ class CDataBase(object):
         if self.server is None:
             self.loop = asyncio.get_event_loop()
             self.server = Server(ksize=100, alpha=10)
-            #self.loop.run_until_complete(self.server.listen(self.port+1000))
+            self.loop.run_until_complete(self.server.listen(self.port))
+
             handler = logging.StreamHandler()
             formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
             log = logging.getLogger('kademlia')
             log.addHandler(handler)
-            log.setLevel(logging.CRITICAL)
+            log.setLevel(logging.DEBUG)
             self.loop.set_debug(True)
 
     def set(self, key, value):

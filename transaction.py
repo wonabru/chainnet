@@ -3,7 +3,7 @@ import pickle
 from Crypto import Hash
 from wallet import CWallet, serialize
 from genesis import CGenesis
-
+from isolated_functions import *
 
 
 def check_if_common_connection(sender, recipient):
@@ -61,7 +61,7 @@ class CAtomicTransaction():
         _token = self.token.getParameters(with_chain=False)
         _sender = self.sender.getParameters(with_chain=False)
         _recipient = self.recipient.getParameters(with_chain=False)
-        return _token, _sender, _recipient, self.amount, self.optData, self.time
+        return [_token, _sender, _recipient, self.amount, self.optData, self.time]
 
     def setParameters(self, par):
         _token, _sender, _recipient, self.amount, self.optData, self.time = par
@@ -97,7 +97,7 @@ class CTransaction():
         _senders = [sender.getParameters(with_chain=False) for sender in self.senders]
         _recipients = [recipient.getParameters(with_chain=False) for recipient in self.recipients]
         _signatures = str(self.signatures)
-        return _atomics, _signatures, _senders, _recipients, self.timeToClose, self.noAtomicTransactions
+        return [_atomics, _signatures, _senders, _recipients, self.timeToClose, self.noAtomicTransactions]
 
     def get_for_hash(self):
         _atomics = [atomic.get_for_hash() for atomic in self.atomicTransactions]
@@ -108,27 +108,26 @@ class CTransaction():
 
     def setParameters(self, DB, par):
         from account import CAccount
-        import ast
 
         _atomics, _signatures, _senders, _recipients, self.timeToClose, self.noAtomicTransactions = par
 
         response = {}
         try:
-            response = ast.literal_eval(_signatures.replace('true', 'True').replace('false', 'False'))
+            response = str2obj(_signatures)
         except:
             pass
         self.signatures = response
 
         self.senders = []
         for _sender in _senders:
-            _temp_sender = CAccount(DB, '__tempTransaction__', None, None)
+            _temp_sender = CAccount(DB, '?', None, None)
             _temp_sender.setParameters(_sender, with_chain=False)
             _temp_sender.update(with_chain=False)
             self.senders.append(_temp_sender)
 
         self.recipients = []
         for _recipient in _recipients:
-            _temp_recipient = CAccount(DB, '__tempTransaction__', None, None)
+            _temp_recipient = CAccount(DB, '?', None, None)
             _temp_recipient.setParameters(_recipient, with_chain=False)
             _temp_recipient.update(with_chain=False)
             self.recipients.append(_temp_recipient)
@@ -136,16 +135,16 @@ class CTransaction():
 
         self.atomicTransactions = []
         for _atomic in _atomics:
-            _temp = CAtomicTransaction(CAccount(DB, '__temp__', None, ""),
-                                       CAccount(DB, '__temp__', None, ""),
+            _temp = CAtomicTransaction(CAccount(DB, '?', None, ""),
+                                       CAccount(DB, '?', None, ""),
                                        -1, "",
-                                       CAccount(DB, '__temp__', None, ""))
+                                       CAccount(DB, '?', None, ""))
             _temp.setParameters(_atomic)
             self.atomicTransactions.append(_temp)
 
 
-    def add(self, atomicTransaction, signSender, signRecipient):
-        
+    def check_add_return_hash(self, atomicTransaction, signSender, signRecipient):
+
         if self.noAtomicTransactions == len(self.atomicTransactions):
             raise Exception('Add Transaction',
                             'Stack is full. Please first remove one atomicTransaction in order to add new one')
@@ -153,44 +152,70 @@ class CTransaction():
         if self.verify(atomicTransaction, signSender, signRecipient) == False:
             raise Exception('Add Transaction', 'Verification fails')
 
-        
         try:
-            if dt.datetime.strptime(self.timeToClose, '%Y-%m-%d %H:%M:%S') < dt.datetime.strptime(atomicTransaction.time, '%Y-%m-%d %H:%M:%S'):
+            if dt.datetime.strptime(self.timeToClose, '%Y-%m-%d %H:%M:%S') < dt.datetime.strptime(
+                    atomicTransaction.time, '%Y-%m-%d %H:%M:%S'):
                 raise Exception('Add Transaction', 'Time to finish transaction just elapsed')
 
-        except:
-            raise Exception('Add Transaction', 'AtomicTransaction fails to build')
+        except Exception as ex:
+            raise Exception('Add Transaction', 'AtomicTransaction fails to build' + str(ex))
 
-        
         self.atomicTransactions.append(atomicTransaction)
         self.senders.append(atomicTransaction.sender)
         self.recipients.append(atomicTransaction.recipient)
-        
+
         self.signatures[atomicTransaction.sender.address] = signSender
-            
+
         self.signatures[atomicTransaction.recipient.address] = signRecipient
+
+        hash = self.getHash()
+
+        self.atomicTransactions.remove(atomicTransaction)
+        self.senders.remove(atomicTransaction.sender)
+        self.recipients.remove(atomicTransaction.recipient)
+        del self.signatures[atomicTransaction.sender.address]
+        del self.signatures[atomicTransaction.recipient.address]
+
+        return hash
+
+    def add(self, atomicTransaction, signSender, signRecipient):
         
+        self.check_add_return_hash(atomicTransaction, signSender, signRecipient)
+
+        self.atomicTransactions.append(atomicTransaction)
+        self.senders.append(atomicTransaction.sender)
+        self.recipients.append(atomicTransaction.recipient)
+
+        self.signatures[atomicTransaction.sender.address] = signSender
+
+        self.signatures[atomicTransaction.recipient.address] = signRecipient
+
         if self.noAtomicTransactions == len(self.atomicTransactions):
             if self.checkTransaction() == True:
                 for atomic in self.atomicTransactions:
-                    if atomic.sender.addAmount(atomic.token, -atomic.amount, False) == False or atomic.recipient.addAmount(atomic.token, atomic.amount, False) == False:
+                    if atomic.sender.addAmount(atomic.token, -atomic.amount) == False or atomic.recipient.addAmount(atomic.token, atomic.amount) == False:
                         raise Exception('Add Transaction','sender has not enough funds')
 
-                    
                     atomic.sender.chain.addTransaction(self)
                     atomic.recipient.chain.addTransaction(self)
+                    atomic.token.chain.addTransaction(self)
+
                     try:
                         if atomic.sender.address != CGenesis().initAccountPubKey:
                             del atomic.token.isLocked[atomic.sender.address]
                     except:
-                        raise Exception('Add Transaction', "Key sender address not found in isLocked")
+                        print('Add Transaction', "Key sender address not found in isLocked")
                     try:
                         if atomic.sender.address != CGenesis().initAccountPubKey:
                             del atomic.token.isLocked[atomic.recipient.address]
                     except:
-                        raise Exception('Add Transaction', "Key recipient address not found in isLocked")
-                    
+                        print('Add Transaction', "Key recipient address not found in isLocked")
+
                     if atomic.sender.address != CGenesis().initAccountPubKey:
+                        atomic.sender.save()
+                        atomic.recipient.save()
+                        atomic.token.save()
+
                         return 2
                 return 1
             else:
@@ -202,6 +227,18 @@ class CTransaction():
             raise Exception('Remove Transaction', 'Verification fails')
 
         self.atomicTransactions.remove(atomicTransaction)
+        return True
+
+    def remove_atomic_for_addresses(self, signSender, signRecipient, senderAddress, recipientAddress):
+
+        _atomicTransactions = []
+        for atomic in self.atomicTransactions:
+            if atomic.sender.address != senderAddress and atomic.recipient.address != recipientAddress:
+                _atomicTransactions.append(atomic)
+            elif self.verify(atomic, signSender, signRecipient) == False:
+                raise Exception('Remove Transaction', 'Verification fails')
+
+        self.atomicTransactions = _atomicTransactions
         return True
 
     def checkTransaction(self):
@@ -219,8 +256,8 @@ class CTransaction():
         return digest.hexdigest()
 
     def verify(self, atomicTransaction, signSender, signRecipient):
-        if signSender == '__future__' or CWallet().verify(atomicTransaction.getHash(), signSender, atomicTransaction.sender.address):
-            if signRecipient == '__future__' or  CWallet().verify(atomicTransaction.getHash(), signRecipient, atomicTransaction.recipient.address):
+        if CWallet().verify(atomicTransaction.getHash(), signSender, atomicTransaction.sender.address):
+            if CWallet().verify(atomicTransaction.getHash(), signRecipient, atomicTransaction.recipient.address):
                 return True
             else:
                 raise Exception('Verify Transaction', 'Recipient signature is not valid')

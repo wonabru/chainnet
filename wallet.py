@@ -1,36 +1,13 @@
-from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 from Crypto import Hash
-from base64 import b64decode,b64encode
-import pickle
-
-
-def serialize(message):
-	return pickle.dumps(message)
-
-def unserialize(ser_message):
-	return pickle.loads(ser_message)
-
-def encode(n):
-	b = bytearray()
-	while n:
-		b.append(n & 0xFF)
-		n >>= 8
-	return b64encode(b).decode('utf-8')
-
-def decode(s):
-	b = bytearray(b64decode(s.encode('utf-8')))  # in case you're passing in a bytes/str
-	return sum((1 << (bi * 8)) * bb for (bi, bb) in enumerate(b))
-
-class rsa_temp:
-	key = RSA.generate(1024)
+from isolated_functions import *
 
 class CWallet:
-	def __init__(self, name_of_wallet = None):
-		if name_of_wallet is None:
+	def __init__(self, name_of_wallet = None, from_scratch=False):
+		if name_of_wallet is None or name_of_wallet.find('?') >= 0:
 			return
 		else:
-			self.RSAkey = self.checkWalletExist(name_of_wallet)
+			self.RSAkey = self.checkWalletExist(name_of_wallet, raiseErrorIfNotExist=not from_scratch)
 		self.pubKey = self.getPublicKey(self.RSAkey)
 
 	def getPublicKey(self, key):
@@ -65,13 +42,15 @@ class CWallet:
 		priv.key.e = int(values['e'])
 		return priv
 
-	def saveWallet(self, priv, name):
-		with open("./wallets/" + name + ".wallet.dat", 'wb') as outfile:
-			outfile.write(priv)
+	def saveWallet(self, priv, name, overwrite=False):
+		import os
+		if os.path.isfile("./wallets/" + remove_special_char(name[:20]) + ".wallet.dat") == False or overwrite == True:
+			with open("./wallets/" + remove_special_char(name[:20]) + ".wallet.dat", 'wb') as outfile:
+				outfile.write(priv)
 
 	def loadWallet(self, name):
 		try:
-			with open("./wallets/" + name + ".wallet.dat", 'rb') as file:
+			with open("./wallets/" + remove_special_char(name[:20]) + ".wallet.dat", 'rb') as file:
 				data = file.read()
 		except:
 			return None
@@ -81,14 +60,17 @@ class CWallet:
 		values = self.jsonifyKey(key)
 		return self.privfromJson(values)
 
-	def checkWalletExist(self, name_of_wallet, raiseErrorIfNotExist = False):
+	def checkWalletExist(self, name_of_wallet, raiseErrorIfNotExist = True):
 		self.RSAkey = self.loadWallet(name_of_wallet)
-		if raiseErrorIfNotExist and self.RSAkey is None: raise 'Wallet file "' + name_of_wallet + '.wallet.dat" not found !!'
+		if raiseErrorIfNotExist and self.RSAkey is None:
+			print('Wallet file ' + name_of_wallet + '.wallet.dat not found !!')
+			return None
 		if self.RSAkey is None:
 			self.RSAkey = RSA.generate(1024)
-			self.saveWallet(self.exportDER(self.RSAkey), name_of_wallet)
+			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey))
 		else:
 			self.RSAkey = self.importFromDER(self.RSAkey)
+			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey))
 
 		return self.RSAkey
 

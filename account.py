@@ -1,15 +1,12 @@
-import numpy as np
-from chain import CChain
 from baseAccount import CBaseAccount
 from initBlock import CInitBlock
-from baseLimitedToken import CBaseLimitedToken
 from genesis import CGenesis
+import time
 
 class CAccount(CBaseAccount):
     def __init__(self, DB, accountName, creator, address):
         self.kade = DB
         super().__init__(DB, accountName, address)
-
         self.init_block = None
         self.initTransaction = None
         self.creator = creator
@@ -25,7 +22,7 @@ class CAccount(CBaseAccount):
             print('Warning: creator is not valid account')
 
     def copyFromBaseAccount(self, baseAccount):
-        account = self.create(baseAccount.accountName, baseAccount, baseAccount.address, save=False)
+        account = CAccount(self.kade, baseAccount.accountName, baseAccount, baseAccount.address)
         account.decimalPlace = baseAccount.decimalPlace
         account.amount = baseAccount.amount
         account.chain = baseAccount.chain
@@ -47,7 +44,6 @@ class CAccount(CBaseAccount):
 
     def invite(self, accountName, creator, address, save=True):
         from transaction import check_if_common_connection
-        self.kade.get('Account:' + address)
 
         account = CAccount(self.kade, accountName, creator, address)
         account.update_look_at()
@@ -56,7 +52,43 @@ class CAccount(CBaseAccount):
         #self.chain.uniqueAccounts[account.address] = account
         #account.chain.uniqueAccounts[self.address] = self
         if save:
-            account.save(announce='DO NOT SAVE LOCAL')
+            account.save(announce='EXTERNAL')
+            self.save()
+            creator.save()
+        return account
+
+    def inviteLimitedToken(self, accountName, creator, address, save=True):
+        from transaction import check_if_common_connection
+        from limitedToken import CLimitedToken
+
+        account = CLimitedToken(self.kade, accountName, 0, creator, address)
+        while account.accountName.find('?') > 0:
+            account.update_look_at()
+            time.sleep(1)
+        check_if_common_connection(creator, account)
+
+        #self.chain.uniqueAccounts[account.address] = account
+        #account.chain.uniqueAccounts[self.address] = self
+        if save:
+            account.save(announce='EXTERNAL')
+            self.save()
+            creator.save()
+        return account
+
+    def inviteActionToken(self, accountName, creator, address, save=True):
+        from transaction import check_if_common_connection
+        from actionToken import CActionToken
+
+        account = CActionToken(self.kade, accountName, 0, creator, address)
+        while account.accountName.find('?') > 0:
+            account.update_look_at()
+            time.sleep(1)
+        check_if_common_connection(creator, account)
+
+        #self.chain.uniqueAccounts[account.address] = account
+        #account.chain.uniqueAccounts[self.address] = self
+        if save:
+            account.save(announce='EXTERNAL')
             self.save()
             creator.save()
         return account
