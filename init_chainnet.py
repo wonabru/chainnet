@@ -171,7 +171,7 @@ class CInitChainnet:
 				except Exception as ex:
 					messagebox.showerror(title='Error updating account in update_my_accounts', message=str(ex))
 
-			_temp_my_main_account = self.select_my_acount_by_name(self.my_main_account.accountName, update=False)
-			self.my_main_account = _temp_my_main_account if _temp_my_main_account is not None else self.my_main_account
+			_temp_my_main_account = self.select_my_acount_by_name(self.my_account.accountName, update=False)
+			self.my_account = _temp_my_main_account if _temp_my_main_account is not None else self.my_account
 		except Exception as ex:
 			print('No database found', str(ex))

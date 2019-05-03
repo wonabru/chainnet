@@ -47,3 +47,11 @@ def decode(s):
 
 class rsa_temp:
 	key = RSA.generate(1024)
+
+
+def showError(self, ex):
+	if len(ex.args) > 1:
+		_title, _err = ex.args
+	else:
+		_title, _err = 'Other error', ex.args
+	messagebox.showerror(title=str(_title), message=str(_err))

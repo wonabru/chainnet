@@ -259,13 +259,6 @@ class Application(tk.Frame):
 		except Exception as ex:
 			self.showError(ex)
 
-	def showError(self, ex):
-		if len(ex.args) > 1:
-			_title, _err = ex.args
-		else:
-			_title, _err = 'Other error', ex.args
-		messagebox.showerror(title=str(_title), message=str(_err))
-
 	def look_for_deal(self):
 		try:
 			_announcement = {}
