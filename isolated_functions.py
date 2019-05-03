@@ -14,7 +14,7 @@ def remove_special_char(in_seq):
 	:param in_seq: list of strings
 	:return: list of strings
 	"""
-	_sub = re.sub(" {1,5}", "_", in_seq.strip()).upper()
+	_sub = re.sub(" {1,5}", "_", in_seq.strip()).lower()
 	_chars = ['*', '\\', '&', '/', '+']
 	for x in _chars: _sub = _sub.replace(x, '_')
 	return _sub

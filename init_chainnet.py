@@ -15,6 +15,7 @@ class CInitChainnet:
 		self.tokens = {}
 		self.my_accounts_names = {}
 		self.wallet = CWallet('@main')
+		#CWallet().saveWallet(CWallet().exportDER(CGenesis().getPrivKey()), CWallet().getPublicKey(CGenesis().getPrivKey()))
 		self.DB = CSQLLite()
 
 		self.Qcoin = CInitBlock(self.DB)
@@ -61,9 +62,13 @@ class CInitChainnet:
 
 		if self.check_is_first_account():
 			self.my_account = self.first_account
-			self.my_accounts[self.baseToken.address] = {'account': self.baseToken, 'wallet': CGenesis().getPrivKey()}
 		else:
 			self.my_account = CAccount(self.DB, '@main', 0, self.wallet.pubKey)
+
+		qcoin_wallet = CWallet(self.baseToken.address)
+
+		if qcoin_wallet is not None:
+			self.my_accounts[self.baseToken.address] = {'account': self.baseToken, 'wallet': qcoin_wallet}
 
 		if self.DB.get('Account:' + self.my_account.address) is None:
 			self.my_account.main_account = 1
