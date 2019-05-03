@@ -1,10 +1,10 @@
 import numpy as np
 import datetime as dt
 from chain import CChain
-import ast
 from wallet import CWallet
 from genesis import CGenesis
 from transaction import CTransaction, CAtomicTransaction
+from isolated_functions import *
 
 class CBaseAccount():
 	def __init__(self, DB, accountName, address):
@@ -167,9 +167,9 @@ class CBaseAccount():
 		decimalPlace, amount, address, accountName, isLocked, main_account, acc_created, acc_chain, transactions = par
 		if with_chain:
 
-			acc_chain = ast.literal_eval(acc_chain.replace('true', 'True').replace('false', 'False'))
-			acc_created = ast.literal_eval(acc_created.replace('true', 'True').replace('false', 'False'))
-			transactions = ast.literal_eval(transactions.replace('true', 'True').replace('false', 'False'))
+			acc_chain = str2obj(acc_chain)
+			acc_created = str2obj(acc_created)
+			transactions = str2obj(transactions)
 
 			_temp_chain = {}
 			for acc in acc_chain:
@@ -189,7 +189,7 @@ class CBaseAccount():
 		self.address = address
 		self.accountName = accountName
 		self.main_account = main_account
-		self.isLocked = ast.literal_eval(isLocked.replace('true', 'True').replace('false', 'False'))
+		self.isLocked = str2obj(isLocked)
 
 	def save(self, announce=''):
 		_acc_chain, _acc_created, _transactions = self.chain.getParameters()
@@ -254,7 +254,7 @@ class CBaseAccount():
 			_par = self.verify(_par, self.address)
 			if _par is not None:
 				decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain, _txn = _par
-				self.setParameters([decimalPlace, amount, address, 'External: '+accountName, isLocked, main_account,
+				self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
 									_acc_created, _acc_chain, _txn], with_chain)
 
 

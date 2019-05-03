@@ -6,14 +6,10 @@ from wallet import CWallet
 from actionToken import CActionToken
 from limitedToken import CLimitedToken
 from account import CAccount
-import ast
 from tkinter import scrolledtext
 from transaction import CAtomicTransaction
 import datetime as dt
-
-
-class CFinish:
-	finish = False
+from isolated_functions import *
 
 class Application(tk.Frame):
 	def __init__(self, master, chainnet):
@@ -23,9 +19,9 @@ class Application(tk.Frame):
 		self.my_main_account = self.chainnet.my_account
 
 		self.column_nr = {}
-		self.my_accounts_names = {}
+		self.chainnet.my_accounts_names = {}
 		self.master = master
-		self.update_my_accounts()
+		self.chainnet.update_my_accounts()
 		self.create_tabs()
 
 		self.create_account_tab()
@@ -37,30 +33,8 @@ class Application(tk.Frame):
 		self.pack()
 		self.add_node('')
 		self.save_all_my_accounts()
-		self.update_my_accounts()
+		self.chainnet.update_my_accounts()
 		self.recreate_account_tab()
-
-	def update_my_accounts(self):
-		try:
-			self.init_account = self.chainnet.Qcoin.initAccount
-
-			_my_accounts = self.chainnet.get_my_accounts()
-			for acc in _my_accounts:
-
-				_account = CAccount(self.my_main_account.kade, '__tempRun__', None, acc)
-				try:
-					_account.load_wallet()
-					_account.update(with_chain=True)
-
-					self.chainnet.my_accounts[_account.address] = {'account': _account, 'wallet': _account.wallet}
-					self.my_accounts_names[_account.address] = _account.accountName
-				except Exception as ex:
-					messagebox.showerror(title='Error updating account in update_my_accounts', message=str(ex))
-
-			_temp_my_main_account = self.select_my_acount_by_name(self.my_main_account.accountName, update=False)
-			self.my_main_account = _temp_my_main_account if _temp_my_main_account is not None else self.my_main_account
-		except Exception as ex:
-			print('No database found', str(ex))
 
 	def create_tabs(self):
 		self.tab_control = ttk.Notebook(self.master)
@@ -127,7 +101,7 @@ class Application(tk.Frame):
 		self.info_txt.delete(1.0, tk.END)
 		self.info_txt.insert(tk.INSERT, "Account: \n" + account+"\n")
 		self.info_txt.insert(tk.INSERT, "Token: \n" + token+"\n")
-		_account = self.select_my_acount_by_name(account)
+		_account = self.chainnet.select_my_acount_by_name(account, update=False)
 		self.info_txt.insert(tk.INSERT, _account.show() + "\n")
 		_token = self.chainnet.get_token_by_name(token)
 		self.info_txt.insert(tk.INSERT, _token.show() + "\n")
@@ -294,7 +268,7 @@ class Application(tk.Frame):
 			if _my_accounts is None:
 				_my_accounts = [self.my_main_account.address]
 			else:
-				_my_accounts = ast.literal_eval(_my_accounts.replace('true', 'True').replace('false', 'False'))
+				_my_accounts = str2obj(_my_accounts)
 			for acc in _my_accounts:
 				_announcement[acc] = DB.look_at('AtomicTransaction:' + 'AtomicTransaction:' + acc)
 				if _announcement[acc] is not None:
@@ -355,8 +329,8 @@ class Application(tk.Frame):
 
 	def lock(self, my_account, other_account, token, waiting_time):
 		try:
-			self.update_my_accounts()
-			my_account = self.select_my_acount_by_name(my_account)
+			self.chainnet.update_my_accounts()
+			my_account = self.chainnet.select_my_acount_by_name(my_account)
 			token = self.chainnet.get_token_by_name(token)
 			_wallet = my_account.load_wallet()
 			time_to_close = dt.datetime.today() + dt.timedelta(seconds=float(waiting_time))
@@ -383,9 +357,9 @@ class Application(tk.Frame):
 
 	def attach(self, account, attacher, token):
 		try:
-			self.update_my_accounts()
+			self.chainnet.update_my_accounts()
 			account = self.chainnet.my_accounts[account]['account']
-			attacher = self.select_my_acount_by_name(attacher)
+			attacher = self.chainnet.select_my_acount_by_name(attacher)
 			token = self.chainnet.get_token_by_name(token)
 			if attacher.address in token.chain.uniqueAccounts:
 				if token.attach(account, attacher=attacher):
@@ -408,8 +382,8 @@ class Application(tk.Frame):
 	def send_coins(self, from_account, to_account, amount, token, wating_time):
 		try:
 			amount = float(amount)
-			self.update_my_accounts()
-			from_account = self.select_my_acount_by_name(from_account)
+			self.chainnet.update_my_accounts()
+			from_account = self.chainnet.select_my_acount_by_name(from_account)
 			to_account = self.chainnet.my_accounts[to_account]['account']
 			token = self.chainnet.get_token_by_name(token)
 			if to_account.address in token.chain.uniqueAccounts:
@@ -530,9 +504,6 @@ class Application(tk.Frame):
 		                                                                                                  columnspan=2,
 		                                                                                                  rowspan=2)
 
-	def get_my_accounts_names(self):
-		return self.my_accounts_names.values()
-
 	def create_new_account(self, accountName, address, initSupply):
 		if accountName == '':
 			messagebox.showwarning(title='Account name', message='Account name cannot be empty')
@@ -541,8 +512,8 @@ class Application(tk.Frame):
 			messagebox.showwarning(title='Account address', message='Proper account address must be set')
 			return
 
-		self.update_my_accounts()
-		if accountName in self.get_my_accounts_names():
+		self.chainnet.update_my_accounts()
+		if accountName in self.chainnet.get_my_accounts_names():
 			messagebox.showwarning(title='Account name', message='There is just such an account name in your wallet')
 			return
 
@@ -665,17 +636,8 @@ class Application(tk.Frame):
 		except Exception as ex:
 			self.showError(ex)
 
-	def select_my_acount_by_name(self, name, update=True):
-
-		if update: self.update_my_accounts()
-
-		for add, acc in self.chainnet.my_accounts.items():
-			if acc['account'].accountName == name.split(' ')[0]:
-				return acc['account']
-		return None
-
 	def update_amounts(self):
-		self.update_my_accounts()
+		self.chainnet.update_my_accounts()
 		self.chainnet.load_tokens()
 		for _acc in self.chainnet.my_accounts:
 			_account = self.chainnet.my_accounts[_acc]['account']

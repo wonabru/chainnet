@@ -3,7 +3,7 @@ import pickle
 from Crypto import Hash
 from wallet import CWallet, serialize
 from genesis import CGenesis
-
+from isolated_functions import *
 
 
 def check_if_common_connection(sender, recipient):
@@ -108,13 +108,12 @@ class CTransaction():
 
     def setParameters(self, DB, par):
         from account import CAccount
-        import ast
 
         _atomics, _signatures, _senders, _recipients, self.timeToClose, self.noAtomicTransactions = par
 
         response = {}
         try:
-            response = ast.literal_eval(_signatures.replace('true', 'True').replace('false', 'False'))
+            response = str2obj(_signatures)
         except:
             pass
         self.signatures = response

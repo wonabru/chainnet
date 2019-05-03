@@ -33,10 +33,10 @@ class CLimitedToken(CAccount):
         self.owner = _account
 
     def showAll(self):
-        self.update()
+        #self.update()
         totalSupply = 0
         for acc in self.chain.uniqueAccounts:
-            self.chain.uniqueAccounts[acc].update(with_chain=False)
+            #self.chain.uniqueAccounts[acc].update(with_chain=False)
             self.chain.uniqueAccounts[acc].show()
             totalSupply = totalSupply + self.chain.uniqueAccounts[acc].amount[self.address] \
                 if self.address in self.chain.uniqueAccounts[acc].amount.keys() else totalSupply

@@ -1,7 +1,7 @@
 from sqllite import CDataBase as sqllite
 from kademliaGetSet import CDataBase
 import socket
-
+from isolated_functions import *
 
 instance_kade = None
 
@@ -53,14 +53,13 @@ class CSQLLite():
         print('KADEMLIA SET: ',key,' = ',self.kade.set(key=key, value=str(value)))
 
     def look_at(self, key):
-        import ast
         if isinstance(key, str) == False: key = str(key)
         response = self.kade.get(key=key)
 
         if response is not None:
             #self.save(key, response)
             try:
-                response = ast.literal_eval(response.replace('true', 'True').replace('false', 'False'))
+                response = str2obj(response)
             except:
                 pass
         return response
