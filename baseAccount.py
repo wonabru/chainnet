@@ -80,7 +80,7 @@ class CBaseAccount():
 		return self.amount[token.address]
 
 	def load_wallet(self):
-		return CWallet(self.accountName)
+		return CWallet(self.address)
 
 	def save_atomic_transaction(self, atomic_transaction, announce=''):
 		self.wallet = atomic_transaction.sender.load_wallet()

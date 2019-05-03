@@ -18,9 +18,9 @@ class CInitBlock(CGenesis):
 
             self.kade = kade
             self.baseTotalSupply = 23000000.23
-            self.initAccount = CBaseLimitedToken(self.kade, 'Q', self.baseTotalSupply, address=self.initAccountPubKey)
+            self.initAccount = CBaseLimitedToken(self.kade, '@Q', self.baseTotalSupply, address=self.initAccountPubKey)
             self.initAccount.amount[self.initAccount.address] = self.baseTotalSupply
-            self.firstAccount = CBaseAccount(self.kade, 'wonabru', address=self.first_accountPubKey)
+            self.firstAccount = CBaseAccount(self.kade, '@wonabru', address=self.first_accountPubKey)
 
             #self.wallet_first = CWallet('wonabru')
 
