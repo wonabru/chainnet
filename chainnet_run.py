@@ -248,7 +248,9 @@ class Application(tk.Frame):
 
 			self.update_amounts()
 			messagebox.showinfo(title='Receive with success', message=self.atomicTransaction.sender.accountName + ' sent ' +
-																   str(self.atomicTransaction.amount) + ' of ' + self.atomicTransaction.token.accountName + ' to account ' +
+																   str(self.atomicTransaction.amount) + ' of ' +
+																	  self.atomicTransaction.token.accountName +
+																	  ' to account ' +
 																   self.atomicTransaction.recipient.accountName)
 		except Exception as ex:
 			self.showError(ex)
@@ -271,6 +273,7 @@ class Application(tk.Frame):
 				_my_accounts = str2obj(_my_accounts)
 			for acc in _my_accounts:
 				_announcement[acc] = DB.look_at('AtomicTransaction:' + 'AtomicTransaction:' + acc)
+
 				if _announcement[acc] is not None:
 					self.atomicTransaction = CAtomicTransaction(CAccount(DB, '__temp1__', None, "1"),
 											   CAccount(DB, '__temp2__', None, "2"),
@@ -285,47 +288,63 @@ class Application(tk.Frame):
 	def create_send_tab(self):
 		tk.Label(self.send_tab, text='Choose token name:',
 								font=("Arial", 16)).grid(row=1, column=0)
+
 		self.tokens_cmb = ttk.Combobox(self.send_tab)
 		self.tokens_cmb['values'] = [str(token.accountName) for key, token in self.chainnet.tokens.items()]
 		self.tokens_cmb.grid(row=2, column=0)
+
 		tk.Label(self.send_tab, text='From account by name:',
 								font=("Arial", 16)).grid(row=1, column=1)
+
 		self.my_accounts_cmb = ttk.Combobox(self.send_tab)
-		self.my_accounts_cmb['values'] = [acc['account'].accountName+' '+
-		                                  ''.join(str(value)+' '+str(self.chainnet.get_token(key).accountName+' ')
-		                                           for key, value in acc['account'].amount.items())
-		                                  for acc in self.chainnet.my_accounts.values()]
+		self.my_accounts_cmb['values'] = [acc['account'].accountName for acc in self.chainnet.my_accounts.values()]
 		self.my_accounts_cmb.grid(row=2, column=1)
+
 		tk.Label(self.send_tab, text='To account by address:',
 								font=("Arial", 16)).grid(row=4, column=1)
+
 		self.send_address_ent = tk.Entry(self.send_tab, width=30, font=("Arial", 16))
 		self.send_address_ent.grid(row=5, column=1)
+
 		_amount = tk.DoubleVar()
 		tk.Label(self.send_tab, text='Amount to send:',
 								font=("Arial", 16)).grid(row=4, column=0)
-		self.amount_spin = tk.Spinbox(self.send_tab, from_=0, to=100000000000, width=12, font=("Arial", 16), textvariable=_amount)
+
+		self.amount_spin = tk.Spinbox(self.send_tab, from_=0, to=100000000000, width=12,
+									  font=("Arial", 16), textvariable=_amount)
 		self.amount_spin.grid(row=5, column=0)
 		_amount.set(1)
+
 		tk.Label(self.send_tab, text='Max waiting time in seconds:',
 								font=("Arial", 16)).grid(row=6, column=0)
+
 		self.waiting_time_ent = tk.Entry(self.send_tab, width=10, font=("Arial", 16))
 		self.waiting_time_ent.insert(tk.END, '3600')
 		self.waiting_time_ent.grid(row=7, column=0)
+
 		tk.Button(self.send_tab, text="Lock Account", bg='orange', fg='blue', font=("Arial", 20),
 									command=lambda: self.lock(self.my_accounts_cmb.get(),
 																	self.send_address_ent.get(),
 									                                self.tokens_cmb.get(),
-									                                self.waiting_time_ent.get())).grid(row=1, column=2, rowspan=2)
+									                                self.waiting_time_ent.get())).grid(row=1,
+																									   column=2,
+																									   rowspan=2)
+
 		tk.Button(self.send_tab, text="Send", bg='orange', fg='blue', font=("Arial", 20),
 									command=lambda: self.send_coins(self.my_accounts_cmb.get(),
 																	self.send_address_ent.get(),
 									                                self.amount_spin.get(),
 									                                self.tokens_cmb.get(),
-									                                self.waiting_time_ent.get())).grid(row=3, column=2, rowspan=2)
+									                                self.waiting_time_ent.get())).grid(row=3,
+																									   column=2,
+																									   rowspan=2)
+
 		tk.Button(self.send_tab, text="Attach recipient to Token", bg='yellow', fg='red', font=("Arial", 20),
 									command=lambda: self.attach(self.send_address_ent.get(),
 																self.my_accounts_cmb.get(),
-									                                self.tokens_cmb.get())).grid(row=5, column=2, rowspan=2)
+									                                self.tokens_cmb.get())).grid(row=5,
+																								 column=2,
+																								 rowspan=2)
 
 	def lock(self, my_account, other_account, token, waiting_time):
 		try:
