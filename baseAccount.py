@@ -59,11 +59,12 @@ class CBaseAccount():
 							account2address+' till '+str(time_to_close))
 
 		#save means announce to World
-		account1.save(announce='Lock:'+account1.address+':'+account2address+':'+self.address)
+		self.save(announce='Lock:'+account1.address+':'+account2address+':', who_is_signing=account1)
 
 	def lock_loop(self, account1, account2address, time_to_close, finish):
-		account1.save(announce='Lock:' + account1.address + ':' + account2address + ':' + self.address)
-		_par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address + account2address)
+
+		self.save(announce='Lock:' + account1.address + ':' + account2address + ':', who_is_signing=account1)
+		_par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
 		if _par is not None:
 			_par = self.verify(_par, account2address)
 			_token = self.load_base_account(self.address)
@@ -196,7 +197,7 @@ class CBaseAccount():
 		self.main_account = main_account
 		self.isLocked = str2obj(isLocked)
 
-	def save(self, announce=''):
+	def save(self, announce='', who_is_signing=None):
 		_acc_chain, _acc_created, _transactions = self.chain.getParameters()
 
 		self.save_transactions(_transactions)
@@ -208,13 +209,16 @@ class CBaseAccount():
 			if announce == '':
 				announce = 'Account:'
 
-			self.load_wallet()
-			if self.wallet is not None and self.wallet.pubKey == self.address:
-				par.append(['Signature', self.wallet.sign(str(par))])
-				self.verify(par, self.address)
+			if who_is_signing is None:
+				self.load_wallet()
+				who_is_signing = self
+
+			try:
+				par.append(['Signature', who_is_signing.wallet.sign(str(par))])
+				self.verify(par, who_is_signing.address)
 				print('SAVED = ' + str(self.kade.save(self.address, par, announce)))
-			else:
-				print('SAVED = ' + str(self.kade.save(self.address, self.address, announce='EXTERNAL')))
+			except:
+				print('SAVED NO SIGN = ' + str(self.kade.save(self.address, self.address, announce='EXTERNAL')))
 				print('No signature','wrong wallet was load')
 
 	def save_transactions(self, transactions):
