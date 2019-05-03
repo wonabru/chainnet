@@ -139,13 +139,13 @@ class CBaseAccount():
 		else:
 			print('Transaction is just on place')
 
-	def process_transaction(self, txn, time_to_close):
+	def process_transaction(self, txn, time_to_close, atomicTransactions_list):
 		_txn = CTransaction(time_to_close, 1)
 		_txn.setParameters(self.kade, txn)
 		for i in range(_txn.noAtomicTransactions):
 			_atomic = _txn.atomicTransactions[i]
-			_atomic = CAtomicTransaction(_atomic.sender, _atomic.recipient,
-										 _atomic.amount, _atomic.optData, _atomic.token, _atomic.time)
+			_atomic = CAtomicTransaction(atomicTransactions_list[i].sender, atomicTransactions_list[i].recipient,
+										 _atomic.amount, _atomic.optData, atomicTransactions_list[i].token, _atomic.time)
 			_sender = _txn.senders[i]
 			_recipient = _txn.recipients[i]
 			_signSender = _txn.signatures[_sender.address]

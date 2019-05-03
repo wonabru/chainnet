@@ -209,56 +209,6 @@ class Application(tk.Frame):
 		tk.Button(self.receive_tab, text="Sign", bg='orange', fg='black', font=("Arial", 16),
 									command=lambda: self.sign_receive(self.to_address_ent.get())).grid(row=4, column=2, rowspan=2)
 
-	def in_background(self):
-		self.atomicTransaction = None
-		self.look_for_deal()
-
-		if self.atomicTransaction is not None:
-			self.tokens_ent.delete(0, tk.END)
-			self.tokens_ent.insert(0, self.atomicTransaction.token.accountName)
-			self.from_account_ent.delete(0, tk.END)
-			self.from_account_ent.insert(0, self.atomicTransaction.sender.address)
-			self.to_address_ent.delete(0, tk.END)
-			self.to_address_ent.insert(0, self.atomicTransaction.recipient.address)
-			self.amount_ent.delete(0, tk.END)
-			self.amount_ent.insert(0, str(self.atomicTransaction.amount))
-			self.time_to_close_ent.delete(0, tk.END)
-			self.time_to_close_ent.insert(0, self.atomicTransaction.time)
-
-	def sign_receive(self, address):
-
-		def loop(finish):
-			_txn = DB.look_at('FinalTransaction:'+self.atomicTransaction.getHash()+':Transaction')
-			if _txn is not None:
-				_account.process_transaction(_txn, dt.datetime.today())
-				finish.finish = True
-				return
-			finish.finish = False
-
-		try:
-			DB = self.my_main_account.kade
-			_account = self.chainnet.my_accounts[address]['account']
-			_account.wallet = self.chainnet.my_accounts[address]['wallet']
-			_signature = _account.wallet.sign(self.atomicTransaction.getHash())
-			DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
-
-			_finish = CFinish()
-
-			for i in range(30):
-				if _finish.finish == False:
-					self.after(1000 * i, loop, _finish)
-				else:
-					break
-
-			self.update_amounts()
-			messagebox.showinfo(title='Receive with success', message=self.atomicTransaction.sender.accountName + ' sent ' +
-																   str(self.atomicTransaction.amount) + ' of ' +
-																	  self.atomicTransaction.token.accountName +
-																	  ' to account ' +
-																   self.atomicTransaction.recipient.accountName)
-		except Exception as ex:
-			showError(ex)
-
 	def look_for_deal(self):
 		try:
 			_announcement = {}
@@ -279,6 +229,63 @@ class Application(tk.Frame):
 					_messsage = _announcement[acc][:-1]
 					self.atomicTransaction.setParameters(_messsage)
 					self.atomicTransaction.sender.verify(_announcement[acc], self.atomicTransaction.sender.address)
+
+					self.atomicTransaction.sender = self.chainnet.my_accounts[self.atomicTransaction.sender.address][
+						'account']
+					self.atomicTransaction.recipient = self.chainnet.my_accounts[
+						self.atomicTransaction.recipient.address]['account']
+					self.atomicTransaction.token = self.chainnet.tokens[self.atomicTransaction.token.address]
+
+		except Exception as ex:
+			showError(ex)
+			
+	def in_background(self):
+		self.atomicTransaction = None
+		self.look_for_deal()
+
+		if self.atomicTransaction is not None:
+			self.tokens_ent.delete(0, tk.END)
+			self.tokens_ent.insert(0, self.atomicTransaction.token.accountName)
+			self.from_account_ent.delete(0, tk.END)
+			self.from_account_ent.insert(0, self.atomicTransaction.sender.address)
+			self.to_address_ent.delete(0, tk.END)
+			self.to_address_ent.insert(0, self.atomicTransaction.recipient.address)
+			self.amount_ent.delete(0, tk.END)
+			self.amount_ent.insert(0, str(self.atomicTransaction.amount))
+			self.time_to_close_ent.delete(0, tk.END)
+			self.time_to_close_ent.insert(0, self.atomicTransaction.time)
+
+	def sign_receive(self, address):
+
+		def loop(finish, atomic):
+			_txn = DB.look_at('FinalTransaction:'+self.atomicTransaction.getHash()+':Transaction')
+			if _txn is not None:
+				_account.process_transaction(_txn, dt.datetime.today(), [atomic, ])
+				finish.finish = True
+				return
+			finish.finish = False
+
+		try:
+			DB = self.my_main_account.kade
+			_account = self.chainnet.my_accounts[address]['account']
+			_account.wallet = self.chainnet.my_accounts[address]['wallet']
+			_signature = _account.wallet.sign(self.atomicTransaction.getHash())
+			DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
+
+			_finish = CFinish()
+
+			for i in range(30):
+				if _finish.finish == False:
+					self.after(1000 * i, loop, _finish, self.atomicTransaction)
+				else:
+					break
+
+			self.update_amounts()
+			messagebox.showinfo(title='Received successful', message=self.atomicTransaction.sender.accountName + ' sent ' +
+																   str(self.atomicTransaction.amount) + ' of ' +
+																	  self.atomicTransaction.token.accountName +
+																	  ' to account ' +
+																   self.atomicTransaction.recipient.accountName)
 		except Exception as ex:
 			showError(ex)
 
