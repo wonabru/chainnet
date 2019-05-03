@@ -62,7 +62,7 @@ class CBaseAccount():
 		account1.save(announce='Lock:'+account1.address+':'+account2address+':')
 
 	def lock_loop(self, account1, account2address, time_to_close, finish):
-		self.save(announce='Lock:' + account1.address + ':' + account2address + ':')
+		account1.save(announce='Lock:' + account1.address + ':' + account2address + ':')
 		_par = self.kade.look_at('Lock:'+account2address+':'+account1.address+':'+self.address)
 		if _par is not None:
 			_par = self.verify(_par, account2address)
