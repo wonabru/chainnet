@@ -44,7 +44,6 @@ class CAccount(CBaseAccount):
 
     def invite(self, accountName, creator, address, save=True):
         from transaction import check_if_common_connection
-        self.kade.get('Account:' + address)
 
         account = CAccount(self.kade, accountName, creator, address)
         account.update_look_at()
@@ -61,7 +60,6 @@ class CAccount(CBaseAccount):
     def inviteLimitedToken(self, accountName, creator, address, save=True):
         from transaction import check_if_common_connection
         from limitedToken import CLimitedToken
-        self.kade.get('Account:' + address)
 
         account = CLimitedToken(self.kade, accountName, 0, creator, address)
         while account.accountName.find('__') > 0:
@@ -80,7 +78,6 @@ class CAccount(CBaseAccount):
     def inviteActionToken(self, accountName, creator, address, save=True):
         from transaction import check_if_common_connection
         from actionToken import CActionToken
-        self.kade.get('Account:' + address)
 
         account = CActionToken(self.kade, accountName, 0, creator, address)
         while account.accountName.find('__') > 0:

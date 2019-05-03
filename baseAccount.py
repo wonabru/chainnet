@@ -233,6 +233,15 @@ class CBaseAccount():
 			self.update_look_at(with_chain=False)
 
 
+	def update_look_at(self, with_chain = True):
+		_par = self.kade.look_at('Account:'+self.address)
+		if _par is not None:
+			_par = self.verify(_par, self.address)
+			if _par is not None:
+				decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain, _txn = _par
+				self.setParameters([decimalPlace, amount, address, accountName+':', isLocked, main_account,
+									_acc_created, _acc_chain, _txn], with_chain)
+
 	def verify(self, message, address, local_message=False):
 
 		_signature = message[-1][1]
@@ -247,16 +256,6 @@ class CBaseAccount():
 			return _message
 		else:
 			return _message
-
-	def update_look_at(self, with_chain = True):
-		_par = self.kade.look_at('Account:'+self.address)
-		if _par is not None:
-			_par = self.verify(_par, self.address)
-			if _par is not None:
-				decimalPlace, amount, address, accountName, isLocked, main_account, _acc_created, _acc_chain, _txn = _par
-				self.setParameters([decimalPlace, amount, address, accountName, isLocked, main_account,
-									_acc_created, _acc_chain, _txn], with_chain)
-
 
 	def show(self):
 		ret = ' ' + self.accountName + ' = ' + str(self.address) + '\n'

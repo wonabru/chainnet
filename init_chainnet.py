@@ -70,8 +70,9 @@ class CInitChainnet:
 			self.my_account.save()
 
 		if not self.check_is_first_account():
-			self.my_account.inviteLimitedToken(self.baseToken.accountName, self.baseToken.creator,
-											   self.baseToken.address, save=False)
+			self.baseToken = self.my_account.inviteLimitedToken(self.baseToken.accountName, self.baseToken.creator,
+											   					self.baseToken.address, save=False)
+			self.baseToken.save(announce='EXTERNAL')
 
 		self.my_accounts[self.my_account.address] = {'account': self.my_account, 'wallet': self.wallet}
 		self.DB.save('my_main_accounts', str(list(set(self.my_accounts.keys()))))
