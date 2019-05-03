@@ -48,7 +48,7 @@ class CInitChainnet:
 	def get_token_by_name(self, name):
 
 		for key, token in self.tokens.items():
-			if token.accountName == trim_name(name):
+			if token.accountName == name:
 				return token
 		return None
 
@@ -119,7 +119,7 @@ class CInitChainnet:
 		if update: self.update_my_accounts()
 
 		for add, acc in self.my_accounts.items():
-			if acc['account'].accountName == trim_name(name):
+			if acc['account'].accountName == name:
 				return acc['account']
 		return None
 
