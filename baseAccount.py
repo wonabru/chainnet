@@ -188,8 +188,11 @@ class CBaseAccount():
 			for txn in transactions:
 				_tx = CTransaction(dt.datetime.today(), 1)
 				par = self.kade.get('txn:' + txn)
-				_tx.setParameters(self.kade, par)
-				_temp_transactions[_tx.getHash()] = _tx
+				if par is not None:
+					_tx.setParameters(self.kade, par)
+					_temp_transactions[txn] = _tx
+				else:
+					_temp_transactions[txn] = None
 			self.chain.setParameters([acc_created, _temp_chain, _temp_transactions])
 
 		self.decimalPlace = decimalPlace
@@ -226,7 +229,10 @@ class CBaseAccount():
 	def save_transactions(self, transactions):
 
 		for _key, tx in transactions.items():
-			_value = tx.getParameters()
+			if tx is not None:
+				_value = tx.getParameters()
+			else:
+				_value = None
 			self.kade.save(_key, _value, 'txn:')
 
 	def update(self, with_chain = 2):

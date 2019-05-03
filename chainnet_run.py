@@ -238,7 +238,7 @@ class Application(tk.Frame):
 
 		except Exception as ex:
 			showError(ex)
-			
+
 	def in_background(self):
 		self.atomicTransaction = None
 		self.look_for_deal()
