@@ -6,7 +6,7 @@ class CLimitedToken(CAccount):
         super().__init__(DB, tokenName, creator, address)
         self.totalSupply = totalSupply
         if creator is None:
-            self.owner = CAccount(DB, '__creator__', None, -1)
+            self.owner = CAccount(DB, '?', None, -1)
         else:
             self.owner = creator
             self.owner.setAmount(self, totalSupply)
@@ -24,11 +24,13 @@ class CLimitedToken(CAccount):
         super().save(announce)
         self.kade.save('limitedToken:' + self.address, [self.totalSupply, self.owner.address])
 
-    def update(self, with_chain=True):
-        super().update()
+    def update(self, with_chain=2):
         par = self.kade.get('limitedToken:' + self.address)
         self.totalSupply, _address = par
-        _account = CAccount(self.kade, '__tempLimited__', None, _address)
+
+        super().update()
+
+        _account = CAccount(self.kade, '?', None, _address)
         _account.update(with_chain)
         self.owner = _account
 

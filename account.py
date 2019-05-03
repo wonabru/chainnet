@@ -96,8 +96,8 @@ class CAccount(CBaseAccount):
     def save(self, announce=''):
         super().save(announce)
         
-    def update(self, with_chain=True):
+    def update(self, with_chain=2):
         super().update(with_chain=with_chain)
 
-    def update_look_at(self, with_chain=True):
+    def update_look_at(self, with_chain=2):
         super().update_look_at(with_chain=with_chain)

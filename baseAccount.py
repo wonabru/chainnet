@@ -156,7 +156,7 @@ class CBaseAccount():
 			_atomic.sender.save()
 			_atomic.recipient.save()
 
-	def getParameters(self, with_chain=True):
+	def getParameters(self, with_chain=1):
 		_uniqueAccounts, _accountsCreated, _transactions = self.chain.getParameters()
 		if with_chain:
 			return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), self.main_account, \
@@ -166,9 +166,11 @@ class CBaseAccount():
 			return self.decimalPlace, self.amount, self.address, self.accountName, str(self.isLocked), \
 					   self.main_account, "{}", "{}", "{}"
 
-	def setParameters(self, par, with_chain=True):
+	def setParameters(self, par, with_chain=1):
 		decimalPlace, amount, address, accountName, isLocked, main_account, acc_created, acc_chain, transactions = par
 		if with_chain:
+			with_chain -= 1
+			if with_chain <= 0: with_chain = 0
 
 			acc_chain = str2obj(acc_chain)
 			acc_created = str2obj(acc_created)
@@ -177,7 +179,7 @@ class CBaseAccount():
 			_temp_chain = {}
 			for acc in acc_chain:
 				_temp_chain[acc] = CBaseAccount(self.kade, '?', acc)
-				_temp_chain[acc].update(with_chain=False)
+				_temp_chain[acc].update(with_chain=with_chain)
 
 			_temp_transactions = {}
 			for txn in transactions:
@@ -221,7 +223,7 @@ class CBaseAccount():
 			_value = tx.getParameters()
 			self.kade.save(_key, _value, 'txn:')
 
-	def update(self, with_chain = True):
+	def update(self, with_chain = 2):
 		_par = self.kade.get('Account:' + self.address)
 
 		if _par is not None:
@@ -233,7 +235,9 @@ class CBaseAccount():
 									_acc_created, _acc_chain, _txn], with_chain)
 
 		else:
-			self.update_look_at(with_chain=False)
+			with_chain -= 1
+			if with_chain <= 0: with_chain = 0
+			self.update_look_at(with_chain=with_chain)
 
 	def update_look_at(self, with_chain = True):
 		_par = self.kade.look_at('Account:'+self.address)
