@@ -8,22 +8,25 @@ class CActionToken(CAccount):
         self.minAmount = 10 ** -self.decimalPlace
         self.totalSupply = initialSupply
         if creator is None:
-            self.owner = CAccount(DB, '__creator__', None, -1)
+            self.owner = CAccount(DB, '?', None, -1)
         else:
             self.owner = creator
             self.owner.setAmount(self, initialSupply)
         self.setAmount(self, 0)
 
-    def save(self, announce=''):
-        super().save(announce)
+    def save(self, announce='', who_is_signing=None):
+        super().save(announce, who_is_signing)
         self.kade.save('actionToken:' + self.address, [self.totalSupply, self.owner.address])
 
-    def update(self, with_chain=True):
-        super().update()
-        self.minAmount = 10 ** -self.decimalPlace
+    def update(self, with_chain=2):
         par = self.kade.get('actionToken:' + self.address)
         self.totalSupply, _address = par
-        _account = CAccount(self.kade, '__tempAction__', None, _address)
+
+        super().update()
+
+        self.minAmount = 10 ** -self.decimalPlace
+
+        _account = CAccount(self.kade, '?', None, _address)
         _account.update(with_chain)
         self.owner = _account
 

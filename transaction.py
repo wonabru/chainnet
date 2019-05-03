@@ -58,19 +58,19 @@ class CAtomicTransaction():
             self.time = time
 
     def getParameters(self):
-        _token = self.token.getParameters(with_chain=False)
-        _sender = self.sender.getParameters(with_chain=False)
-        _recipient = self.recipient.getParameters(with_chain=False)
+        _token = self.token.getParameters(with_chain=0)
+        _sender = self.sender.getParameters(with_chain=0)
+        _recipient = self.recipient.getParameters(with_chain=0)
         return [_token, _sender, _recipient, self.amount, self.optData, self.time]
 
     def setParameters(self, par):
         _token, _sender, _recipient, self.amount, self.optData, self.time = par
-        self.token.setParameters(_token, with_chain=False)
-        self.token.update(with_chain=False)
-        self.sender.setParameters(_sender, with_chain=False)
-        self.sender.update(with_chain=False)
-        self.recipient.setParameters(_recipient, with_chain=False)
-        self.recipient.update(with_chain=False)
+        self.token.setParameters(_token, with_chain=0)
+        self.token.update(with_chain=0)
+        self.sender.setParameters(_sender, with_chain=0)
+        self.sender.update(with_chain=0)
+        self.recipient.setParameters(_recipient, with_chain=0)
+        self.recipient.update(with_chain=0)
 
     def get_for_hash(self):
         _token = self.token.address
@@ -94,8 +94,8 @@ class CTransaction():
 
     def getParameters(self):
         _atomics = [atomic.getParameters() for atomic in self.atomicTransactions]
-        _senders = [sender.getParameters(with_chain=False) for sender in self.senders]
-        _recipients = [recipient.getParameters(with_chain=False) for recipient in self.recipients]
+        _senders = [sender.getParameters(with_chain=0) for sender in self.senders]
+        _recipients = [recipient.getParameters(with_chain=0) for recipient in self.recipients]
         _signatures = str(self.signatures)
         return [_atomics, _signatures, _senders, _recipients, self.timeToClose, self.noAtomicTransactions]
 

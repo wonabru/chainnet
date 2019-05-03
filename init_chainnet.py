@@ -46,6 +46,7 @@ class CInitChainnet:
 		return self.tokens[address]
 
 	def get_token_by_name(self, name):
+
 		for key, token in self.tokens.items():
 			if token.accountName == name:
 				return token
@@ -118,7 +119,7 @@ class CInitChainnet:
 		if update: self.update_my_accounts()
 
 		for add, acc in self.my_accounts.items():
-			if acc['account'].accountName == name.split(':')[0]:
+			if acc['account'].accountName == name:
 				return acc['account']
 		return None
 
@@ -137,13 +138,16 @@ class CInitChainnet:
 		for acc in _my_accounts:
 			try:
 				_token = CLimitedToken(self.DB, '?', None, None, acc)
+				_token.load_wallet()
 				_token.update()
 			except:
 				try:
 					_token = CActionToken(self.DB, '?', None, None, acc)
+					_token.load_wallet()
 					_token.update()
 				except Exception as ex:
 					_token = self.baseToken if acc == CGenesis().initAccountPubKey else None
+					_token.load_wallet()
 
 			if _token is not None:
 				self.tokens[_token.address] = _token
@@ -155,23 +159,28 @@ class CInitChainnet:
 
 
 	def update_my_accounts(self):
+		self.load_tokens()
 		try:
 			self.init_account = self.Qcoin.initAccount
 
 			_my_accounts = self.get_my_accounts()
 			for acc in _my_accounts:
+				if acc in self.tokens.keys():
 
-				_account = CAccount(self.DB, '?', None, acc)
-				try:
-					_account.load_wallet()
-					_account.update(with_chain=True)
+					self.my_accounts[acc] = {'account': self.tokens[acc], 'wallet': self.tokens[acc].wallet}
+					self.my_accounts_names[acc] = self.tokens[acc].accountName
+				else:
+					_account = CAccount(self.DB, '?', None, acc)
+					try:
+						_account.load_wallet()
+						_account.update(with_chain=True)
 
-					self.my_accounts[_account.address] = {'account': _account, 'wallet': _account.wallet}
-					self.my_accounts_names[_account.address] = _account.accountName
-				except Exception as ex:
-					messagebox.showerror(title='Error updating account in update_my_accounts', message=str(ex))
+						self.my_accounts[_account.address] = {'account': _account, 'wallet': _account.wallet}
+						self.my_accounts_names[_account.address] = _account.accountName
+					except Exception as ex:
+						showError(ex)
 
-			_temp_my_main_account = self.select_my_acount_by_name(self.my_main_account.accountName, update=False)
-			self.my_main_account = _temp_my_main_account if _temp_my_main_account is not None else self.my_main_account
+			_temp_my_main_account = self.select_my_acount_by_name(self.my_account.accountName, update=False)
+			self.my_account = _temp_my_main_account if _temp_my_main_account is not None else self.my_account
 		except Exception as ex:
 			print('No database found', str(ex))

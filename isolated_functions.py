@@ -3,9 +3,15 @@ import re
 import pickle
 from Crypto.PublicKey import RSA
 from base64 import b64decode,b64encode
+from tkinter import messagebox
 
 def str2obj(s):
     return ast.literal_eval(s.replace('true', 'True').replace('false', 'False'))
+
+
+def trim_name(name):
+
+	return name.replace('@','').replace('#','')
 
 
 def remove_special_char(in_seq):
@@ -47,3 +53,11 @@ def decode(s):
 
 class rsa_temp:
 	key = RSA.generate(1024)
+
+
+def showError(ex):
+	if len(ex.args) > 1:
+		_title, _err = ex.args
+	else:
+		_title, _err = 'Other error', ex.args
+	messagebox.showerror(title=str(_title), message=str(_err))

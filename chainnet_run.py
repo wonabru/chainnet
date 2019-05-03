@@ -209,63 +209,6 @@ class Application(tk.Frame):
 		tk.Button(self.receive_tab, text="Sign", bg='orange', fg='black', font=("Arial", 16),
 									command=lambda: self.sign_receive(self.to_address_ent.get())).grid(row=4, column=2, rowspan=2)
 
-	def in_background(self):
-		self.atomicTransaction = None
-		self.look_for_deal()
-
-		if self.atomicTransaction is not None:
-			self.tokens_ent.delete(0, tk.END)
-			self.tokens_ent.insert(0, self.atomicTransaction.token.accountName)
-			self.from_account_ent.delete(0, tk.END)
-			self.from_account_ent.insert(0, self.atomicTransaction.sender.address)
-			self.to_address_ent.delete(0, tk.END)
-			self.to_address_ent.insert(0, self.atomicTransaction.recipient.address)
-			self.amount_ent.delete(0, tk.END)
-			self.amount_ent.insert(0, str(self.atomicTransaction.amount))
-			self.time_to_close_ent.delete(0, tk.END)
-			self.time_to_close_ent.insert(0, self.atomicTransaction.time)
-
-	def sign_receive(self, address):
-
-		def loop(finish):
-			_txn = DB.look_at('FinalTransaction:'+self.atomicTransaction.getHash()+':Transaction')
-			if _txn is not None:
-				_account.process_transaction(_txn, dt.datetime.today())
-				finish.finish = True
-				return
-			finish.finish = False
-
-		try:
-			DB = self.my_main_account.kade
-			_account = self.chainnet.my_accounts[address]['account']
-			_wallet = _account.load_wallet()
-			_signature = _wallet.sign(self.atomicTransaction.getHash())
-			DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
-
-			_finish = CFinish()
-
-			for i in range(30):
-				if _finish.finish == False:
-					self.after(1000 * i, loop, _finish)
-				else:
-					break
-
-			self.update_amounts()
-			messagebox.showinfo(title='Receive with success', message=self.atomicTransaction.sender.accountName + ' sent ' +
-																   str(self.atomicTransaction.amount) + ' of ' +
-																	  self.atomicTransaction.token.accountName +
-																	  ' to account ' +
-																   self.atomicTransaction.recipient.accountName)
-		except Exception as ex:
-			self.showError(ex)
-
-	def showError(self, ex):
-		if len(ex.args) > 1:
-			_title, _err = ex.args
-		else:
-			_title, _err = 'Other error', ex.args
-		messagebox.showerror(title=str(_title), message=str(_err))
-
 	def look_for_deal(self):
 		try:
 			_announcement = {}
@@ -286,8 +229,65 @@ class Application(tk.Frame):
 					_messsage = _announcement[acc][:-1]
 					self.atomicTransaction.setParameters(_messsage)
 					self.atomicTransaction.sender.verify(_announcement[acc], self.atomicTransaction.sender.address)
+
+					self.atomicTransaction.sender = self.chainnet.my_accounts[self.atomicTransaction.sender.address][
+						'account']
+					self.atomicTransaction.recipient = self.chainnet.my_accounts[
+						self.atomicTransaction.recipient.address]['account']
+					self.atomicTransaction.token = self.chainnet.tokens[self.atomicTransaction.token.address]
+
 		except Exception as ex:
-			self.showError(ex)
+			showError(ex)
+
+	def in_background(self):
+		self.atomicTransaction = None
+		self.look_for_deal()
+
+		if self.atomicTransaction is not None:
+			self.tokens_ent.delete(0, tk.END)
+			self.tokens_ent.insert(0, self.atomicTransaction.token.accountName)
+			self.from_account_ent.delete(0, tk.END)
+			self.from_account_ent.insert(0, self.atomicTransaction.sender.address)
+			self.to_address_ent.delete(0, tk.END)
+			self.to_address_ent.insert(0, self.atomicTransaction.recipient.address)
+			self.amount_ent.delete(0, tk.END)
+			self.amount_ent.insert(0, str(self.atomicTransaction.amount))
+			self.time_to_close_ent.delete(0, tk.END)
+			self.time_to_close_ent.insert(0, self.atomicTransaction.time)
+
+	def sign_receive(self, address):
+
+		def loop(finish, atomic):
+			_txn = DB.look_at('FinalTransaction:'+self.atomicTransaction.getHash()+':Transaction')
+			if _txn is not None:
+				_account.process_transaction(_txn, dt.datetime.today(), [atomic, ])
+				finish.finish = True
+				return
+			finish.finish = False
+
+		try:
+			DB = self.my_main_account.kade
+			_account = self.chainnet.my_accounts[address]['account']
+			_account.wallet = self.chainnet.my_accounts[address]['wallet']
+			_signature = _account.wallet.sign(self.atomicTransaction.getHash())
+			DB.save(key=self.atomicTransaction.getHash(), value=_signature, announce='SignatureRecipient:')
+
+			_finish = CFinish()
+
+			for i in range(30):
+				if _finish.finish == False:
+					self.after(1000 * i, loop, _finish, self.atomicTransaction)
+				else:
+					break
+
+			self.update_amounts()
+			messagebox.showinfo(title='Received successful', message=self.atomicTransaction.sender.accountName + ' sent ' +
+																   str(self.atomicTransaction.amount) + ' of ' +
+																	  self.atomicTransaction.token.accountName +
+																	  ' to account ' +
+																   self.atomicTransaction.recipient.accountName)
+		except Exception as ex:
+			showError(ex)
 
 	def create_send_tab(self):
 		tk.Label(self.send_tab, text='Choose token name:',
@@ -326,6 +326,12 @@ class Application(tk.Frame):
 		self.waiting_time_ent.insert(tk.END, '3600')
 		self.waiting_time_ent.grid(row=7, column=0)
 
+		self.lbl_Lock_info_value = tk.StringVar()
+		self.lbl_Lock_info = tk.Label(self.send_tab, textvariable=self.lbl_Lock_info_value,
+									  font=("Arial", 16)).grid(row=10, column=0, columnspan=3)
+
+		self.lbl_Lock_info_value.set('No lock')
+
 		tk.Button(self.send_tab, text="Lock Account", bg='orange', fg='black', font=("Arial", 16),
 									command=lambda: self.lock(self.my_accounts_cmb.get(),
 																	self.send_address_ent.get(),
@@ -355,10 +361,10 @@ class Application(tk.Frame):
 			self.chainnet.update_my_accounts()
 			my_account = self.chainnet.select_my_acount_by_name(my_account)
 			token = self.chainnet.get_token_by_name(token)
-			_wallet = my_account.load_wallet()
+			my_account.load_wallet()
 			time_to_close = dt.datetime.today() + dt.timedelta(seconds=float(waiting_time))
 
-			token.lockAccounts(my_account, _wallet.sign('Locking for deal: ' + my_account.address + ' + ' +
+			token.lockAccounts(my_account, my_account.wallet.sign('Locking for deal: ' + my_account.address + ' + ' +
 			                                          other_account + ' till ' + str(time_to_close)),
 			                   other_account, time_to_close)
 
@@ -366,6 +372,7 @@ class Application(tk.Frame):
 			for i in range(30):
 				if _finish.finish == False:
 					self.after(1000 * i, token.lock_loop, my_account, other_account, time_to_close, _finish)
+					self.after(1100 * i, self.lbl_Lock_info_value.set, 'Locked: '+str([l[:5] for l in token.isLocked.keys()]))
 				else:
 					break
 
@@ -376,7 +383,7 @@ class Application(tk.Frame):
 				messagebox.showinfo('Lock with Success', 'Locking for deal: ' + my_account.address + ' + ' +
 									other_account + ' till ' + str(time_to_close))
 		except Exception as ex:
-			self.showError(ex)
+			showError(ex)
 
 	def attach(self, account, attacher, token):
 		try:
@@ -400,7 +407,7 @@ class Application(tk.Frame):
 				messagebox.showerror(title='Attach', message=attacher.accountName + ' is not connected to ' +
 				                                                       token.accountName)
 		except Exception as ex:
-			self.showError(ex)
+			showError(ex)
 
 	def send_coins(self, from_account, to_account, amount, token, wating_time):
 		try:
@@ -432,7 +439,7 @@ class Application(tk.Frame):
 				messagebox.showerror(title='Send', message='You need first attach '+
 									 to_account.accountName+' to '+token.accountName)
 		except Exception as ex:
-			self.showError(ex)
+			showError(ex)
 
 	def radiobtn_change(self):
 
@@ -550,7 +557,7 @@ class Application(tk.Frame):
 			if self.selected_account.get() == 1:
 				_wallet = CWallet('', from_scratch=True)
 
-				_account = self.chainnet.baseToken.create(accountName=accountName, creator=self.my_main_account, address=_wallet.pubKey)
+				_account = self.chainnet.baseToken.create(accountName=accountName, creator=self.my_main_account, address=_wallet.pubKey, save=False)
 				if _account is None:
 					messagebox.showerror(title='Error in account creating', message='Account is not created')
 					return
@@ -668,11 +675,11 @@ class Application(tk.Frame):
 										_actionToken.accountName + ' is now invited')
 
 		except Exception as ex:
-			self.showError(ex)
+			showError(ex)
 
 	def update_amounts(self):
 		self.chainnet.update_my_accounts()
-		self.chainnet.load_tokens()
+
 		for _acc in self.chainnet.my_accounts:
 			_account = self.chainnet.my_accounts[_acc]['account']
 			for key, amount in _account.amount.items():
