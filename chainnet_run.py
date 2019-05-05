@@ -31,10 +31,10 @@ class Application(tk.Frame):
 		self.create_info_tab()
 		self.create_node_tab()
 		self.pack()
-		self.add_node('')
-		self.save_all_my_accounts()
-		self.chainnet.update_my_accounts()
-		self.recreate_account_tab()
+		#self.add_node('')
+		#self.save_all_my_accounts()
+		#self.chainnet.update_my_accounts()
+		#self.recreate_account_tab()
 
 	def create_tabs(self):
 		self.tab_control = ttk.Notebook(self.master)
@@ -373,7 +373,7 @@ class Application(tk.Frame):
 				if _finish.finish == False:
 					self.after(1000 * i, token.lock_loop, my_account, other_account, time_to_close, _finish)
 					self.after(1100 * i, self.lbl_Lock_info_value.set, 'Locked: for Token '+str(token.address[:5])
-							   + str([l[:5] for l in token.isLocked.keys()]))
+							   + ' ' + str([l[:5] for l in token.isLocked.keys()]))
 				else:
 					break
 
@@ -695,12 +695,25 @@ class Application(tk.Frame):
 global chainnet
 
 if __name__ == '__main__':
-
+	import dialogBoxPassword as passwd
 	root = tk.Tk()
 	root.title("Chainnet Wallet App")
 
-	chainnet = CInitChainnet()
 
-	app = Application(master=root, chainnet=chainnet)
+
+	dialogPasswd = passwd.Mbox
+	dialogPasswd.root = root
+
+	D = {'Password': ''}
+	D_change = {'current_password': ''}
+
+	b_login = tk.Button(root, text='Unlock Wallet')
+	b_login['command'] = lambda: dialogPasswd('Give password', (D, 'Password'))
+	b_login.pack()
+
+	b_login = tk.Button(root, text='Change password')
+	b_login['command'] = lambda: dialogPasswd(None).change_password((D_change, 'current_password'))
+	b_login.pack()
+
 	root.geometry('1000x600')
-	app.mainloop()
+	b_login.mainloop()

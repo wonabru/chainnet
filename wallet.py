@@ -6,13 +6,22 @@ import io
 
 class CWallet:
 	bufferSize = 64 * 1024
-	def __init__(self, name_of_wallet = None, from_scratch=False):
-		self.password = "strzalwkolano"
+	def __init__(self, name_of_wallet = None, password=None, from_scratch=False):
+
+		self.password = "zlehaslo" #""strzalwkolano"
+
 		if name_of_wallet is None or name_of_wallet.find('?') >= 0:
 			return
 		else:
+			self.password = password
 			self.RSAkey = self.checkWalletExist(name_of_wallet, raiseErrorIfNotExist=not from_scratch)
 		self.pubKey = self.getPublicKey(self.RSAkey)
+
+	def check_password(self, password):
+		_wallet = CWallet(name_of_wallet=None)
+		if _wallet.loadWallet('@main', password=password) is None:
+			return False
+		return True
 
 	def getPublicKey(self, key):
 		pub = encode(key.publickey().n)
@@ -72,7 +81,7 @@ class CWallet:
 				fin = io.BytesIO(data)
 				pyAesCrypt.decryptStream(fin, fdecrypt, password, self.bufferSize, len(fin.getvalue()))
 		except:
-			return self.load_wallet_not_ciphered(name)
+			return None
 		return fdecrypt.getvalue()
 
 	def redefineRSAkey(self, key):
@@ -93,7 +102,8 @@ class CWallet:
 
 		return self.RSAkey
 
-
+	def change_password(self, old_pssword, new_password):
+		messagebox.showwarning('Change Password', 'Not implemented. Use your old password')
 
 	def sign(self, message):
 		signer = PKCS1_v1_5.new(self.RSAkey)
