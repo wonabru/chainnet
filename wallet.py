@@ -1,14 +1,27 @@
 from Crypto.Signature import PKCS1_v1_5
 from Crypto import Hash
 from isolated_functions import *
+import pyAesCrypt
+import io
 
 class CWallet:
-	def __init__(self, name_of_wallet = None, from_scratch=False):
+	bufferSize = 64 * 1024
+	def __init__(self, name_of_wallet = None, password=None, from_scratch=False):
+
+		self.password = "zlehaslo" #""strzalwkolano"
+
 		if name_of_wallet is None or name_of_wallet.find('?') >= 0:
 			return
 		else:
+			self.password = password
 			self.RSAkey = self.checkWalletExist(name_of_wallet, raiseErrorIfNotExist=not from_scratch)
 		self.pubKey = self.getPublicKey(self.RSAkey)
+
+	def check_password(self, password):
+		_wallet = CWallet(name_of_wallet=None)
+		if _wallet.loadWallet('@main', password=password) is None:
+			return False
+		return True
 
 	def getPublicKey(self, key):
 		pub = encode(key.publickey().n)
@@ -42,13 +55,16 @@ class CWallet:
 		priv.key.e = int(values['e'])
 		return priv
 
-	def saveWallet(self, priv, name, overwrite=False):
+	def saveWallet(self, priv, name, password, overwrite=False):
 		import os
-		if os.path.isfile("./wallets/" + remove_special_char(name[:20]) + ".wallet.dat") == False or overwrite == True:
-			with open("./wallets/" + remove_special_char(name[:20]) + ".wallet.dat", 'wb') as outfile:
-				outfile.write(priv)
+		fCiph = io.BytesIO()
+		fin = io.BytesIO(priv)
+		if os.path.isfile("./wallets_cipher/" + remove_special_char(name[:20]) + ".wallet.dat") == False or overwrite == True:
+			with open("./wallets_cipher/" + remove_special_char(name[:20]) + ".wallet.dat", 'wb') as outfile:
+				pyAesCrypt.encryptStream(fin, fCiph, password, self.bufferSize)
+				outfile.write(fCiph.getvalue())
 
-	def loadWallet(self, name):
+	def load_wallet_not_ciphered(self, name):
 		try:
 			with open("./wallets/" + remove_special_char(name[:20]) + ".wallet.dat", 'rb') as file:
 				data = file.read()
@@ -56,25 +72,46 @@ class CWallet:
 			return None
 		return data
 
+	def loadWallet(self, name, password):
+		try:
+			fdecrypt = io.BytesIO()
+
+			with open("./wallets_cipher/" + remove_special_char(name[:20]) + ".wallet.dat", 'rb') as file:
+				data = file.read()
+				fin = io.BytesIO(data)
+				pyAesCrypt.decryptStream(fin, fdecrypt, password, self.bufferSize, len(fin.getvalue()))
+		except:
+			return None
+		return fdecrypt.getvalue()
+
 	def redefineRSAkey(self, key):
 		values = self.jsonifyKey(key)
 		return self.privfromJson(values)
 
 	def checkWalletExist(self, name_of_wallet, raiseErrorIfNotExist = True):
-		self.RSAkey = self.loadWallet(name_of_wallet)
+		self.RSAkey = self.loadWallet(name_of_wallet, self.password)
 		if raiseErrorIfNotExist and self.RSAkey is None:
 			print('Wallet file ' + name_of_wallet + '.wallet.dat not found !!')
 			return None
 		if self.RSAkey is None:
 			self.RSAkey = RSA.generate(1024)
-			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey))
+			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey), self.password)
 		else:
 			self.RSAkey = self.importFromDER(self.RSAkey)
-			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey))
+			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey), self.password)
 
 		return self.RSAkey
 
+	def change_password(self, old_pssword, new_password):
+		import os
 
+		ls_names = os.listdir('./wallets_cipher/')
+		for name in ls_names:
+			name = name.split('.')[0]
+			self.RSAkey = self.loadWallet(name, old_pssword)
+			self.saveWallet(self.RSAkey, name, new_password, overwrite=True)
+
+		messagebox.showinfo('Change Password with success', 'Password changed successful for given wallets: ' + str(ls_names))
 
 	def sign(self, message):
 		signer = PKCS1_v1_5.new(self.RSAkey)

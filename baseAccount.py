@@ -223,8 +223,11 @@ class CBaseAccount():
 				self.verify(par, who_is_signing.address)
 				print('SAVED = ' + str(self.kade.save(self.address, par, announce)))
 			except:
-				print('SAVED NO SIGN = ' + str(self.kade.save(self.address, self.address, announce='EXTERNAL')))
-				print('No signature','wrong wallet was load')
+				if self.wallet is None:
+					print('SAVED NO SIGN = ' + str(self.kade.save(self.address, self.address, announce='EXTERNAL')))
+					print('No signature','wrong wallet was load')
+				else:
+					messagebox.showwarning('Wallet error', 'Could not sign message with current wallet')
 
 	def save_transactions(self, transactions):
 
