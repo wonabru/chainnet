@@ -100,3 +100,4 @@ class Mbox(object):
 						CWallet().change_password(self.current_password, self.new_password)
 					else:
 						messagebox.showerror('Password validation', 'New entry passwords do not match')
+				self.top.destroy()
