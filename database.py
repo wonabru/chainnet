@@ -31,6 +31,7 @@ class CSQLLite():
                 self.sqllite.set(key=announce, value=[key, ])
             else:
                 _current.append(key)
+                _current = list(set(_current))
                 self.sqllite.set(key=announce, value=_current)
 
         else:

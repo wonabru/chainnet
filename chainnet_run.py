@@ -142,7 +142,7 @@ class Application(tk.Frame):
 	def save_all_my_accounts(self):
 		def spread():
 			for acc in self.chainnet.my_accounts.values():
-				acc['account'].save()
+				acc['account'].save(who_is_signing=acc['account'])
 
 		for i in range(10):
 			self.after(1000 * i, spread)
@@ -372,7 +372,8 @@ class Application(tk.Frame):
 			for i in range(30):
 				if _finish.finish == False:
 					self.after(1000 * i, token.lock_loop, my_account, other_account, time_to_close, _finish)
-					self.after(1100 * i, self.lbl_Lock_info_value.set, 'Locked: '+str([l[:5] for l in token.isLocked.keys()]))
+					self.after(1100 * i, self.lbl_Lock_info_value.set, 'Locked: for Token '+str(token.address[:5])
+							   + str([l[:5] for l in token.isLocked.keys()]))
 				else:
 					break
 
