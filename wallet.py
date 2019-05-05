@@ -88,6 +88,10 @@ class CWallet:
 		values = self.jsonifyKey(key)
 		return self.privfromJson(values)
 
+	def check_if_main_exist(self):
+		import os
+		return os.path.isfile("./wallets_cipher/" + '@main' + ".wallet.dat")
+
 	def checkWalletExist(self, name_of_wallet, raiseErrorIfNotExist = True):
 		self.RSAkey = self.loadWallet(name_of_wallet, self.password)
 		if raiseErrorIfNotExist and self.RSAkey is None:
@@ -95,7 +99,9 @@ class CWallet:
 			return None
 		if self.RSAkey is None:
 			self.RSAkey = RSA.generate(1024)
-			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey), self.password)
+			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey), self.password, overwrite=True)
+			if name_of_wallet == '@main':
+				self.saveWallet(self.exportDER(self.RSAkey), name_of_wallet, self.password, overwrite=True)
 		else:
 			self.RSAkey = self.importFromDER(self.RSAkey)
 			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey), self.password)

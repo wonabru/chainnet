@@ -31,8 +31,11 @@ class Mbox(object):
 		if caller_wants_an_entry:
 			self.entry = tki.Entry(frm, show='*')
 			self.entry.pack(pady=4)
-
-			b_submit = tki.Button(frm, text='Unlock')
+			d, key = dict_key
+			if key == 'set_password':
+				b_submit = tki.Button(frm, text='Create')
+			else:
+				b_submit = tki.Button(frm, text='Unlock')
 			b_submit['command'] = lambda: self.entry_to_dict(dict_key)
 			b_submit.pack()
 
@@ -105,3 +108,10 @@ class Mbox(object):
 					else:
 						messagebox.showerror('Password validation', 'Repeated password does not match')
 				self.top.destroy()
+			elif key == 'set_password':
+				chainnet = CInitChainnet('@main', password=data, from_scratch=True)
+				app = Application(master=self.root, chainnet=chainnet)
+				self.root.geometry('1000x600')
+				self.top.destroy()
+				self.parent_widget.destroy()
+				app.mainloop()

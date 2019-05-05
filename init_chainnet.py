@@ -10,11 +10,11 @@ from isolated_functions import *
 from tkinter import messagebox
 
 class CInitChainnet:
-	def __init__(self, main_wallet=None, password=None):
+	def __init__(self, main_wallet=None, password=None, from_scratch=False):
 
 		self.tokens = {}
 		self.my_accounts_names = {}
-		self.wallet = CWallet(main_wallet, password)
+		self.wallet = CWallet(main_wallet, password, from_scratch=from_scratch)
 		#CWallet().saveWallet(CWallet().exportDER(CGenesis().getPrivKey()), CWallet().getPublicKey(CGenesis().getPrivKey()))
 		self.DB = CSQLLite()
 
@@ -83,6 +83,7 @@ class CInitChainnet:
 			self.baseToken = self.my_account.inviteLimitedToken(self.baseToken.accountName, self.baseToken.creator,
 											   					self.baseToken.address, save=False)
 			self.baseToken.save(announce='EXTERNAL')
+
 
 		self.my_accounts[self.my_account.address] = {'account': self.my_account, 'wallet': self.wallet}
 		self.DB.save('my_main_accounts', str(list(set(self.my_accounts.keys()))))

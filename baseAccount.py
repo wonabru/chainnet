@@ -198,9 +198,13 @@ class CBaseAccount():
 		self.decimalPlace = decimalPlace
 		self.amount = amount
 		self.address = address
-		self.accountName = accountName
 		self.main_account = main_account
 		self.isLocked = str2obj(isLocked)
+		if self.wallet is None and accountName == '@main':
+			self.accountName = '?'
+		else:
+			self.accountName = accountName
+
 
 	def save(self, announce='', who_is_signing=None):
 		_acc_chain, _acc_created, _transactions = self.chain.getParameters()

@@ -704,16 +704,24 @@ if __name__ == '__main__':
 	dialogPasswd = passwd.Mbox
 	dialogPasswd.root = root
 
-	D = {'Password': ''}
-	D_change = {'current_password': ''}
+	if CWallet().check_if_main_exist():
+		D = {'Password': ''}
+		D_change = {'current_password': ''}
 
-	b_login_change = tk.Button(root, text='Change a password')
-	b_login_change['command'] = lambda: dialogPasswd(None).change_password((D_change, 'change_password'))
-	b_login_change.pack()
 
-	b_login = tk.Button(root, text='Unlock Wallet')
-	b_login['command'] = lambda: dialogPasswd('Give a password', (D, 'Password'), [b_login, b_login_change])
-	b_login.pack()
+		b_login_change = tk.Button(root, text='Change a password')
+		b_login_change['command'] = lambda: dialogPasswd(None).change_password((D_change, 'change_password'))
+		b_login_change.pack()
+
+		b_login = tk.Button(root, text='Unlock Wallet')
+		b_login['command'] = lambda: dialogPasswd('Give a password', (D, 'Password'), [b_login, b_login_change])
+		b_login.pack()
+	else:
+		D_set = {'set_password': ''}
+		b_login = tk.Button(root, text='Create Wallet')
+		b_login['command'] = lambda: dialogPasswd('Set a password', (D_set, 'set_password'), b_login)
+		b_login.pack()
+
 
 	root.geometry('1000x600')
 	b_login.mainloop()
