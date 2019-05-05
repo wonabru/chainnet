@@ -103,7 +103,15 @@ class CWallet:
 		return self.RSAkey
 
 	def change_password(self, old_pssword, new_password):
-		messagebox.showwarning('Change Password', 'Not implemented. Use your old password')
+		import os
+
+		ls_names = os.listdir('./wallets_cipher/')
+		for name in ls_names:
+			name = name.split('.')[0]
+			self.RSAkey = self.loadWallet(name, old_pssword)
+			self.saveWallet(self.RSAkey, name, new_password, overwrite=True)
+
+		messagebox.showinfo('Change Password with success', 'Password changed successful for given wallets: ' + str(ls_names))
 
 	def sign(self, message):
 		signer = PKCS1_v1_5.new(self.RSAkey)

@@ -707,12 +707,12 @@ if __name__ == '__main__':
 	D = {'Password': ''}
 	D_change = {'current_password': ''}
 
-	b_login = tk.Button(root, text='Unlock Wallet')
-	b_login['command'] = lambda: dialogPasswd('Give password', (D, 'Password'))
-	b_login.pack()
+	b_login_change = tk.Button(root, text='Change a password')
+	b_login_change['command'] = lambda: dialogPasswd(None).change_password((D_change, 'change_password'))
+	b_login_change.pack()
 
-	b_login = tk.Button(root, text='Change password')
-	b_login['command'] = lambda: dialogPasswd(None).change_password((D_change, 'current_password'))
+	b_login = tk.Button(root, text='Unlock Wallet')
+	b_login['command'] = lambda: dialogPasswd('Give a password', (D, 'Password'), [b_login, b_login_change])
 	b_login.pack()
 
 	root.geometry('1000x600')

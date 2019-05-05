@@ -8,7 +8,7 @@ class Mbox(object):
 
 	root = None
 
-	def __init__(self, msg, dict_key=None):
+	def __init__(self, msg, dict_key=None, parent_widget=None):
 		"""
 		msg = <str> the message to be displayed
 		dict_key = <sequence> (dictionary, key) to associate with user input
@@ -16,6 +16,7 @@ class Mbox(object):
 		"""
 		if msg is None:
 			return
+		self.parent_widget = parent_widget
 		tki = tkinter
 		self.top = tki.Toplevel(Mbox.root)
 
@@ -28,7 +29,7 @@ class Mbox(object):
 		caller_wants_an_entry = dict_key is not None
 
 		if caller_wants_an_entry:
-			self.entry = tki.Entry(frm)
+			self.entry = tki.Entry(frm, show='*')
 			self.entry.pack(pady=4)
 
 			b_submit = tki.Button(frm, text='Unlock')
@@ -49,19 +50,19 @@ class Mbox(object):
 		label = tki.Label(frm, text='Current password')
 		label.pack(padx=4, pady=4)
 
-		self.entry = tki.Entry(frm)
+		self.entry = tki.Entry(frm, show='*')
 		self.entry.pack(pady=4)
 
 		label = tki.Label(frm, text='New password')
 		label.pack(padx=4, pady=4)
 
-		self.entry_new = tki.Entry(frm)
+		self.entry_new = tki.Entry(frm, show='*')
 		self.entry_new.pack(pady=4)
 
 		label = tki.Label(frm, text='Repeat password')
 		label.pack(padx=4, pady=4)
 
-		self.entry_repeat = tki.Entry(frm)
+		self.entry_repeat = tki.Entry(frm, show='*')
 		self.entry_repeat.pack(pady=4)
 
 
@@ -86,10 +87,13 @@ class Mbox(object):
 					chainnet = CInitChainnet('@main', data)
 					app = Application(master=self.root, chainnet=chainnet)
 					self.root.geometry('1000x600')
+					self.top.destroy()
+					self.parent_widget[0].destroy()
+					self.parent_widget[1].destroy()
 					app.mainloop()
 				self.top.destroy()
 
-			elif key == 'current_password':
+			elif key == 'change_password':
 				if data != '' and CWallet().check_password(data) is False:
 					messagebox.showerror('Password validation', 'Password validation fails')
 				else:
@@ -99,4 +103,5 @@ class Mbox(object):
 					if self.new_password == self.repeat_password:
 						CWallet().change_password(self.current_password, self.new_password)
 					else:
-						messagebox.showerror('Password validation', 'New entry passwords do not match')
+						messagebox.showerror('Password validation', 'Repeated password does not match')
+				self.top.destroy()
