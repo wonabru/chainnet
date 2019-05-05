@@ -4,16 +4,23 @@ from isolated_functions import *
 import pyAesCrypt
 import io
 
+wallet_password = None
+
 class CWallet:
 	bufferSize = 64 * 1024
+
+
+
 	def __init__(self, name_of_wallet = None, password=None, from_scratch=False):
 
-		self.password = "zlehaslo" #""strzalwkolano"
+		global wallet_password
+
+		if wallet_password is None:
+			wallet_password = password
 
 		if name_of_wallet is None or name_of_wallet.find('?') >= 0:
 			return
 		else:
-			self.password = password
 			self.RSAkey = self.checkWalletExist(name_of_wallet, raiseErrorIfNotExist=not from_scratch)
 		self.pubKey = self.getPublicKey(self.RSAkey)
 
@@ -93,18 +100,18 @@ class CWallet:
 		return os.path.isfile("./wallets_cipher/" + '@main' + ".wallet.dat")
 
 	def checkWalletExist(self, name_of_wallet, raiseErrorIfNotExist = True):
-		self.RSAkey = self.loadWallet(name_of_wallet, self.password)
+		self.RSAkey = self.loadWallet(name_of_wallet, wallet_password)
 		if raiseErrorIfNotExist and self.RSAkey is None:
 			print('Wallet file ' + name_of_wallet + '.wallet.dat not found !!')
 			return None
 		if self.RSAkey is None:
 			self.RSAkey = RSA.generate(1024)
-			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey), self.password, overwrite=True)
+			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey), wallet_password, overwrite=True)
 			if name_of_wallet == '@main':
-				self.saveWallet(self.exportDER(self.RSAkey), name_of_wallet, self.password, overwrite=True)
+				self.saveWallet(self.exportDER(self.RSAkey), name_of_wallet, wallet_password, overwrite=True)
 		else:
 			self.RSAkey = self.importFromDER(self.RSAkey)
-			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey), self.password)
+			self.saveWallet(self.exportDER(self.RSAkey), self.getPublicKey(self.RSAkey), wallet_password)
 
 		return self.RSAkey
 

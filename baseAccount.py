@@ -17,6 +17,7 @@ class CBaseAccount():
 		self.isLocked = {}
 		self.wallet = None
 		self.main_account = 0
+		self.password = ''
 
 	def setAmount(self, token, amount):
 		if amount < 0:
@@ -200,10 +201,7 @@ class CBaseAccount():
 		self.address = address
 		self.main_account = main_account
 		self.isLocked = str2obj(isLocked)
-		if self.wallet is None and accountName == '@main':
-			self.accountName = '?'
-		else:
-			self.accountName = accountName
+		self.accountName = accountName
 
 
 	def save(self, announce='', who_is_signing=None):
