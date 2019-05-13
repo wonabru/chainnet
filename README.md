@@ -43,5 +43,5 @@ How to run:
      git clone https://github.com/wonabru/chainnet.git
      cd chainnet
      mkdir DB
-     mkdir wallets
+     mkdir wallets_cipher
      python chainnet_run.py
