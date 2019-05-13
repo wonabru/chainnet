@@ -19,9 +19,10 @@ class CDataBase(object):
             ret = None
         return ret
     
-    def show(self):
+    def show(self, start_with=''):
         for key, value in self.mydict.items():
-            print(key, value)
+            if key.find(start_with):
+                print(key, '\t',value, '\n')
     
     def clear(self):
         self.mydict.clear()

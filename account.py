@@ -1,52 +1,103 @@
-import numpy as np
-from chain import CChain
 from baseAccount import CBaseAccount
 from initBlock import CInitBlock
-
+from genesis import CGenesis
+import time
 
 class CAccount(CBaseAccount):
     def __init__(self, DB, accountName, creator, address):
         self.kade = DB
         super().__init__(DB, accountName, address)
-        
+        self.init_block = None
+        self.initTransaction = None
         self.creator = creator
-        try:
-            self.init_block = creator.init_block
-        except:
-            self.init_block = CInitBlock(self.kade)
+        self.init_block = CInitBlock()
+        self.chain.uniqueAccounts[CGenesis().initAccountPubKey] = self.init_block.getBaseToken()
         self.initTransaction = self.init_block.getInitTransaction()
         try:
-            self.chain.uniqueAccounts['0'] = self.init_block.getBaseToken()
             self.chain.uniqueAccounts[creator.address] = creator
             creator.chain.uniqueAccounts[self.address] = self
-            creator.save()
+            if not isinstance(creator, CBaseAccount):
+                creator.save()
         except:
             print('Warning: creator is not valid account')
 
     def copyFromBaseAccount(self, baseAccount):
-        account = self.create(baseAccount.accountName, baseAccount, baseAccount.address)
+        account = CAccount(self.kade, baseAccount.accountName, baseAccount, baseAccount.address)
         account.decimalPlace = baseAccount.decimalPlace
         account.amount = baseAccount.amount
         account.chain = baseAccount.chain
-        #account.save()
-        
+        self.chain.uniqueAccounts[baseAccount.address] = account
+        baseAccount.chain.uniqueAccounts[self.address] = self
         return account
 
-    def create(self, accountName, creator, address):
+    def create(self, accountName, creator, address, save=True):
         if address in self.chain.uniqueAccounts or accountName in self.chain.get_unique_account_names():
             return None
         account = CAccount(self.kade, accountName, creator, address)
-        self.chain.uniqueAccounts[account.address] = account
-        account.chain.uniqueAccounts[self.address] = self
-        account.save()
-        self.save()
-        creator.save()
+        #self.chain.uniqueAccounts[account.address] = account
+        #account.chain.uniqueAccounts[self.address] = self
+        if save:
+            account.save()
+            self.save()
+            creator.save()
         return account
 
-    def save(self):
-        #self.init_block.getBaseToken().save()
-        super().save()
-        
-    def update(self):
-        super().update()
+    def invite(self, accountName, creator, address, save=True):
+        from transaction import check_if_common_connection
 
+        account = CAccount(self.kade, accountName, creator, address)
+        account.update_look_at()
+        check_if_common_connection(creator, account)
+
+        #self.chain.uniqueAccounts[account.address] = account
+        #account.chain.uniqueAccounts[self.address] = self
+        if save:
+            account.save(announce='EXTERNAL')
+            self.save()
+            creator.save()
+        return account
+
+    def inviteLimitedToken(self, accountName, creator, address, save=True):
+        from transaction import check_if_common_connection
+        from limitedToken import CLimitedToken
+
+        account = CLimitedToken(self.kade, accountName, 0, creator, address)
+        while account.accountName.find('?') > 0:
+            account.update_look_at()
+            time.sleep(1)
+        check_if_common_connection(creator, account)
+
+        #self.chain.uniqueAccounts[account.address] = account
+        #account.chain.uniqueAccounts[self.address] = self
+        if save:
+            account.save(announce='EXTERNAL')
+            self.save()
+            creator.save()
+        return account
+
+    def inviteActionToken(self, accountName, creator, address, save=True):
+        from transaction import check_if_common_connection
+        from actionToken import CActionToken
+
+        account = CActionToken(self.kade, accountName, 0, creator, address)
+        while account.accountName.find('?') > 0:
+            account.update_look_at()
+            time.sleep(1)
+        check_if_common_connection(creator, account)
+
+        #self.chain.uniqueAccounts[account.address] = account
+        #account.chain.uniqueAccounts[self.address] = self
+        if save:
+            account.save(announce='EXTERNAL')
+            self.save()
+            creator.save()
+        return account
+
+    def save(self, announce='', who_is_signing=None):
+        super().save(announce, who_is_signing=who_is_signing)
+        
+    def update(self, with_chain=2):
+        super().update(with_chain=with_chain)
+
+    def update_look_at(self, with_chain=2):
+        super().update_look_at(with_chain=with_chain)

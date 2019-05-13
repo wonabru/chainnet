@@ -1,78 +1,82 @@
 from account import CAccount
 
 class CLimitedToken(CAccount):
-    def __init__(self, DB, tokenName, totalSupply, creator, address, save=True):
+    def __init__(self, DB, tokenName, totalSupply, creator, address):
         self.creator = 0
         super().__init__(DB, tokenName, creator, address)
         self.totalSupply = totalSupply
         if creator is None:
-            self.owner = CAccount(DB, '__creator__', None, -1)
+            self.owner = CAccount(DB, '?', None, -1)
         else:
             self.owner = creator
-            self.owner.setAmount(self, totalSupply, save=save)
-        self.setAmount(self, 0, save=save)
+            self.owner.setAmount(self, totalSupply)
+        self.setAmount(self, 0)
 
     def copyFromBaseLimitToken(self, baseLimitToken):
         token = CLimitedToken(self.kade, baseLimitToken.accountName, baseLimitToken.totalSupply,
                               baseLimitToken, address=baseLimitToken.address)
-        token.save()
+
+        token.chain = baseLimitToken.chain
+
         return token
 
-    def save(self):
-        super().save()
-        self.kade.save('limitedToken ' + self.address, [self.totalSupply, self.owner.address])
+    def save(self, announce='', who_is_signing=None):
+        super().save(announce, who_is_signing)
+        self.kade.save('limitedToken:' + self.address, [self.totalSupply, self.owner.address])
 
-    def update(self):
-        super().update()
-        par = self.kade.get('limitedToken ' + self.address)
+    def update(self, with_chain=2):
+        par = self.kade.get('limitedToken:' + self.address)
         self.totalSupply, _address = par
-        _account = CAccount(self.kade, '__temp__', None, _address)
-        _account.update()
+
+        super().update()
+
+        _account = CAccount(self.kade, '?', None, _address)
+        _account.update(with_chain)
         self.owner = _account
-        '''
-        for acc in self.chain.uniqueAccounts:
-            if acc != self.address:
-                self.chain.uniqueAccounts[acc].update()
-        '''
 
     def showAll(self):
-        self.update()
+        #self.update()
         totalSupply = 0
         for acc in self.chain.uniqueAccounts:
+            #self.chain.uniqueAccounts[acc].update(with_chain=False)
             self.chain.uniqueAccounts[acc].show()
-            totalSupply += self.chain.uniqueAccounts[acc].amount[self.address]
-        
-        return self.accountName + ' total Supply: ' + str(totalSupply)
+            totalSupply = totalSupply + self.chain.uniqueAccounts[acc].amount[self.address] \
+                if self.address in self.chain.uniqueAccounts[acc].amount.keys() else totalSupply
+
+        ret = self.accountName + ' total Supply: ' + str(self.totalSupply) + ' and on all accounts: ' + str(totalSupply)
+        return ret
 
     def handshake(self, account_1, account_2, attacher):
-
-        list1 = account_1.chain.uniqueAccounts
-        list2 = account_2.chain.uniqueAccounts
-
-        '''
-        account = None
-        for key, value in list1.items():
-            if key in list2:
-                account = value
-                break
-        '''
 
         if attacher is not None:
             account_1.chain.uniqueAccounts[account_2.address] = account_2
             account_2.chain.uniqueAccounts[account_1.address] = account_1
             return [attacher]
 
-        print('Handshake fails, no common connections')
-        return None
+        raise Exception("Handshake", 'Handshake fails, no common connections')
 
     def spreadToWorld(self, accounts):
         for acc in accounts:
             acc.save()
 
     def attach(self, account, attacher):
+        from actionToken import CActionToken
+
+        if account is None:
+            raise Exception("Attach", "No account exists with given name ")
+
+        if isinstance(account, CLimitedToken) or isinstance(account, CActionToken):
+            raise Exception("Attach", "Attached account cannot be any Token.")
+
+        if account.address in self.chain.uniqueAccounts:
+            raise Exception("Attach", "Account is just attached.")
+
+        if self.address == account.address:
+            raise Exception("Attach", "Account cannot be attached to itself.")
 
         listToSpread = self.handshake(self, account, attacher)
-        if listToSpread is None: return False
+        if listToSpread is None:
+            raise Exception("Attach", "Nothing to attach")
 
         if attacher.address == listToSpread[0].address:
             attacher = listToSpread[0]
@@ -83,7 +87,7 @@ class CLimitedToken(CAccount):
         else:
             self.chain.accountsCreated[attacher.address] += 1
 
-        account.setAmount(self, 0, save=False)
+        account.setAmount(self, 0)
         self.chain.uniqueAccounts[account.address] = account
         account.chain.uniqueAccounts[self.address] = self
 
