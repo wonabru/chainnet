@@ -38,6 +38,10 @@ Architecture scheme:
 
 https://drive.google.com/file/d/1KgyTw3K8rljMYVoCVcKqenLNhhZhxS-_/view?usp=sharing
 
+Flow Chart (sending coins):
+
+https://drive.google.com/file/d/174RJsX8Ep9iL93IPkKBpp0GB1uuEisIl/view?usp=sharing
+
 How to run:
     
      git clone https://github.com/wonabru/chainnet.git
