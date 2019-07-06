@@ -12,7 +12,7 @@ class CSQLLite():
         if instance_kade is None:
             node_identifier = socket.gethostbyname(socket.gethostname())
             self.sqllite = sqllite()
-            self.nodes = ["192.168.0.38", "192.168.56.1", "10.0.2.2", "10.0.2.15", "127.0.0.1", node_identifier]
+            self.nodes = ["3.113.39.120", "192.168.0.38", "192.168.56.1", "10.0.2.2", "10.0.2.15", "127.0.0.1", node_identifier]
             self.kade = CDataBase()
             self.kade.initiate()
             instance_kade = self

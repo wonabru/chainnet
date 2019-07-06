@@ -603,7 +603,7 @@ class Application(tk.Frame):
 
 				self.chainnet.my_accounts[_account.address] = {'account': _account, 'wallet': None}
 				self.chainnet.my_accounts[token]['account'] = _baseToken
-				
+
 				_acc = []
 				_acc.extend([acc['account'].accountName for acc in self.chainnet.my_accounts.values()])
 
