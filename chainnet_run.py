@@ -449,6 +449,8 @@ class Application(tk.Frame):
 			self.supply_spin.grid_remove()
 			self.lbl_new_address.grid_remove()
 			self.new_address_ent.grid_remove()
+			self.token_to_attached_lbl.grid(row=7, column=0, sticky=tk.W)
+			self.token_to_attached_ent.grid(row=7, column=1, sticky=tk.W)
 			self.create_new_account_btn_lbl.set("Create new account")
 
 		if self.selected_account.get() in [2, 5,6]:
@@ -456,6 +458,12 @@ class Application(tk.Frame):
 			self.supply_spin.grid_remove()
 			self.lbl_new_address.grid(row=6, column=0, sticky=tk.W)
 			self.new_address_ent.grid(row=6, column=1, sticky=tk.W)
+			if self.selected_account.get() == 2:
+				self.token_to_attached_lbl.grid(row=7, column=0, sticky=tk.W)
+				self.token_to_attached_ent.grid(row=7, column=1, sticky=tk.W)
+			else:
+				self.token_to_attached_lbl.grid_remove()
+				self.token_to_attached_ent.grid_remove()
 			self.create_new_account_btn_lbl.set("Invite account")
 
 		if self.selected_account.get() == 3:
@@ -464,6 +472,8 @@ class Application(tk.Frame):
 			self.supply_spin.grid(row=8, column=1, sticky=tk.W)
 			self.lbl_new_address.grid_remove()
 			self.new_address_ent.grid_remove()
+			self.token_to_attached_lbl.grid_remove()
+			self.token_to_attached_ent.grid_remove()
 			self.create_new_account_btn_lbl.set("Create new Limited Token")
 
 		if self.selected_account.get() == 4:
@@ -472,6 +482,8 @@ class Application(tk.Frame):
 			self.supply_spin.grid(row=8, column=1, sticky=tk.W)
 			self.lbl_new_address.grid_remove()
 			self.new_address_ent.grid_remove()
+			self.token_to_attached_lbl.grid_remove()
+			self.token_to_attached_ent.grid_remove()
 			self.create_new_account_btn_lbl.set("Create new Action Token")
 
 
@@ -487,6 +499,13 @@ class Application(tk.Frame):
 
 		self.new_address_ent = tk.Entry(self.create_tab, width=50, font=("Arial", 16))
 		_amount = tk.DoubleVar()
+
+		self.token_to_attached_lbl = tk.Label(self.create_tab, text='Token to attach:',
+								font=("Arial", 16))
+
+		self.token_to_attached_ent = tk.Entry(self.create_tab, width=50, font=("Arial", 16))
+		self.token_to_attached_lbl.grid(row=7, column=0, sticky=tk.W)
+		self.token_to_attached_ent.grid(row=7, column=1, sticky=tk.W)
 
 		self.supply_spin = tk.Spinbox(self.create_tab, from_=0, to=1000000000000, width=20, textvariable=_amount)
 		_amount.set(1000000)
@@ -534,13 +553,12 @@ class Application(tk.Frame):
 		tk.Button(self.create_tab, textvariable=self.create_new_account_btn_lbl, bg='orange',
 				  fg='black', font=("Arial", 16),
 				  command=lambda: self.create_new_account(self.new_name_ent.get(),
-																			self.new_address_ent.get(),
-									                                        self.supply_spin.get())).grid(row=10,
-																										  column=0,
-		                                                                                                  columnspan=2,
-		                                                                                                  rowspan=2)
+														  self.new_address_ent.get(),
+									                      self.supply_spin.get(),
+														  self.token_to_attached_ent.get())
+				  ).grid(row=10, column=0, columnspan=2, rowspan=2)
 
-	def create_new_account(self, accountName, address, initSupply):
+	def create_new_account(self, accountName, address, initSupply, token):
 		if accountName == '':
 			messagebox.showwarning(title='Account name', message='Account name cannot be empty')
 			return
@@ -555,17 +573,18 @@ class Application(tk.Frame):
 
 		try:
 			initSupply = float(initSupply)
+			_baseToken = self.chainnet.my_accounts[token]['account']
 			if self.selected_account.get() == 1:
 				_wallet = CWallet('', from_scratch=True)
 
-				_account = self.chainnet.baseToken.create(accountName=accountName, creator=self.my_main_account, address=_wallet.pubKey, save=False)
+				_account = _baseToken.create(accountName=accountName, creator=self.my_main_account, address=_wallet.pubKey, save=False)
 				if _account is None:
 					messagebox.showerror(title='Error in account creating', message='Account is not created')
 					return
 
 				_account.save()
 				self.chainnet.my_accounts[_account.address] = {'account': _account, 'wallet': _wallet}
-
+				self.chainnet.my_accounts[token]['account'] = _baseToken
 				_acc = []
 				_acc.extend([acc['account'].accountName for acc in self.chainnet.my_accounts.values()])
 
@@ -579,11 +598,12 @@ class Application(tk.Frame):
 				messagebox.showinfo('Account created', _account.accountName + ' from now you are in Chainnet')
 
 			if self.selected_account.get() == 2:
-				_account = self.chainnet.baseToken.invite(accountName=accountName, creator=self.my_main_account, address=address)
+				_account = _baseToken.invite(accountName=accountName, creator=self.my_main_account, address=address)
 				_account.save()
 
 				self.chainnet.my_accounts[_account.address] = {'account': _account, 'wallet': None}
-
+				self.chainnet.my_accounts[token]['account'] = _baseToken
+				
 				_acc = []
 				_acc.extend([acc['account'].accountName for acc in self.chainnet.my_accounts.values()])
 
@@ -699,15 +719,12 @@ if __name__ == '__main__':
 	root = tk.Tk()
 	root.title("Chainnet Wallet App")
 
-
-
 	dialogPasswd = passwd.Mbox
 	dialogPasswd.root = root
 
 	if CWallet().check_if_main_exist():
 		D = {'Password': ''}
 		D_change = {'current_password': ''}
-
 
 		b_login_change = tk.Button(root, text='Change a password')
 		b_login_change['command'] = lambda: dialogPasswd(None).change_password((D_change, 'change_password'))

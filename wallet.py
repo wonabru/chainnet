@@ -8,9 +8,6 @@ wallet_password = None
 
 class CWallet:
 	bufferSize = 64 * 1024
-
-
-
 	def __init__(self, name_of_wallet = None, password=None, from_scratch=False):
 
 		global wallet_password
