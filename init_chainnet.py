@@ -7,7 +7,7 @@ from baseAccount import CBaseAccount
 from account import CAccount
 from genesis import CGenesis
 from isolated_functions import *
-from tkinter import messagebox
+
 
 class CInitChainnet:
 	def __init__(self, main_wallet=None, password=None, from_scratch=False):
