@@ -31,7 +31,7 @@
 <!-- /wp:paragraph -->
 
 <!-- wp:list -->
-<ul><li>No need of 51% consensus of network to accept block, thus instant transactions.</li><li>Negative transactions fees, what can be understood as negative friction. Activity in network builds its value and supply, so stabilize its price.</li><li>No infant time of this blockchain. Chainnet is secure from very beginning.</li><li>Joining to network is per invitation, so someone who is in the network can create new accounts, so closely related to real human social network.</li><li>No need to store whole blockchain on each node, so no proxy servers which operate on your name. Everybody can operate Chainnet from smartphone. Idea of true decentralization.</li></ul>
+<ul><li>No need of 51% consensus of network to accept block, thus instant transactions.</li><li>Negative transactions fees, what can be understood as negative friction. Activity in network builds its value and supply, so stabilize its price.</li><li>No infant time of this blockchain. Chainnet is secure from very beginning.</li><li>Joining to network is per invitation, so someone who is in the network can create new accounts, so closely related to real human social network.</li><li>No need to store whole blockchain on each node, so no proxy servers which operate on your name. Everybody can operate Chainnet from smartphone. Idea of true decentralization.</li><li>Problem of blockchains’ oracle is solved in Chainnet, by introducing temporary Oracle (some endpoint on internet) on which each participant of a transaction agreed. Because it is not permanent Oracle, but defined temporary by users of each transaction, it is also fully secure. The Oracle possibility makes Chainnet as the secure hedge for spot transaction among different blockchains (cross-blockchains DEX). In this sense Chainnet can be defined as meta-blockchain.</ul>
 <!-- /wp:list -->
 
 Architecture scheme:
@@ -42,7 +42,7 @@ Flow Chart (sending coins):
 
 https://drive.google.com/file/d/174RJsX8Ep9iL93IPkKBpp0GB1uuEisIl/view?usp=sharing
 
-How to run:
+How to run prototype:
     
      git clone https://github.com/wonabru/chainnet.git
      cd chainnet
