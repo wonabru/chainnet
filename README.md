@@ -42,7 +42,7 @@ Flow Chart (sending coins):
 
 https://drive.google.com/file/d/174RJsX8Ep9iL93IPkKBpp0GB1uuEisIl/view?usp=sharing
 
-Possible solution of Cross-blockchain DEX:
+Possible solution of Cross-blockchains DEX by means of Chainnet:
 
 https://www.draw.io/?lightbox=1&highlight=0000ff&edit=_blank&layers=1&nav=1&page-id=WnRQjQuZmzYBiC_cBbqv&title=Chainnet_Flow_SEND_TOKENS.drawio#Uhttps%3A%2F%2Fdrive.google.com%2Fuc%3Fid%3D174RJsX8Ep9iL93IPkKBpp0GB1uuEisIl%26export%3Ddownload
 
