@@ -132,7 +132,7 @@ class CWallet:
 
 	@staticmethod
 	def verify(message, signature, pub_keyencode):
-		rsa_temp.key.key.n = decode(pub_keyencode)
+		rsa_temp.key._n = decode(pub_keyencode)
 		signer = PKCS1_v1_5.new(rsa_temp.key.publickey())
 		digest = Hash.SHA256.new()
 		digest.update(serialize(message))
