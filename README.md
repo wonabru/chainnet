@@ -34,9 +34,13 @@
 <ul><li>No need of 51% consensus of network to accept block, thus instant transactions.</li><li>Negative transactions fees, what can be understood as negative friction. Activity in network builds its value and supply, so stabilize its price.</li><li>No infant time of this blockchain. Chainnet is secure from very beginning.</li><li>Joining to network is per invitation, so someone who is in the network can create new accounts, so closely related to real human social network.</li><li>No need to store whole blockchain on each node, so no proxy servers which operate on your name. Everybody can operate Chainnet from smartphone. Idea of true decentralization.</li><li>Problem of blockchains’ oracle is solved in Chainnet, by introducing temporary Oracle (some endpoint on internet) on which each participant of a transaction agreed. Because it is not permanent Oracle, but defined temporary by users of each transaction, it is also fully secure. The Oracle possibility makes Chainnet as the secure hedge for spot transaction among different blockchains (cross-blockchains DEX). In this sense Chainnet can be defined as meta-blockchain.</ul>
 <!-- /wp:list -->
 
+Storage structure in Chainnet:
+
+https://drive.google.com/file/d/1qL9Unblo03oR6xyeT8zejbxUNybYsXiz/view?usp=sharing
+
 Architecture scheme:
 
-https://drive.google.com/file/d/1KgyTw3K8rljMYVoCVcKqenLNhhZhxS-_/view?usp=sharing
+https://drive.google.com/file/d/14Qkt-kVUtlySzOfkKslWz9xz6_iL7YEb/view?usp=sharing
 
 Flow Chart (sending coins):
 
