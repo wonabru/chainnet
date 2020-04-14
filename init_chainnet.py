@@ -162,8 +162,6 @@ class CInitChainnet:
 	def update_my_accounts(self):
 		self.load_tokens()
 		try:
-			self.init_account = self.Qcoin.initAccount
-
 			_my_accounts = self.get_my_accounts()
 			for acc in _my_accounts:
 				if acc in self.tokens.keys():

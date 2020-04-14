@@ -113,6 +113,8 @@ class CBaseAccount():
 		return atomic, time_to_close
 
 	def send_loop(self, recipient, atomic, time_to_close, finish):
+
+		if time_to_close
 		recipient.save_atomic_transaction(atomic, announce='AtomicTransaction:')
 		_signature = self.kade.look_at('SignatureRecipient:' + atomic.getHash())
 		if _signature is not None:

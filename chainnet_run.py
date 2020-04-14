@@ -101,7 +101,7 @@ class Application(tk.Frame):
 		self.info_txt.delete(1.0, tk.END)
 		self.info_txt.insert(tk.INSERT, "Account: \n" + account+"\n")
 		self.info_txt.insert(tk.INSERT, "Token: \n" + token+"\n")
-		_account = self.chainnet.select_my_acount_by_name(account, update=False)
+		_account = self.chainnet.select_my_account_by_name(account, update=False)
 		self.info_txt.insert(tk.INSERT, _account.show() + "\n")
 		_token = self.chainnet.get_token_by_name(token)
 		self.info_txt.insert(tk.INSERT, _token.show() + "\n")
@@ -260,7 +260,7 @@ class Application(tk.Frame):
 		def loop(finish, atomic):
 			_txn = DB.look_at('FinalTransaction:'+self.atomicTransaction.getHash()+':Transaction')
 			if _txn is not None:
-				_account.process_transaction(_txn, dt.datetime.today(), [atomic, ])
+				_account.process_transaction(_txn, dt.datetime.utcnow(), [atomic, ])
 				finish.finish = True
 				return
 			finish.finish = False
@@ -359,10 +359,10 @@ class Application(tk.Frame):
 	def lock(self, my_account, other_account, token, waiting_time):
 		try:
 			self.chainnet.update_my_accounts()
-			my_account = self.chainnet.select_my_acount_by_name(my_account)
+			my_account = self.chainnet.select_my_account_by_name(my_account)
 			token = self.chainnet.get_token_by_name(token)
 			my_account.load_wallet()
-			time_to_close = dt.datetime.today() + dt.timedelta(seconds=float(waiting_time))
+			time_to_close = dt.datetime.utcnow() + dt.timedelta(seconds=float(waiting_time))
 
 			token.lockAccounts(my_account, my_account.wallet.sign('Locking for deal: ' + my_account.address + ' + ' +
 			                                          other_account + ' till ' + str(time_to_close)),
@@ -377,7 +377,7 @@ class Application(tk.Frame):
 				else:
 					break
 
-			if time_to_close < dt.datetime.today():
+			if time_to_close < dt.datetime.utcnow():
 					raise Exception('Lock Accounts fails', 'Could not found locked accounts till '+str(time_to_close))
 
 			if _finish.finish:
@@ -390,7 +390,7 @@ class Application(tk.Frame):
 		try:
 			self.chainnet.update_my_accounts()
 			account = self.chainnet.my_accounts[account]['account']
-			attacher = self.chainnet.select_my_acount_by_name(attacher)
+			attacher = self.chainnet.select_my_account_by_name(attacher)
 			token = self.chainnet.get_token_by_name(token)
 			if attacher.address in token.chain.uniqueAccounts:
 				if token.attach(account, attacher=attacher):
@@ -414,7 +414,7 @@ class Application(tk.Frame):
 		try:
 			amount = float(amount)
 			self.chainnet.update_my_accounts()
-			from_account = self.chainnet.select_my_acount_by_name(from_account)
+			from_account = self.chainnet.select_my_account_by_name(from_account)
 			to_account = self.chainnet.my_accounts[to_account]['account']
 			token = self.chainnet.get_token_by_name(token)
 			if to_account.address in token.chain.uniqueAccounts:
@@ -427,7 +427,7 @@ class Application(tk.Frame):
 					else:
 						break
 
-				if time_to_close < dt.datetime.today():
+				if time_to_close < dt.datetime.utcnow():
 					raise Exception('Sign Transaction fails',
 									'Could not obtain valid signature from recipient till ' + str(time_to_close))
 
@@ -558,7 +558,8 @@ class Application(tk.Frame):
 														  self.token_to_attached_ent.get())
 				  ).grid(row=10, column=0, columnspan=2, rowspan=2)
 
-	def create_new_account(self, accountName, address, initSupply, token):
+	def create_new_account(self, accountName, address: str, initSupply, token):
+		address = address.strip('"')
 		if accountName == '':
 			messagebox.showwarning(title='Account name', message='Account name cannot be empty')
 			return
@@ -573,7 +574,8 @@ class Application(tk.Frame):
 
 		try:
 			initSupply = float(initSupply)
-			_baseToken = self.chainnet.my_accounts[token]['account']
+			if token != '':
+				_baseToken = self.chainnet.my_accounts[token]['account']
 			if self.selected_account.get() == 1:
 				_wallet = CWallet('', from_scratch=True)
 

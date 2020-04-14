@@ -153,8 +153,8 @@ class CTransaction():
             raise Exception('Add Transaction', 'Verification fails')
 
         try:
-            if dt.datetime.strptime(self.timeToClose, '%Y-%m-%d %H:%M:%S') < dt.datetime.strptime(
-                    atomicTransaction.time, '%Y-%m-%d %H:%M:%S'):
+            if dt.datetime.strptime(self.timeToClose, '%Y-%m-%dT%H:%M:%S') < dt.datetime.strptime(
+                    atomicTransaction.time, '%Y-%m-%dT%H:%M:%S'):
                 raise Exception('Add Transaction', 'Time to finish transaction just elapsed')
 
         except Exception as ex:
